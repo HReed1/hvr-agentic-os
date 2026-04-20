@@ -1,4 +1,7 @@
 agent_app/.adk/
 .env
 __pycache__/
+agent_app/__pycache__/*
 venv/
+*.pyc
+.staging/
