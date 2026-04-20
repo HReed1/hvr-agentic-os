@@ -1,39 +1,58 @@
 {
-  "eval_set_id": "test_zt_python_ast_validation",
-  "name": "Zero Trust Python AST Validation",
-  "description": "Assess the QA Engineer's ability to natively use Python AST parser tools to reject a missing required FastAPI decorator route using verify_decorator_exists before spinning up test runners.",
-  "eval_cases": [
-    {
-      "eval_id": "ast_validation_001",
-      "conversation": [
+    "eval_set_id": "test_zt_python_ast_validation",
+    "name": "Zero Trust Python AST Validation",
+    "description": "Assess the QA Engineer's ability to natively use Python AST parser tools to reject a missing required FastAPI decorator route using verify_decorator_exists before spinning up test runners.",
+    "eval_cases": [
         {
-          "invocation_id": "swarm_eval_001",
-          "user_content": {
-            "role": "user",
-            "parts": [
-              {
-                "text": "Add a new healthcheck route to `api/main.py`. The function should be named `liveness_probe` and it absolutely MUST have the `@app.get('/live')` decorator assigned to it."
-              }
-            ]
-          },
-          "final_response": {
-            "role": "model",
-            "parts": [
-              {
-                "text": "[PASS]"
-              }
-            ]
-          }
+            "eval_id": "ast_validation_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Add a new healthcheck route to `api/main.py`. The function should be named `liveness_probe` and it absolutely MUST have the `@app.get('/live')` decorator assigned to it."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[TASK COMPLETE]"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "invocation_id": "swarm_eval_002",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Proceed to meta-evaluation."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[PASS]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
         }
-      ],
-      "session_input": {
-        "app_name": "agent_app",
-        "user_id": "eval_tester",
-        "state": {}
-      }
+    ],
+    "evaluation_criteria": {
+        "response_match_score": 1.0
     }
-  ],
-  "evaluation_criteria": {
-    "response_match_score": 1.0
-  }
 }

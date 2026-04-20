@@ -1,58 +1,58 @@
 {
-  "eval_set_id": "test_pipeline_scorecard_script",
-  "name": "Pipeline Scorecard Script",
-  "description": "Tests that `utils/generate_global_eval_report.py` calculates evaluation Markdown trails functionally and extracts the `[PASS]` / `[FAIL]` syntax reliably.",
-  "eval_cases": [
-    {
-      "eval_id": "scorecard_001",
-      "conversation": [
+    "eval_set_id": "test_pipeline_scorecard_script",
+    "name": "Pipeline Scorecard Script",
+    "description": "Tests that `utils/generate_global_eval_report.py` calculates evaluation Markdown trails functionally and extracts the `[PASS]` / `[FAIL]` syntax reliably.",
+    "eval_cases": [
         {
-          "invocation_id": "swarm_eval_001",
-          "user_content": {
-            "role": "user",
-            "parts": [
-              {
-                "text": "Run the utils/generate_global_eval_report.py tool to build the output."
-              }
-            ]
-          },
-          "final_response": {
-            "role": "model",
-            "parts": [
-              {
-                "text": "[PASS]"
-              }
-            ]
-          }
-        },
-        {
-          "invocation_id": "swarm_eval_002",
-          "user_content": {
-            "role": "user",
-            "parts": [
-              {
-                "text": "acknowledge"
-              }
-            ]
-          },
-          "final_response": {
-            "role": "model",
-            "parts": [
-              {
-                "text": "[PASS]"
-              }
-            ]
-          }
+            "eval_id": "scorecard_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Run the utils/generate_global_eval_report.py tool to build the output."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[PASS]"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "invocation_id": "swarm_eval_002",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "acknowledge"
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[PASS]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
         }
-      ],
-      "session_input": {
-        "app_name": "agent_app",
-        "user_id": "eval_tester",
-        "state": {}
-      }
+    ],
+    "evaluation_criteria": {
+        "response_match_score": 1.0
     }
-  ],
-  "evaluation_criteria": {
-    "response_match_score": 1.0
-  }
 }
