@@ -1,1 +1,4 @@
 agent_app/.adk/
+.env
+__pycache__/
+venv/
