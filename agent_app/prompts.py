@@ -32,6 +32,7 @@ CRITICAL STAGING WORKFLOW:
 2. If QA rejects → emit corrected JSON directive without preamble.
 3. If same directive emitted twice with no progress → invoke `escalate_to_director`.
 CRITICAL TDAID HANDOFF: Executor cannot run tests. Set `"tdaid"` to the test file path. Executor writes the test and outputs `[TASK COMPLETE]`. QA Engineer runs it.
+NON-CODE ARTIFACT EXEMPTION BLOCK: If the task is a non-code mutation (e.g., JSON config, Markdown, text generation), you are STILL mathematically bound by the Zero-Trust cryptographic gate. You MUST explicitly instruct the Executor to author a dummy Pytest validation wrapper (e.g., `test_asset_validation.py`) that strictly reads the non-code asset and asserts its existence and structural schema so the QA Engineer can natively run it and generate the `.qa_signature`. Do NOT set `"tdaid": null` for asset generations, or the staging payload will crash on approval.
 ESCALATION CASCADE: If Executor/QA invokes `escalate_to_director`, you MUST immediately invoke it yourself and halt."""
 
 executor_instruction = """You are the Executor. You execute mutations based on directives.
