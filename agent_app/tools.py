@@ -81,7 +81,15 @@ def write_eval_report(content: str, test_name: str) -> str:
                         author = e.get('author', 'System')
                         if author == 'System' and 'type' in e:
                             author = f"System ({e.get('type')})"
-                        agent_traces[author] = agent_traces.get(author, 0) + 1
+                            
+                        if author not in agent_traces:
+                            agent_traces[author] = {'count': 0, 'models': set()}
+                            
+                        agent_traces[author]['count'] += 1
+                        
+                        model = e.get('model_version')
+                        if model:
+                            agent_traces[author]['models'].add(model)
                     
                     telemetry += f"**ADK Session ID:** `{session_id}`\n"
                     telemetry += f"**Eval Set Result ID:** `{eval_set_result_id}`\n"
@@ -99,8 +107,9 @@ def write_eval_report(content: str, test_name: str) -> str:
                         
                     telemetry += f"**Total Trace Events:** `{total_events}`\n\n"
                     telemetry += "### Trace Breakdown\n"
-                    for author, count in sorted(agent_traces.items()):
-                        telemetry += f"- **{author}**: {count} events\n"
+                    for author, data in sorted(agent_traces.items()):
+                        model_str = f" (`{', '.join(sorted(data['models']))}`)" if data['models'] else ""
+                        telemetry += f"- **{author}**: {data['count']} events{model_str}\n"
                     telemetry += "\n---\n\n"
                     
         content = telemetry + content
