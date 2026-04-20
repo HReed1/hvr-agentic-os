@@ -4,6 +4,7 @@ import subprocess
 import hmac
 import hashlib
 from datetime import datetime
+import secrets
 
 from .config import BASE_DIR
 
@@ -84,7 +85,9 @@ def _get_qa_secret() -> bytes:
     """Fetches the deterministic or dynamic secret for HMAC signing to validate state passes natively."""
     key_file = os.path.join(BASE_DIR, ".agents", "memory", "staging_key.txt")
     if not os.path.exists(key_file):
-        return b"NGS_ZERO_TRUST_SIMULATION_KEY_2026"
+        os.makedirs(os.path.dirname(key_file), exist_ok=True)
+        with open(key_file, "w") as f:
+            f.write(secrets.token_hex(32))
     with open(key_file, "r") as f:
         return f.read().strip().encode('utf-8')
 

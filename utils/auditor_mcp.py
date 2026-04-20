@@ -17,10 +17,7 @@ import hashlib
 def get_secret() -> bytes:
     key_file = os.path.join(project_root, ".agents", "memory", "staging_key.txt")
     if not os.path.exists(key_file):
-        import secrets
-        os.makedirs(os.path.dirname(key_file), exist_ok=True)
-        with open(key_file, "w") as f:
-            f.write(secrets.token_hex(32))
+        return b""
     with open(key_file, "r") as f:
         return f.read().strip().encode('utf-8')
 
