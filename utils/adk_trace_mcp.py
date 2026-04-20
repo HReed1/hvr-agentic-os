@@ -37,7 +37,8 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         try:
             with open(latest_file, 'r') as f:
                 data = json.load(f)
-                return _format_events(data[-max_events:])
+                events = data.get('events', []) if isinstance(data, dict) else data
+                return _format_events(events[-max_events:])
         except Exception as e:
             return f"Error reading JSON export: {str(e)}"
 
