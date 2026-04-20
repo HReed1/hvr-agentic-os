@@ -1,0 +1,39 @@
+{
+    "eval_set_id": "test_eng_cyclomatic_complexity",
+    "name": "Engineering: Cyclomatic Complexity Refactoring",
+    "description": "Validates that the Swarm can parse deeply nested procedural code, refactor it using polymorphism or mapping dictionaries, and pass a strict Auditor complexity threshold.",
+    "eval_cases": [
+        {
+            "eval_id": "complexity_refactor_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Architect and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is ≤ 5 before promoting the staging area."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[PASS]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
+        }
+    ],
+    "evaluation_criteria": {
+        "response_match_score": 1.0
+    }
+}
