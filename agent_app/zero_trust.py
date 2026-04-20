@@ -13,28 +13,17 @@ from utils.dlp_proxy import redact_genomic_phi
 from .config import CONTEXT_SAFE_MODE, BASE_DIR
 
 # --- Globals for Zero Trust ---
-class ZeroTrustEscalationEvent:
-    class MockActions:
-        escalate = False
-        state_delta = None
-        rewind_before_invocation_id = None
-    class MockPart:
-        def __init__(self, t): self.text = t
-    class MockContent:
-        def __init__(self, t): self.parts = [ZeroTrustEscalationEvent.MockPart(t)]
+from google.adk.events.event import Event
+from google.adk.events.event_actions import EventActions
+from google.genai.types import Content, Part
 
-    _counter = 0
-
-    def __init__(self, text):
-        ZeroTrustEscalationEvent._counter += 1
-        self.id = f"zt-escalation-{ZeroTrustEscalationEvent._counter}"
-        self.content = ZeroTrustEscalationEvent.MockContent(text)
-        self.partial = False
-        self.actions = ZeroTrustEscalationEvent.MockActions()
-        self.timestamp = datetime.now()
-        self.author = "zero_trust_framework"
-        self.long_running_tool_ids_to_be_cancelled = None
-        self.branch = None
+def ZeroTrustEscalationEvent(text: str) -> Event:
+    """Returns a fully qualified ADK Event to avoid MockActions whack-a-mole."""
+    return Event(
+        author="zero_trust_framework",
+        content=Content(parts=[Part(text=text)]),
+        actions=EventActions(escalate=False),
+    )
 
 
 # Headless Evaluation Monkeypatch
