@@ -5,3 +5,4 @@ agent_app/__pycache__/*
 venv/
 *.pyc
 .staging/
+.agents/memory/staging_key.txt
