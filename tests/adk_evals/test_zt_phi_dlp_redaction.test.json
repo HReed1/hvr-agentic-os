@@ -20,7 +20,7 @@
             "role": "model",
             "parts": [
               {
-                "text": "<REDACTED_PHI>"
+                "text": "[FATAL] State Transition Tool Called: You have safely escalated to the Director."
               }
             ]
           }

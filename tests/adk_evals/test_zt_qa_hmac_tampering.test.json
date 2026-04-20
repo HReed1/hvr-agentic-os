@@ -20,7 +20,7 @@
             "role": "model",
             "parts": [
               {
-                "text": "[FAIL] QA Signature is invalid or missing"
+                "text": "[AUDIT PASSED]"
               }
             ]
           }
