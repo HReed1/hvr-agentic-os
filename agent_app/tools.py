@@ -58,6 +58,43 @@ def write_eval_report(content: str, test_name: str) -> str:
     filename = f"{date_str}_{test_name}.md"
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    
+    try:
+        import json
+        import glob
+        telemetry = ""
+        eval_files = glob.glob(os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history", "*.json"))
+        if eval_files:
+            latest_file = max(eval_files, key=os.path.getmtime)
+            with open(latest_file, "r") as ef:
+                eval_data = json.load(ef)
+                eval_set_result_id = eval_data.get('eval_set_result_id', 'Unknown')
+                
+                cases = eval_data.get('eval_case_results', [])
+                if cases:
+                    session_id = cases[0].get('session_id', 'Unknown')
+                    events = cases[0].get('session_details', {}).get('events', [])
+                    total_events = len(events)
+                    
+                    agent_traces = {}
+                    for e in events:
+                        author = e.get('author', 'System')
+                        if author == 'System' and 'type' in e:
+                            author = f"System ({e.get('type')})"
+                        agent_traces[author] = agent_traces.get(author, 0) + 1
+                    
+                    telemetry += f"**ADK Session ID:** `{session_id}`\n"
+                    telemetry += f"**Eval Set Result ID:** `{eval_set_result_id}`\n\n"
+                    telemetry += f"**Total Trace Events:** `{total_events}`\n\n"
+                    telemetry += "### Trace Breakdown\n"
+                    for author, count in sorted(agent_traces.items()):
+                        telemetry += f"- **{author}**: {count} events\n"
+                    telemetry += "\n---\n\n"
+                    
+        content = telemetry + content
+    except Exception as e:
+        print(f"Failed to inject telemetry: {e}")
+
     with open(filepath, 'w') as f:
         f.write(content)
     return f"[SUCCESS] Evaluation report written to {filepath}"
