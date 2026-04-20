@@ -11,7 +11,8 @@ swarm_mode = os.environ.get("ADK_SWARM_MODE", "").lower()
 
 if swarm_mode == "research":
     agent = research_discovery_loop
-elif swarm_mode == "eval" or IS_HEADLESS_EVAL:
-    agent = evaluation_swarm
+elif swarm_mode == "meta_eval":
+    from .agents import evaluator_agent
+    agent = evaluator_agent
 else:
     agent = autonomous_swarm

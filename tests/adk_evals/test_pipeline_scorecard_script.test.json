@@ -20,26 +20,7 @@
                         "role": "model",
                         "parts": [
                             {
-                                "text": "[PASS]"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "invocation_id": "swarm_eval_002",
-                    "user_content": {
-                        "role": "user",
-                        "parts": [
-                            {
-                                "text": "acknowledge"
-                            }
-                        ]
-                    },
-                    "final_response": {
-                        "role": "model",
-                        "parts": [
-                            {
-                                "text": "[PASS]"
+                                "text": "[TASK COMPLETE]"
                             }
                         ]
                     }

@@ -24,25 +24,6 @@
                             }
                         ]
                     }
-                },
-                {
-                    "invocation_id": "swarm_eval_002",
-                    "user_content": {
-                        "role": "user",
-                        "parts": [
-                            {
-                                "text": "Proceed to meta-evaluation."
-                            }
-                        ]
-                    },
-                    "final_response": {
-                        "role": "model",
-                        "parts": [
-                            {
-                                "text": "[PASS]"
-                            }
-                        ]
-                    }
                 }
             ],
             "session_input": {
