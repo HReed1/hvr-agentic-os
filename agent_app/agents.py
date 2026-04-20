@@ -115,6 +115,14 @@ auditor_tools = [
             )
         )
     ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+            )
+        )
+    ),
     get_user_choice
 ]
 
