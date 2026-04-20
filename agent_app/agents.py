@@ -28,8 +28,6 @@ from .tools import (
 from .prompts import (
     director_instruction, architect_instruction, executor_instruction,
     qa_instruction, auditor_instruction, reporter_instruction,
-    cicd_director_instruction, cicd_architect_instruction,
-    cicd_executor_instruction, cicd_qa_instruction, cicd_auditor_instruction,
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction
 )
@@ -108,37 +106,6 @@ qa_agent = LlmAgent(
     tools=qa_tools
 )
 
-cicd_director_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_director',
-    instruction=cicd_director_instruction,
-    tools=[run_pipeline_diagnostics, list_docs, read_doc, mark_system_complete]
-)
-
-cicd_architect_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_architect',
-    instruction=cicd_architect_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=architect_tools
-)
-
-cicd_executor_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='cicd_executor',
-    instruction=cicd_executor_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=executor_tools
-)
-
-cicd_qa_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='cicd_qa_engineer',
-    instruction=cicd_qa_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=qa_tools
-)
-
 auditor_tools = [
     McpToolset(
         connection_params=StdioConnectionParams(
@@ -163,13 +130,6 @@ reporter_agent = LlmAgent(
     name='reporting_director',
     instruction=reporter_instruction,
     tools=[write_retrospective]
-)
-
-cicd_auditor_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_auditor',
-    instruction=cicd_auditor_instruction,
-    tools=auditor_tools
 )
 
 codebase_research_agent = LlmAgent(
@@ -209,41 +169,6 @@ architectural_loop = LoopAgent(
     name="architectural_loop",
     max_iterations=10,
     sub_agents=[architect_agent, development_loop]
-)
-
-cicd_development_loop = LoopAgent(
-    name="cicd_development_loop",
-    max_iterations=10,
-    sub_agents=[cicd_executor_agent, cicd_qa_agent]
-)
-
-cicd_architectural_loop = LoopAgent(
-    name="cicd_architectural_loop",
-    max_iterations=10,
-    sub_agents=[cicd_architect_agent, cicd_development_loop]
-)
-
-cicd_director_loop = LoopAgent(
-    name="cicd_director_loop",
-    max_iterations=10,
-    sub_agents=[cicd_director_agent, cicd_architectural_loop, cicd_auditor_agent]
-)
-
-cicd_reporter_instruction = """You are the CI/CD Reporting Director. You evaluate the execution trace of the CI/CD loop.
-Your sole job is to synthesize the testing remediation history into a formal markdown Retrospective Document.
-Use the `write_retrospective` tool to save your document. You must evaluate if it was a SUCCESS based on whether the Director outputted [SYSTEM COMPLETE]. 
-Once the file is written, output `[REPORT COMPLETE]`."""
-
-cicd_reporter_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_reporting_director',
-    instruction=cicd_reporter_instruction,
-    tools=[write_retrospective]
-)
-
-cicd_swarm = SequentialAgent(
-    name="cicd_swarm",
-    sub_agents=[cicd_director_loop, cicd_reporter_agent]
 )
 
 director_loop = LoopAgent(
