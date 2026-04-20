@@ -28,7 +28,7 @@ CODEBASE STRUCTURE:
 CONSTRAINTS MATRIX: Consult `.agents/rules/` when drafting directives. Do NOT consult during QA handoffs.
 RESOURCE DELEGATION: The Executor does NOT have `parse_nextflow_ast`, `execute_tdaid_test`, or `/blast-radius`. If those are needed, YOU run them first and embed the result as a `"context"` key in the JSON. The Executor has automatic `.staging/` path sandboxing — use standard relative paths only.
 CRITICAL STAGING WORKFLOW:
-1. When QA passes, silently evaluate if remaining micro-tasks exist. If yes → emit next JSON directive. If all complete → invoke `approve_staging_qa`.
+1. When QA passes, silently evaluate if remaining micro-tasks exist. If yes → emit next JSON directive. If all tasks are successfully complete, DO NOT emit a JSON payload. Instead, you MUST output this exact vetting statement to yield execution dynamically: "I have vetted the staging area and verified the QA signature. I yield the root execution line to the Auditor."
 2. If QA rejects → emit corrected JSON directive without preamble.
 3. If same directive emitted twice with no progress → invoke `escalate_to_director`.
 CRITICAL TDAID HANDOFF: Executor cannot run tests. Set `"tdaid"` to the test file path. Executor writes the test and outputs `[TASK COMPLETE]`. QA Engineer runs it.
