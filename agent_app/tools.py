@@ -61,23 +61,28 @@ def write_eval_report(content: str, test_name: str) -> str:
     
     try:
         import json
-        import glob
+        import sqlite3
         telemetry = ""
-        eval_files = glob.glob(os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history", "*.json"))
-        if eval_files:
-            latest_file = max(eval_files, key=os.path.getmtime)
-            with open(latest_file, "r") as ef:
-                eval_data = json.load(ef)
-                eval_set_result_id = eval_data.get('eval_set_result_id', 'Unknown')
-                
-                cases = eval_data.get('eval_case_results', [])
-                if cases:
-                    session_id = cases[0].get('session_id', 'Unknown')
-                    events = cases[0].get('session_details', {}).get('events', [])
-                    total_events = len(events)
+        db_path = os.path.join(BASE_DIR, "agent_app", ".adk", "session.db")
+        if os.path.exists(db_path):
+            with sqlite3.connect(db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1")
+                row = cursor.fetchone()
+                if row:
+                    session_id = row[0]
+                    cursor.execute("SELECT timestamp, event_data FROM events WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
+                    rows = cursor.fetchall()
                     
+                    total_events = len(rows)
                     agent_traces = {}
-                    for e in events:
+                    
+                    for ts, event_json in rows:
+                        try:
+                            e = json.loads(event_json)
+                        except:
+                            continue
+                            
                         author = e.get('author', 'System')
                         if author == 'System' and 'type' in e:
                             author = f"System ({e.get('type')})"
@@ -92,12 +97,11 @@ def write_eval_report(content: str, test_name: str) -> str:
                             agent_traces[author]['models'].add(model)
                     
                     telemetry += f"**ADK Session ID:** `{session_id}`\n"
-                    telemetry += f"**Eval Set Result ID:** `{eval_set_result_id}`\n"
                     
                     try:
-                        start_ts = events[0].get('timestamp', 0)
-                        end_ts = events[-1].get('timestamp', 0)
-                        if start_ts and end_ts:
+                        if rows:
+                            start_ts = rows[0][0]
+                            end_ts = rows[-1][0]
                             duration = end_ts - start_ts
                             mins = int(duration // 60)
                             secs = int(duration % 60)
