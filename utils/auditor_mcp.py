@@ -15,7 +15,14 @@ import hmac
 import hashlib
 
 def get_secret() -> bytes:
-    return b"NGS_ZERO_TRUST_SIMULATION_KEY_2026"
+    key_file = os.path.join(project_root, ".agents", "memory", "staging_key.txt")
+    if not os.path.exists(key_file):
+        import secrets
+        os.makedirs(os.path.dirname(key_file), exist_ok=True)
+        with open(key_file, "w") as f:
+            f.write(secrets.token_hex(32))
+    with open(key_file, "r") as f:
+        return f.read().strip().encode('utf-8')
 
 mcp = FastMCP("Auditor Validation Server")
 
@@ -75,12 +82,16 @@ def promote_staging_area() -> str:
             # 2. Host OS Modification (Strict Zero-Trust Directory Whitelist mapped to rsync)
             import subprocess
             
-            # Explicitly hardcode the exact structural branches the Swarm is authorized to mutate
-            approved_dirs = [
-                "api", "agent_app", "orchestrator", "infrastructure", 
-                "utils", "tests", "core", "src", "etl", "db-init", 
-                "alembic", "bin", "docker"
-            ]
+            # Explicitly define the exact structural branches the Swarm is authorized to mutate
+            whitelist_env = os.environ.get("ADK_ALLOWED_STAGING_DIRS", "")
+            if whitelist_env:
+                approved_dirs = [d.strip() for d in whitelist_env.split(",") if d.strip()]
+            else:
+                approved_dirs = [
+                    "api", "agent_app", "orchestrator", "infrastructure", 
+                    "utils", "tests", "core", "src", "etl", "db-init", 
+                    "alembic", "bin", "docker"
+                ]
             
             for directory in approved_dirs:
                 source_path = os.path.join(staging_dir, directory)

@@ -2,7 +2,7 @@ import os
 import vertexai
 from google.cloud import aiplatform
 
-def initialize_vertex_rag_corpus(project_id="general-477613", location="us-west1", corpus_display_name="ngs_variant_validator_rag"):
+def initialize_vertex_rag_corpus(project_id=os.environ.get("VERTEX_PROJECT_ID", "your-project-id-here"), location="us-west1", corpus_display_name=os.environ.get("VERTEX_RAG_CORPUS_NAME", "my_adk_rag_corpus")):
     print(f"Initializing Vertex AI Context in {project_id} ({location})...")
     vertexai.init(project=project_id, location=location)
     

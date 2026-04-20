@@ -11,7 +11,8 @@ def redact_genomic_phi(content: str, redact_uuids: bool = True) -> str:
     """
     if not isinstance(content, str):
         return content
-        
+
+    # Example of how to add a new DLP regex proxy
     # Redact Genomic sequence
     content = re.sub(r'[ATCGatcg]{20,}', '<REDACTED_PHI>', content)
     
