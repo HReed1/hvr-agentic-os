@@ -4,7 +4,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from . import agents
-from .agents import IS_HEADLESS_EVAL, autonomous_swarm, evaluation_swarm, research_discovery_loop, cicd_swarm
+from .config import IS_HEADLESS_EVAL
+from .agents import autonomous_swarm, evaluation_swarm, research_discovery_loop, cicd_swarm
 
 swarm_mode = os.environ.get("ADK_SWARM_MODE", "").lower()
 
