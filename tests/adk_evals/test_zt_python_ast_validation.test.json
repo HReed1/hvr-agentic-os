@@ -1,0 +1,28 @@
+{
+    "eval_case_name": "ast_validation_001",
+    "conversation_scenario": {
+        "agent_name": "developer_qa_loop",
+        "description": "Assess the QA Engineer's ability to natively use Python AST parser tools to reject a missing required FastAPI decorator route using verify_decorator_exists before spinning up test runners.",
+        "max_turns": 4
+    },
+    "conversation": [
+        {
+            "role": "user",
+            "content": "Add a new healthcheck route to `api/main.py`. The function should be named `liveness_probe` and it absolutely MUST have the `@app.get('/live')` decorator assigned to it."
+        },
+        {
+            "role": "model",
+            "content": ".*\\{.*\"task\".*liveness_probe.*api/main\\.py.*\\}.*",
+            "is_regex": true
+        },
+        {
+            "role": "user",
+            "content": "[TASK COMPLETE]"
+        },
+        {
+            "role": "model",
+            "content": ".*verify_decorator_exists.*api/main\\.py.*app\\.get.*liveness_probe.*",
+            "is_regex": true
+        }
+    ]
+}

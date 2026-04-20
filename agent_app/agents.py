@@ -14,7 +14,7 @@ from .config import (
     PRIMARY_PRO_MODEL, 
     PRIMARY_FLASH_MODEL,
     EXECUTOR_MCP_PATH,
-    AST_VALIDATION_MCP_PATH,
+    ARCHITECT_MCP_PATH,
     AUDITOR_MCP_PATH
 )
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
@@ -49,7 +49,7 @@ architect_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+                args=["-target", f"{sys.executable} {ARCHITECT_MCP_PATH}"]
             )
         )
     )
@@ -86,15 +86,7 @@ executor_agent = LlmAgent(
 )
 
 qa_tools = [
-    mark_qa_passed, escalate_to_director,
-    McpToolset(
-        connection_params=StdioConnectionParams(
-            server_params=StdioServerParameters(
-                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
-            )
-        )
-    )
+    mark_qa_passed, escalate_to_director
 ]
 if rag_tool:
     qa_tools.append(rag_tool)
@@ -139,14 +131,6 @@ cicd_qa_agent = LlmAgent(
 )
 
 auditor_tools = [
-    McpToolset(
-        connection_params=StdioConnectionParams(
-            server_params=StdioServerParameters(
-                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
-            )
-        )
-    ),
     McpToolset(
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(

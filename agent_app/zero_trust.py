@@ -33,6 +33,7 @@ class ZeroTrustEscalationEvent:
         self.timestamp = datetime.now()
         self.author = "zero_trust_framework"
         self.long_running_tool_ids_to_be_cancelled = None
+        self.branch = None
 
 
 # Headless Evaluation Monkeypatch
