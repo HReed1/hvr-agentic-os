@@ -59,9 +59,8 @@ else
 fi
 
 # 7. Project Workspaces
-mkdir -p src
-mkdir -p api
-echo "Created src/ and api/ canonical output directories."
+mkdir -p src api core etl infrastructure
+echo "Created src/, api/, core/, etl/, and infrastructure/ canonical output directories."
 
 echo "================================================="
 echo "[SUCCESS] Zero-Trust Operating System Bootstrapped."

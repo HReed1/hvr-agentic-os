@@ -9,6 +9,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXECUTOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "executor_mcp.py")
 ARCHITECT_MCP_PATH = os.path.join(BASE_DIR, "utils", "architect_mcp.py")
 AUDITOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "auditor_mcp.py")
+AST_VALIDATION_MCP_PATH = os.path.join(BASE_DIR, "utils", "ast_validation_mcp.py")
 
 # --- Model Configuration ---
 PRIMARY_PRO_MODEL = os.environ.get("GEMINI_PRO_MODEL", "gemini-3.1-pro-preview")

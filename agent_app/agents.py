@@ -15,7 +15,8 @@ from .config import (
     PRIMARY_FLASH_MODEL,
     EXECUTOR_MCP_PATH,
     ARCHITECT_MCP_PATH,
-    AUDITOR_MCP_PATH
+    AUDITOR_MCP_PATH,
+    AST_VALIDATION_MCP_PATH
 )
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
@@ -86,7 +87,15 @@ executor_agent = LlmAgent(
 )
 
 qa_tools = [
-    mark_qa_passed, escalate_to_director
+    mark_qa_passed, escalate_to_director,
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+            )
+        )
+    )
 ]
 if rag_tool:
     qa_tools.append(rag_tool)

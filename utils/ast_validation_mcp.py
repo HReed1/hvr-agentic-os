@@ -1,6 +1,27 @@
 import os
 import ast
+import subprocess
+import sys
+import shutil
+import hmac
+import hashlib
 from mcp.server.fastmcp import FastMCP
+
+# Ensure local imports resolve when called natively by the MCP Host process
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from utils.dlp_proxy import redact_genomic_phi
+from utils.staging_lease import acquire_staging_lease
+
+def get_secret() -> bytes:
+    key_file = os.path.join(project_root, ".agents", "memory", "staging_key.txt")
+    if os.path.exists(key_file):
+        with open(key_file, "r") as f:
+            return f.read().strip().encode('utf-8')
+    return b"NGS_ZERO_TRUST_SIMULATION_KEY_2026"
 
 mcp = FastMCP("ast_validation_mcp")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -125,6 +146,86 @@ def detect_unsafe_functions(file_path: str) -> str:
     if violations:
         return "[SECURITY VIOLATION] Unsafe primitive execution detected:\n" + "\n".join(violations)
     return "[CLEAN] No intrinsically unsafe functions detected in AST."
+
+@mcp.tool()
+def execute_tdaid_test(test_path: str) -> str:
+    """
+    Linked to workflow: @tdaid-audit & skill: @tdaid-ast-assertion
+    Executes a TDAID (Test-Driven AI Development) Red/Green pytest assertion natively.
+    Mandated by AGENTS.md before any structural pipeline mutations.
+    """
+    try:
+        with acquire_staging_lease(exclusive=False):
+            staging_dir = os.path.abspath(os.path.join(current_dir, "..", ".staging"))
+            
+            if not os.path.exists(staging_dir):
+                return redact_genomic_phi("[FATAL] Staging airlock does not exist. Tests must be staged before execution.", redact_uuids=False)
+                
+            if test_path.startswith(".staging/"):
+                test_path = test_path.replace(".staging/", "", 1)
+                
+            target_path = os.path.join(staging_dir, test_path)
+
+            venv_pytest = os.path.join(project_root, "venv", "bin", "pytest")
+            venv_pip = os.path.join(project_root, "venv", "bin", "pip")
+            if not os.path.exists(venv_pytest):
+                venv_pytest = "pytest" # graceful fallback
+                venv_pip = "pip"
+                
+            env = os.environ.copy()
+            env["PYTHONPATH"] = f"{staging_dir}:{project_root}"
+
+            # Zero-Trust Physical Copy Bridge
+            STAGING_BLOCKLIST = [".staging", ".git", "venv", ".venv", "__pycache__", ".pytest_cache", "node_modules"]
+            for root, dirs, files in os.walk(project_root):
+                path_parts = root.split(os.sep)
+                if any(b in path_parts for b in STAGING_BLOCKLIST):
+                    continue
+                
+                rel_path = os.path.relpath(root, project_root)
+                staging_target_dir = os.path.join(staging_dir, rel_path)
+                os.makedirs(staging_target_dir, exist_ok=True)
+                
+                for file in files:
+                    if not file.startswith('.') and not file.endswith(('.pyc', '.so')):
+                        base_fp = os.path.join(root, file)
+                        staging_fp = os.path.join(staging_target_dir, file)
+                        if not os.path.exists(staging_fp):
+                            try:
+                                shutil.copy2(base_fp, staging_fp)
+                            except Exception:
+                                pass
+
+            # Zero-Trust Dependency Sync
+            staged_reqs_path = os.path.join(staging_dir, "requirements.txt")
+            if os.path.exists(staged_reqs_path):
+                subprocess.run([venv_pip, "install", "-r", staged_reqs_path], capture_output=True, env=env)
+
+            result = subprocess.run(
+                [venv_pytest, test_path, "-v", "--tb=short"], 
+                capture_output=True, 
+                text=True, 
+                timeout=300,
+                cwd=staging_dir,
+                env=env
+            )
+            
+            output_limit = 2500
+            
+            if result.returncode == 0:
+                sig = hmac.new(get_secret(), b"QA_PASSED", hashlib.sha256).hexdigest()
+                with open(os.path.join(staging_dir, ".qa_signature"), "w") as f:
+                    f.write(sig)
+                return redact_genomic_phi(f"[SUCCESS] TDAID Assertions Passed (Exit 0). Cryptographic hash written securely to .staging/.qa_signature\n{result.stdout[-output_limit:]}", redact_uuids=False)
+            else:
+                return redact_genomic_phi(f"[FAILED] TDAID Assertions Failed (Exit {result.returncode}):\n{result.stdout[-output_limit:]}\nSTDERR:\n{result.stderr[-output_limit:]}", redact_uuids=False)
+            
+    except BlockingIOError as e:
+        return str(e)
+    except subprocess.TimeoutExpired:
+        return redact_genomic_phi(f"FATAL: Test execution for {test_path} timed out after 300 seconds. Process killed and lock released.", redact_uuids=False)
+    except Exception as e:
+        return redact_genomic_phi(f"Unexpected Error executing TDAID tests: {str(e)}", redact_uuids=False)
 
 if __name__ == "__main__":
     mcp.run()
