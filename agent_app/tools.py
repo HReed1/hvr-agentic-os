@@ -84,7 +84,19 @@ def write_eval_report(content: str, test_name: str) -> str:
                         agent_traces[author] = agent_traces.get(author, 0) + 1
                     
                     telemetry += f"**ADK Session ID:** `{session_id}`\n"
-                    telemetry += f"**Eval Set Result ID:** `{eval_set_result_id}`\n\n"
+                    telemetry += f"**Eval Set Result ID:** `{eval_set_result_id}`\n"
+                    
+                    try:
+                        start_ts = events[0].get('timestamp', 0)
+                        end_ts = events[-1].get('timestamp', 0)
+                        if start_ts and end_ts:
+                            duration = end_ts - start_ts
+                            mins = int(duration // 60)
+                            secs = int(duration % 60)
+                            telemetry += f"**Execution Time:** `{mins}m {secs}s`\n"
+                    except Exception:
+                        pass
+                        
                     telemetry += f"**Total Trace Events:** `{total_events}`\n\n"
                     telemetry += "### Trace Breakdown\n"
                     for author, count in sorted(agent_traces.items()):
