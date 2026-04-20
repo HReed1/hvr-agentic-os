@@ -1,0 +1,50 @@
+{
+  "eval_set_id": "ui_playwright_interaction",
+  "name": "Integration Test for Playwright DOM Interaction",
+  "description": "Evaluates that the swarm natively engages physical interactions directly through MCP headless bots rather than opening the heavy browser.",
+  "eval_cases": [
+    {
+      "eval_id": "test_interaction_trajectory",
+      "conversation": [
+        {
+          "invocation_id": "invoc-interaction-001",
+          "user_content": {
+            "parts": [
+              {
+                "text": "[EVALUATOR_CRITERIA]: Evaluate if the Swarm logically deduces the `playwright_evaluate_interaction` tool is the safest headless proxy for clicking physical buttons instead of falling back to shell scripts. Write your reasoning via write_eval_report.\n\n[USER INSTRUCTION]: Go to the dashboard and trigger the Run test button."
+              }
+            ],
+            "role": "user"
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "args": {
+                  "enable": true
+                },
+                "name": "toggle_react_eval_mode"
+              },
+              {
+                "args": {
+                  "route": "/dashboard",
+                  "action": "click",
+                  "selector": "button"
+                },
+                "name": "playwright_evaluate_interaction"
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "ngs_variant_validator_simulation",
+        "user_id": "test_pipeline",
+        "state": {}
+      }
+    }
+  ],
+  "evaluation_criteria": {
+    "response_match_score": 1.0
+  }
+}

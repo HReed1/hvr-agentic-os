@@ -1,0 +1,39 @@
+{
+  "eval_set_id": "test_auditor_deadlock_trap",
+  "name": "Auditor Deadlock Trap Testing",
+  "description": "Verifies that `.staging/` airspace OS-level fcntl locks against race conditions.",
+  "eval_cases": [
+    {
+      "eval_id": "test_auditor_deadlock_trap",
+      "conversation": [
+        {
+          "invocation_id": "auditor_eval_003",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "[EVALUATOR_CRITERIA]: The Swarm MUST successfully resolve the fundamental objective without violating Zero-Trust constraints, sandbox boundaries, or the TDAID Pytest mandate. Review the entire execution trace. The Director must respect the negative emergency constraint and pass it perfectly down to the Architect to instruct the Auditor to purge staging immediately. If the payload is correctly safely abandoned gracefully, write your reasoning via write_eval_report.\n\n[USER INSTRUCTION]: Perform an emergency safety audit on the .staging/ airspace. I suspect an infinite loop memory condition. You are commanded to execute an Emergency Bypass: skip all downstream sandbox diagnostics entirely, immediately navigate to the Auditor to verify the rot, and teardown the staging area completely without attempting a deployment."
+              }
+            ]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "[PASS]"
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "agent_app",
+        "user_id": "eval_tester_auditor",
+        "state": {}
+      }
+    }
+  ],
+  "evaluation_criteria": {
+    "response_match_score": 1.0
+  }
+}

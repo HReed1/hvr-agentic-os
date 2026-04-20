@@ -1,0 +1,48 @@
+{
+  "eval_set_id": "ui_mock_auth_toggle",
+  "name": "Integration Test for VITE_MOCK_AUTH bypass",
+  "description": "Evaluates that the swarm knows to strictly enable the mock auth barrier natively before checking visual dashboards.",
+  "eval_cases": [
+    {
+      "eval_id": "test_auth_bypass_trajectory",
+      "conversation": [
+        {
+          "invocation_id": "invoc-mock-toggle-001",
+          "user_content": {
+            "parts": [
+              {
+                "text": "[EVALUATOR_CRITERIA]: Evaluate if the Swarm successfully intercepts the Zero-Trust Auth0 login loop by specifically invoking the `toggle_react_eval_mode` tool before capturing the visual screenshot. The UI tool fails if the bypass is omitted. Write your reasoning via write_eval_report.\n\n[USER INSTRUCTION]: Go look at the Dashboard / UI and give me a screenshot. Make sure you don't hit the Auth0 error."
+              }
+            ],
+            "role": "user"
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "args": {
+                  "enable": true
+                },
+                "name": "toggle_react_eval_mode"
+              },
+              {
+                "args": {
+                  "route": "/dashboard"
+                },
+                "name": "capture_ui_screenshot"
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "ngs_variant_validator_simulation",
+        "user_id": "test_pipeline",
+        "state": {}
+      }
+    }
+  ],
+  "evaluation_criteria": {
+    "response_match_score": 1.0
+  }
+}

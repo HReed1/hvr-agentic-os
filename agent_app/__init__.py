@@ -1,0 +1,18 @@
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from . import agents
+from .agents import IS_HEADLESS_EVAL, autonomous_swarm, evaluation_swarm, research_discovery_loop, cicd_swarm
+
+swarm_mode = os.environ.get("ADK_SWARM_MODE", "").lower()
+
+if swarm_mode == "research":
+    agent = research_discovery_loop
+elif swarm_mode == "eval" or IS_HEADLESS_EVAL:
+    agent = evaluation_swarm
+elif swarm_mode == "cicd":
+    agent = cicd_swarm
+else:
+    agent = autonomous_swarm

@@ -1,0 +1,44 @@
+{
+  "eval_set_id": "api_fuzzer_trajectory",
+  "name": "Integration Test for Webhook Fuzzing",
+  "description": "Evaluates that the swarm bypasses Nextflow execution when only asked to test backend API authentication limits.",
+  "eval_cases": [
+    {
+      "eval_id": "test_fuzzer_trajectory",
+      "conversation": [
+        {
+          "invocation_id": "invoc-fuzzer-001",
+          "user_content": {
+            "parts": [
+              {
+                "text": "[EVALUATOR_CRITERIA]: Evaluate if the Swarm respects the TDAID testing framework and isolates the FastAPI backend using `fuzz_telemetry_webhook` instead of provisioning a full AWS Batch Nextflow infrastructure. Write your reasoning via write_eval_report.\n\n[USER INSTRUCTION]: Send a fake telemetry loop to the FastAPI backend and verify if it rejects bad authentication strings."
+              }
+            ],
+            "role": "user"
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "args": {
+                  "run_id": "TDAID-API-001",
+                  "status": "COMPLETED",
+                  "use_valid_secret": false
+                },
+                "name": "fuzz_telemetry_webhook"
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "ngs_variant_validator_simulation",
+        "user_id": "test_pipeline",
+        "state": {}
+      }
+    }
+  ],
+  "evaluation_criteria": {
+    "response_match_score": 1.0
+  }
+}
