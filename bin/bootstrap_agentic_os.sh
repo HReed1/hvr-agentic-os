@@ -45,82 +45,14 @@ echo "Created artifacts/ handoff directory."
 mkdir -p .staging
 echo "Created .staging/ temporary Executor containment directory."
 
-# 6. Minimal Nextflow Orchestration Backbone
-if [ ! -f main.nf ]; then
-    cat << 'EOF' > main.nf
-#!/usr/bin/env nextflow
-
-nextflow.enable.dsl=2
-
-process HELLO_WORLD {
-    echo true
-    script:
-    """
-    echo "Agentic OS Orchestration Pipeline Successfully Initialized."
-    """
-}
-
-workflow {
-    HELLO_WORLD()
-}
-EOF
-    echo "Created baseline main.nf orchestration script."
-else
-    echo "Skipped: main.nf orchestration script already exists."
-fi
-
-if [ ! -f nextflow.config ]; then
-    cat << 'EOF' > nextflow.config
-manifest {
-    name = 'HVR Agentic OS Defaults'
-    description = 'Standard execution environment bound by Zero-Trust parameters.'
-}
-
-profiles {
-    local {
-        process.executor = 'local'
-        docker.enabled = true
-    }
-    awsbatch {
-        process.executor = 'awsbatch'
-        process.queue = 'agent-os-compute-queue'
-        aws.region = 'us-east-1'
-        aws.batch.cliPath = '/home/ec2-user/miniconda/bin/aws'
-    }
-}
-EOF
-    echo "Created baseline nextflow.config with local and AWS Batch profiles."
-else
-    echo "Skipped: nextflow.config already exists."
-fi
-
-# 7. Terraform AWS Boundary Baseline
-mkdir -p infrastructure/aws
-if [ ! -f infrastructure/aws/main.tf ]; then
-    cat << 'EOF' > infrastructure/aws/main.tf
-provider "aws" {
-    region = "us-east-1"
-}
-
-# Baseline Launch Template constraint for the Architect to inspect
-resource "aws_launch_template" "compute_node" {
-    name = "agent-os-compute-node"
-    instance_type = "m5.large"
-}
-EOF
-    echo "Created baseline infrastructure/aws/main.tf for Architectural Audits."
-else
-    echo "Skipped: infrastructure/aws/main.tf already exists."
-fi
-
-# 8. Testing Matrix Baseline
+# 6. Testing Matrix Baseline
 mkdir -p tests
 if [ ! -f tests/test_baseline.py ]; then
-    cat << 'EOF' > tests/test_baseline.py
+    cat << 'INNEREOF' > tests/test_baseline.py
 def test_system_baseline():
     """Baseline test to prevent pytest from exiting with exit code 5 (no tests collected)."""
     assert True
-EOF
+INNEREOF
     echo "Created tests/test_baseline.py for systemic Pytest verification."
 else
     echo "Skipped: tests/test_baseline.py already exists."
