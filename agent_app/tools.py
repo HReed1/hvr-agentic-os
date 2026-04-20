@@ -88,9 +88,14 @@ def write_eval_report(content: str, test_name: str) -> str:
                             author = f"System ({e.get('type')})"
                             
                         if author not in agent_traces:
-                            agent_traces[author] = {'count': 0, 'models': set()}
+                            agent_traces[author] = {'count': 0, 'models': set(), 'tokens_in': 0, 'tokens_out': 0}
                             
                         agent_traces[author]['count'] += 1
+                        
+                        usage = e.get('usage_metadata', {})
+                        if isinstance(usage, dict):
+                            agent_traces[author]['tokens_in'] += usage.get('prompt_token_count', 0)
+                            agent_traces[author]['tokens_out'] += usage.get('candidates_token_count', 0)
                         
                         model = e.get('model_version')
                         if model:
@@ -113,7 +118,8 @@ def write_eval_report(content: str, test_name: str) -> str:
                     telemetry += "### Trace Breakdown\n"
                     for author, data in sorted(agent_traces.items()):
                         model_str = f" (`{', '.join(sorted(data['models']))}`)" if data['models'] else ""
-                        telemetry += f"- **{author}**: {data['count']} events{model_str}\n"
+                        token_str = f" [In: {data['tokens_in']:,} | Out: {data['tokens_out']:,}]" if (data['tokens_in'] or data['tokens_out']) else ""
+                        telemetry += f"- **{author}**: {data['count']} events{model_str}{token_str}\n"
                     telemetry += "\n---\n\n"
                     
         content = telemetry + content
