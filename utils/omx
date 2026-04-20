@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-# Air-gap boundary bridge mapping sandbox worker API calls back to the orchestrator layer
-node /app/oh-my-ngs-variant-validator/dist/cli/index.js "$@"
