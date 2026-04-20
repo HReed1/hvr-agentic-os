@@ -306,5 +306,43 @@ def execute_coverage_report(test_path: str, target_module: str) -> str:
     except Exception as e:
         return redact_genomic_phi(f"Unexpected Error executing Coverage execution: {str(e)}", redact_uuids=False)
 
+@mcp.tool()
+def measure_cyclomatic_complexity(file_path: str) -> str:
+    """
+    Calculates the McCabe Cyclomatic Complexity score for all functions/classes in a staged Python file natively using AST walking.
+    Use this to strictly enforce architectural simplicity (complexity <= 5) before merging.
+    """
+    try:
+        tree, _ = _read_ast(file_path)
+    except Exception as e:
+        return f"[ERROR] {e}"
+        
+    complexities = {}
+    branch_nodes = (
+        ast.If, ast.While, ast.For, ast.AsyncFor,
+        ast.ExceptHandler, ast.With, ast.AsyncWith,
+        ast.And, ast.Or
+    )
+    if hasattr(ast, 'Match'):
+        branch_nodes += (ast.Match,)
+    
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            score = 1
+            for child in ast.walk(node):
+                if isinstance(child, branch_nodes):
+                    score += 1
+            complexities[node.name] = score
+            
+    if not complexities:
+        return "[SUCCESS] Complexity Score: 1 (No functions detected)"
+        
+    max_score = max(complexities.values())
+    breakdown = "\n".join(f" - {name}(): {score}" for name, score in complexities.items())
+    
+    if max_score > 5:
+        return f"[COMPLEXITY VIOLATION] Max Score is {max_score}! (Limit <= 5)\nBreakdown:\n{breakdown}"
+    return f"[SUCCESS] Max Complexity Score: {max_score}\nBreakdown:\n{breakdown}"
+
 if __name__ == "__main__":
     mcp.run()
