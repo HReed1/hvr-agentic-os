@@ -17,6 +17,7 @@ class ZeroTrustEscalationEvent:
     class MockActions:
         escalate = False
         state_delta = None
+        rewind_before_invocation_id = None
     class MockPart:
         def __init__(self, t): self.text = t
     class MockContent:
