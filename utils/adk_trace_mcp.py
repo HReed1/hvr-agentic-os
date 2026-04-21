@@ -202,5 +202,32 @@ def generate_global_scorecard() -> str:
     except Exception as e:
         return f"Error executing global eval report generator: {str(e)}"
 
+@mcp.tool()
+def import_eval_traces() -> str:
+    """
+    Parses evaluating JSON matrices natively from .adk/eval_history and imports 
+    them structurally into the standard SQLite ADK Database without EVAL masks.
+    This seamlessly bridges headless telemetry arrays directly into the React GUI.
+    """
+    script_path = os.path.join(project_root, "bin", "adk-trace-importer.py")
+    if not os.path.exists(script_path):
+        return f"Error: Trace importer script not found at {script_path}"
+        
+    try:
+        result = subprocess.run(
+            [sys.executable, script_path],
+            capture_output=True,
+            text=True,
+            cwd=project_root
+        )
+        
+        if result.returncode == 0:
+            return f"Successfully unlocked headless JSON traces into the session UI.\n\nSTDOUT:\n{result.stdout}"
+        else:
+            return f"Failed to unlock evaluation traces. Error:\nSTDERR: {result.stderr}\nSTDOUT: {result.stdout}"
+            
+    except Exception as e:
+        return f"Error executing trace importer: {str(e)}"
+
 if __name__ == "__main__":
     mcp.run()
