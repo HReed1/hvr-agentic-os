@@ -246,6 +246,11 @@ def execute_coverage_report(test_path: str, target_module: str) -> str:
             if test_path.startswith(".staging/"):
                 test_path = test_path.replace(".staging/", "", 1)
                 
+            if target_module.endswith(".py"):
+                target_module = target_module[:-3].replace(os.sep, ".")
+            elif os.sep in target_module:
+                target_module = target_module.replace(os.sep, ".")
+                
             venv_coverage = os.path.join(project_root, "venv", "bin", "coverage")
             venv_pytest = os.path.join(project_root, "venv", "bin", "pytest")
             venv_pip = os.path.join(project_root, "venv", "bin", "pip")
