@@ -16,6 +16,16 @@ def _is_safe_path(path: str) -> bool:
 
 STAGING_BLOCKLIST = [".staging", ".git", "venv", ".venv", "__pycache__", ".pytest_cache", "node_modules"]
 
+def _resolve_airlock_path(file_path: str) -> tuple[str, str, str]:
+    if os.path.isabs(file_path) and file_path.startswith(BASE_DIR):
+        file_path = os.path.relpath(file_path, BASE_DIR)
+    if file_path.startswith(".staging/"):
+        file_path = file_path.replace(".staging/", "", 1)
+        
+    staging_path = os.path.join(BASE_DIR, ".staging", file_path)
+    base_path = os.path.join(BASE_DIR, file_path)
+    return file_path, staging_path, base_path
+
 def _ensure_staged():
     """Lazily populates the .staging airlock with physical copies of the workspace if unprimed."""
     staging_dir = os.path.join(BASE_DIR, ".staging")
@@ -56,15 +66,7 @@ def _ensure_staged():
 def read_workspace_file(file_path: str) -> str:
     """Reads a file natively. Evaluates the `.staging` airlock first, falling back to the main workspace."""
     _ensure_staged()
-    # Convert absolute paths back to relative
-    if os.path.isabs(file_path) and file_path.startswith(BASE_DIR):
-        file_path = os.path.relpath(file_path, BASE_DIR)
-        
-    if file_path.startswith(".staging/"):
-        file_path = file_path.replace(".staging/", "", 1)
-        
-    staging_path = os.path.join(BASE_DIR, ".staging", file_path)
-    base_path = os.path.join(BASE_DIR, file_path)
+    file_path, staging_path, base_path = _resolve_airlock_path(file_path)
     
     # Evaluate airlock first
     target_path = staging_path if os.path.exists(staging_path) else base_path
@@ -89,14 +91,7 @@ def read_workspace_file(file_path: str) -> str:
 def list_workspace_directory(directory_path: str = ".") -> str:
     """Lists the contents of a directory. Physically trapped inside the `.staging` airlock or base workspace."""
     _ensure_staged()
-    if os.path.isabs(directory_path) and directory_path.startswith(BASE_DIR):
-        directory_path = os.path.relpath(directory_path, BASE_DIR)
-        
-    if directory_path.startswith(".staging/"):
-        directory_path = directory_path.replace(".staging/", "", 1)
-        
-    staging_path = os.path.join(BASE_DIR, ".staging", directory_path)
-    base_path = os.path.join(BASE_DIR, directory_path)
+    directory_path, staging_path, base_path = _resolve_airlock_path(directory_path)
     
     if not _is_safe_path(base_path):
         return f"[SECURITY ERROR] Path escapes workspace bounds."
@@ -124,53 +119,48 @@ def list_workspace_directory(directory_path: str = ".") -> str:
     return "\n".join(sorted(list(items)))
     
 @mcp.tool()
+def _build_search_index(base_path, staging_path):
+    files_to_search = {}
+    
+    if os.path.exists(base_path):
+        if os.path.isfile(base_path):
+            files_to_search[os.path.relpath(base_path, BASE_DIR)] = base_path
+        else:
+            for root, _, files in os.walk(base_path):
+                if '.git' in root or '.staging' in root or 'venv' in root or '__pycache__' in root:
+                    continue
+                for f in files:
+                    if not f.startswith('.') and not f.endswith(('.pyc', '.so')):
+                        full_path = os.path.join(root, f)
+                        files_to_search[os.path.relpath(full_path, BASE_DIR)] = full_path
+                        
+    if os.path.exists(staging_path):
+        if os.path.isfile(staging_path):
+            rel = os.path.relpath(staging_path, BASE_DIR).replace(".staging/", "", 1)
+            files_to_search[rel] = staging_path
+        else:
+            for root, _, files in os.walk(staging_path):
+                for f in files:
+                    if not f.startswith('.') and not f.endswith('.pyc'):
+                        full_path = os.path.join(root, f)
+                        rel = os.path.relpath(full_path, BASE_DIR).replace(".staging/", "", 1)
+                        files_to_search[rel] = full_path
+                        
+    return files_to_search
+
+@mcp.tool()
 def search_workspace(query: str, directory_path: str = ".") -> str:
     """Searches for a text query inside files natively. Trapped inside the `.staging` airlock."""
     _ensure_staged()
-    if os.path.isabs(directory_path) and directory_path.startswith(BASE_DIR):
-        directory_path = os.path.relpath(directory_path, BASE_DIR)
-        
-    if directory_path.startswith(".staging/"):
-        directory_path = directory_path.replace(".staging/", "", 1)
-        
-    staging_path = os.path.join(BASE_DIR, ".staging", directory_path)
-    base_path = os.path.join(BASE_DIR, directory_path)
+    directory_path, staging_path, base_path = _resolve_airlock_path(directory_path)
     
     if not _is_safe_path(base_path):
         return f"[SECURITY ERROR] Path escapes workspace bounds."
         
     try:
         results = []
-        files_to_search = {}
+        files_to_search = _build_search_index(base_path, staging_path)
         
-        # 1. Grab base files
-        if os.path.exists(base_path):
-            if os.path.isfile(base_path):
-                rel = os.path.relpath(base_path, BASE_DIR)
-                files_to_search[rel] = base_path
-            else:
-                for root, _, files in os.walk(base_path):
-                    if '.git' in root or '.staging' in root or 'venv' in root or '__pycache__' in root:
-                        continue
-                    for f in files:
-                        if not f.startswith('.') and not f.endswith(('.pyc', '.so')):
-                            full_path = os.path.join(root, f)
-                            rel = os.path.relpath(full_path, BASE_DIR)
-                            files_to_search[rel] = full_path
-                            
-        # 2. Overlay staging files (overwrites base paths seamlessly)
-        if os.path.exists(staging_path):
-            if os.path.isfile(staging_path):
-                rel = os.path.relpath(staging_path, BASE_DIR).replace(".staging/", "", 1)
-                files_to_search[rel] = staging_path
-            else:
-                for root, _, files in os.walk(staging_path):
-                    for f in files:
-                        if not f.startswith('.') and not f.endswith('.pyc'):
-                            full_path = os.path.join(root, f)
-                            rel = os.path.relpath(full_path, BASE_DIR).replace(".staging/", "", 1)
-                            files_to_search[rel] = full_path
-                        
         for rel_path, file_path in files_to_search.items():
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -196,17 +186,7 @@ def search_workspace(query: str, directory_path: str = ".") -> str:
 def write_workspace_file(file_path: str, content: str, overwrite: bool = False) -> str:
     """Writes/mutates a file natively. Physically trapped inside the `.staging` airlock."""
     _ensure_staged()
-    # Convert absolute paths back to relative for safe joining
-    if os.path.isabs(file_path) and file_path.startswith(BASE_DIR):
-        file_path = os.path.relpath(file_path, BASE_DIR)
-        
-    if file_path.startswith(".staging/"):
-        file_path = file_path.replace(".staging/", "", 1)
-        
-    # Trap everything inside .staging
-    staging_dir = os.path.join(BASE_DIR, ".staging")
-    target_path = os.path.join(staging_dir, file_path)
-    base_path = os.path.join(BASE_DIR, file_path)
+    file_path, target_path, base_path = _resolve_airlock_path(file_path)
 
     if not _is_safe_path(target_path):
         return f"[SECURITY ERROR] Path {target_path} escapes workspace bounded box."
@@ -228,14 +208,7 @@ def write_workspace_file(file_path: str, content: str, overwrite: bool = False) 
 def replace_workspace_file_content(file_path: str, replacement_string: str, start_line: int, end_line: int) -> str:
     """Surgically replaces a block of lines within a file using deterministic index bounds. Physically trapped inside `.staging`."""
     _ensure_staged()
-    if os.path.isabs(file_path) and file_path.startswith(BASE_DIR):
-        file_path = os.path.relpath(file_path, BASE_DIR)
-    if file_path.startswith(".staging/"):
-        file_path = file_path.replace(".staging/", "", 1)
-        
-    staging_dir = os.path.join(BASE_DIR, ".staging")
-    target_path = os.path.join(staging_dir, file_path)
-    base_path = os.path.join(BASE_DIR, file_path)
+    file_path, target_path, base_path = _resolve_airlock_path(file_path)
 
     if not _is_safe_path(target_path):
         return f"[SECURITY ERROR] Path {target_path} escapes workspace bounded box."
@@ -274,14 +247,7 @@ def replace_workspace_file_content(file_path: str, replacement_string: str, star
 def append_workspace_file_content(file_path: str, content: str) -> str:
     """Appends content to the end of a file. Physically trapped inside the `.staging` airlock."""
     _ensure_staged()
-    if os.path.isabs(file_path) and file_path.startswith(BASE_DIR):
-        file_path = os.path.relpath(file_path, BASE_DIR)
-    if file_path.startswith(".staging/"):
-        file_path = file_path.replace(".staging/", "", 1)
-        
-    staging_dir = os.path.join(BASE_DIR, ".staging")
-    target_path = os.path.join(staging_dir, file_path)
-    base_path = os.path.join(BASE_DIR, file_path)
+    file_path, target_path, base_path = _resolve_airlock_path(file_path)
 
     if not _is_safe_path(target_path):
         return f"[SECURITY ERROR] Path {target_path} escapes workspace bounded box."

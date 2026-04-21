@@ -52,6 +52,25 @@ def write_retrospective(content: str, title: str) -> str:
         f.write(content)
     return f"[SUCCESS] Retrospective written to {filepath}"
 
+def _extract_adk_trace(node, current_author, agent_traces, total_events):
+    if isinstance(node, dict):
+        author = node.get("author") or node.get("name") or current_author
+        
+        if "usage_metadata" in node and isinstance(node["usage_metadata"], dict) and author:
+            if author not in agent_traces:
+                agent_traces[author] = {'count': 0, 'tokens_in': 0, 'tokens_out': 0}
+                
+            agent_traces[author]['count'] += 1
+            total_events[0] += 1
+            agent_traces[author]['tokens_in'] += node["usage_metadata"].get("prompt_token_count", 0)
+            agent_traces[author]['tokens_out'] += node["usage_metadata"].get("candidates_token_count", 0)
+
+        for k, v in node.items():
+            _extract_adk_trace(v, author if k not in ['usage_metadata', 'actual_invocation'] else author, agent_traces, total_events)
+    elif isinstance(node, list):
+        for item in node:
+            _extract_adk_trace(item, current_author, agent_traces, total_events)
+
 def write_eval_report(content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
@@ -62,7 +81,6 @@ def write_eval_report(content: str, is_passing: bool) -> str:
     
     try:
         import json
-        import glob
         import shutil
         telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
@@ -73,7 +91,6 @@ def write_eval_report(content: str, is_passing: bool) -> str:
         for src in glob.glob(src_pattern):
             shutil.move(src, os.path.join(dest_dir, os.path.basename(src)))
         
-        
         eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
         test_slug = test_name.replace(' ', '_').lower()
         matching_files = [f for f in glob.glob(os.path.join(eval_dir, "*.json")) if test_slug in f.lower() or test_name in f]
@@ -81,39 +98,17 @@ def write_eval_report(content: str, is_passing: bool) -> str:
         target_file = None
         if matching_files:
             target_file = max(matching_files, key=os.path.getmtime)
-
             
         if target_file and os.path.exists(target_file):
             with open(target_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 
-            total_events = 0
+            total_events = [0]
             agent_traces = {}
-            
-            def extract_trace(node, current_author=None):
-                nonlocal total_events
-                if isinstance(node, dict):
-                    author = node.get("author") or node.get("name") or current_author
-                    
-                    if "usage_metadata" in node and isinstance(node["usage_metadata"], dict) and author:
-                        if author not in agent_traces:
-                            agent_traces[author] = {'count': 0, 'tokens_in': 0, 'tokens_out': 0}
-                            
-                        agent_traces[author]['count'] += 1
-                        total_events += 1
-                        agent_traces[author]['tokens_in'] += node["usage_metadata"].get("prompt_token_count", 0)
-                        agent_traces[author]['tokens_out'] += node["usage_metadata"].get("candidates_token_count", 0)
-
-                    for k, v in node.items():
-                        extract_trace(v, author if k not in ['usage_metadata', 'actual_invocation'] else author)
-                elif isinstance(node, list):
-                    for item in node:
-                        extract_trace(item, current_author)
-                        
-            extract_trace(data)
+            _extract_adk_trace(data, None, agent_traces, total_events)
             
             telemetry += f"**Execution Source:** `{os.path.basename(target_file)}`\n"
-            telemetry += f"**Total LLM Inferences:** `{total_events}`\n\n"
+            telemetry += f"**Total LLM Inferences:** `{total_events[0]}`\n\n"
             telemetry += "### Trace Breakdown\n"
             
             if not agent_traces:
@@ -122,9 +117,7 @@ def write_eval_report(content: str, is_passing: bool) -> str:
             for author, stats in sorted(agent_traces.items()):
                 token_str = f" [In: {stats['tokens_in']:,} | Out: {stats['tokens_out']:,}]"
                 telemetry += f"- **{author}**: {stats['count']} inferences{token_str}\n"
-            
             telemetry += "\n---\n\n"
-            
         else:
             telemetry = f"**Warning:** No corresponding ADK Eval Trace file found mapped to `{test_name}` in the cache.\n\n---\n\n"
             

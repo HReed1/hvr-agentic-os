@@ -53,6 +53,25 @@ def _read_ast(file_path: str):
         source = f.read()
     return ast.parse(source), source
 
+def _sync_staging_environment(staging_dir: str):
+    STAGING_BLOCKLIST = [".staging", ".git", "venv", ".venv", "__pycache__", ".pytest_cache", "node_modules"]
+    for root, dirs, files in os.walk(project_root):
+        path_parts = root.split(os.sep)
+        if any(b in path_parts for b in STAGING_BLOCKLIST):
+            continue
+        rel_path = os.path.relpath(root, project_root)
+        staging_target_dir = os.path.join(staging_dir, rel_path)
+        os.makedirs(staging_target_dir, exist_ok=True)
+        for file in files:
+            if not file.startswith('.') and not file.endswith(('.pyc', '.so')):
+                base_fp = os.path.join(root, file)
+                staging_fp = os.path.join(staging_target_dir, file)
+                if not os.path.exists(staging_fp):
+                    try:
+                        shutil.copy2(base_fp, staging_fp)
+                    except Exception:
+                        pass
+
 @mcp.tool()
 def validate_python_syntax(file_path: str) -> str:
     """Programmatically attempts to compile the Python source into an AST to verify syntax validity."""
@@ -178,26 +197,7 @@ def execute_tdaid_test(test_path: str) -> str:
             env = os.environ.copy()
             env["PYTHONPATH"] = f"{staging_dir}:{project_root}"
 
-            # Zero-Trust Physical Copy Bridge
-            STAGING_BLOCKLIST = [".staging", ".git", "venv", ".venv", "__pycache__", ".pytest_cache", "node_modules"]
-            for root, dirs, files in os.walk(project_root):
-                path_parts = root.split(os.sep)
-                if any(b in path_parts for b in STAGING_BLOCKLIST):
-                    continue
-                
-                rel_path = os.path.relpath(root, project_root)
-                staging_target_dir = os.path.join(staging_dir, rel_path)
-                os.makedirs(staging_target_dir, exist_ok=True)
-                
-                for file in files:
-                    if not file.startswith('.') and not file.endswith(('.pyc', '.so')):
-                        base_fp = os.path.join(root, file)
-                        staging_fp = os.path.join(staging_target_dir, file)
-                        if not os.path.exists(staging_fp):
-                            try:
-                                shutil.copy2(base_fp, staging_fp)
-                            except Exception:
-                                pass
+            _sync_staging_environment(staging_dir)
 
             # Zero-Trust Dependency Sync
             staged_reqs_path = os.path.join(staging_dir, "requirements.txt")
@@ -263,23 +263,7 @@ def execute_coverage_report(test_path: str, target_module: str) -> str:
                 subprocess.run([venv_pip, "install", "-q", "coverage", "pytest"], capture_output=True, env=env)
 
             # Physically map all codebase files across boundaries
-            STAGING_BLOCKLIST = [".staging", ".git", "venv", ".venv", "__pycache__", ".pytest_cache", "node_modules"]
-            for root, dirs, files in os.walk(project_root):
-                path_parts = root.split(os.sep)
-                if any(b in path_parts for b in STAGING_BLOCKLIST):
-                    continue
-                rel_path = os.path.relpath(root, project_root)
-                staging_target_dir = os.path.join(staging_dir, rel_path)
-                os.makedirs(staging_target_dir, exist_ok=True)
-                for file in files:
-                    if not file.startswith('.') and not file.endswith(('.pyc', '.so')):
-                        base_fp = os.path.join(root, file)
-                        staging_fp = os.path.join(staging_target_dir, file)
-                        if not os.path.exists(staging_fp):
-                            try:
-                                shutil.copy2(base_fp, staging_fp)
-                            except Exception:
-                                pass
+            _sync_staging_environment(staging_dir)
 
             # Run test wrapped in coverage
             run_cmd = [venv_coverage, "run", "--source", target_module, "-m", "pytest", test_path, "-v", "--tb=short"]

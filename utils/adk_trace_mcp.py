@@ -75,6 +75,24 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         if 'conn' in locals():
             conn.close()
 
+def _format_text_part(author: str, role: str, text: str) -> str:
+    text = text.strip()
+    if len(text) > 2000:
+        text = text[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
+    return f"**[{author}] ({role})**:\n{text}\n"
+
+def _format_tool_call(author: str, role: str, fc: dict) -> str:
+    name = fc.get('name', 'unknown_tool')
+    args = json.dumps(fc.get('args', {}), indent=2)
+    return f"**[{author}] ({role})** called tool `{name}`:\n```json\n{args}\n```\n"
+
+def _format_tool_response(author: str, role: str, fr: dict) -> str:
+    name = fr.get('name', 'unknown_tool')
+    resp_str = json.dumps(fr.get('response', {}), indent=2)
+    if len(resp_str) > 2000:
+        resp_str = resp_str[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
+    return f"**[{author}] ({role})** response from `{name}`:\n```json\n{resp_str}\n```\n"
+
 def _format_events(events) -> str:
     lines = []
     for event in events:
@@ -83,12 +101,12 @@ def _format_events(events) -> str:
             continue
             
         author = event.get('author') or 'System'
-        content = event.get('content')
+        content = event.get('content') or {}
         if not isinstance(content, dict):
             content = {}
             
-        role = content.get('role') or 'unknown'
-        parts = content.get('parts')
+        role = content.get('role', 'unknown')
+        parts = content.get('parts', [])
         if not isinstance(parts, list):
             parts = []
         
@@ -97,26 +115,16 @@ def _format_events(events) -> str:
                 continue
                 
             if 'text' in part and isinstance(part['text'], str):
-                text = part['text'].strip()
-                # Truncate overly long text (base64, giant logs)
-                if len(text) > 2000:
-                    text = text[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-                lines.append(f"**[{author}] ({role})**:\n{text}\n")
+                lines.append(_format_text_part(author, role, part['text']))
             elif 'function_call' in part or 'functionCall' in part:
                 fc = part.get('function_call') or part.get('functionCall') or {}
-                name = fc.get('name', 'unknown_tool')
-                args = json.dumps(fc.get('args', {}), indent=2)
-                lines.append(f"**[{author}] ({role})** called tool `{name}`:\n```json\n{args}\n```\n")
+                lines.append(_format_tool_call(author, role, fc))
             elif 'function_response' in part or 'functionResponse' in part:
                 fr = part.get('function_response') or part.get('functionResponse') or {}
-                name = fr.get('name', 'unknown_tool')
-                resp = fr.get('response', {})
-                resp_str = json.dumps(resp, indent=2)
-                if len(resp_str) > 2000:
-                    resp_str = resp_str[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-                lines.append(f"**[{author}] ({role})** response from `{name}`:\n```json\n{resp_str}\n```\n")
+                lines.append(_format_tool_response(author, role, fr))
             else:
                 lines.append(f"**[{author}] ({role})**: [Unknown Content Type]\n{json.dumps(part)[:200]}\n")
+                
     return "\n".join(lines)
 
 import subprocess

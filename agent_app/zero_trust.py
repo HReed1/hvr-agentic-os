@@ -60,15 +60,29 @@ ClientSession.__init__ = patched_mcp_init
 # LoopAgent Intercept
 _original_loop_run = LoopAgent._run_async_impl
 
+def _verify_staging_signature() -> bool:
+    import hmac, hashlib
+    sig_path = os.path.join(BASE_DIR, ".staging", ".qa_signature")
+    if not os.path.exists(sig_path):
+        return False
+        
+    with open(sig_path, "r") as f:
+        stored = f.read().strip()
+    
+    key_file = os.path.join(BASE_DIR, ".agents", "memory", "staging_key.txt")
+    try:
+        with open(key_file, "r") as kf:
+            dynamic_secret = kf.read().strip().encode('utf-8')
+    except Exception:
+        dynamic_secret = b"NGS_ZERO_TRUST_SIMULATION_KEY_2026"
+        
+    expected = hmac.new(dynamic_secret, b"QA_PASSED", hashlib.sha256).hexdigest()
+    return hmac.compare_digest(stored, expected)
+
 async def patched_loop_run(self, ctx):
     consecutive_discovery_tools = getattr(ctx, '_consecutive_discovery', 0)
     consecutive_qa_rejections = getattr(ctx, '_consecutive_qa_rejections', 0)
     last_rejection_signature = getattr(ctx, '_last_rejection_signature', None)
-    
-    import hmac, hashlib
-    
-    # Needs to match the cryptographic tools logic implicitly
-    sig_path = os.path.join(BASE_DIR, ".staging", ".qa_signature")
     
     async with Aclosing(_original_loop_run(self, ctx)) as agen:
         async for event in agen:
@@ -76,65 +90,103 @@ async def patched_loop_run(self, ctx):
             if content:
                 for part in getattr(content, 'parts', []):
                     fc = getattr(part, 'function_call', None) or getattr(part, 'functionCall', None)
-                    if fc and hasattr(fc, 'name'):
-                        func_name = str(getattr(fc, 'name', ''))
+def _handle_mark_complete(self, ctx, event):
+    if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
+        return True, None
+    return False, None
 
-                        if func_name == 'mark_system_complete' and getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
-                            return
-                        if func_name == 'approve_staging_qa' and getattr(self, 'name', '') in ('architectural_loop', 'cicd_architectural_loop'):
-                            if os.path.exists(sig_path):
-                                with open(sig_path, "r") as f:
-                                    stored = f.read().strip()
-                                
-                                # Resolve dynamic secret mapped from tools logic
-                                key_file = os.path.join(BASE_DIR, ".agents", "memory", "staging_key.txt")
-                                try:
-                                    with open(key_file, "r") as kf:
-                                        dynamic_secret = kf.read().strip().encode('utf-8')
-                                except Exception:
-                                    dynamic_secret = b"NGS_ZERO_TRUST_SIMULATION_KEY_2026"
-                                    
-                                expected = hmac.new(dynamic_secret, b"QA_PASSED", hashlib.sha256).hexdigest()
-                                if hmac.compare_digest(stored, expected):
-                                    return
-                            print(f"\n[Zero-Trust Intercepted] approve_staging_qa called but .qa_signature is missing or invalid. Loop continues.", flush=True)
-                        if func_name == 'mark_qa_passed' and getattr(self, 'name', '') in ('developer_qa_loop', 'cicd_development_loop'):
-                            consecutive_qa_rejections = 0
-                            last_rejection_signature = None
-                            return
-                        if func_name == 'escalate_to_director':
-                            yield ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nEscalation explicitly triggered via state transition tool.")
-                            return
+def _handle_approve_staging(self, ctx, event):
+    if getattr(self, 'name', '') in ('architectural_loop', 'cicd_architectural_loop'):
+        if _verify_staging_signature():
+            return True, None
+        print("\n[Zero-Trust Intercepted] approve_staging_qa called but .qa_signature is missing or invalid. Loop continues.", flush=True)
+    return False, None
 
-                        if func_name in ['list_workspace_directory', 'search_workspace']:
-                            consecutive_discovery_tools += 1
-                            if consecutive_discovery_tools >= 15:
-                                yield ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: Excessive Discovery Loop Intercepted.")
-                                return
-                        else:
-                            consecutive_discovery_tools = 0
+def _handle_mark_qa(self, ctx, event):
+    if getattr(self, 'name', '') in ('developer_qa_loop', 'cicd_development_loop'):
+        setattr(ctx, '_consecutive_qa_rejections', 0)
+        setattr(ctx, '_last_rejection_signature', None)
+        return True, None
+    return False, None
 
+def _handle_escalate(self, ctx, event):
+    esc = ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nEscalation explicitly triggered via state transition tool.")
+    return True, esc
+
+def _handle_excessive_discovery(self, ctx, func_name):
+    consecutive = getattr(ctx, '_consecutive_discovery', 0)
+    if func_name in ['list_workspace_directory', 'search_workspace']:
+        consecutive += 1
+        setattr(ctx, '_consecutive_discovery', consecutive)
+        if consecutive >= 15:
+            return True, ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: Excessive Discovery Loop Intercepted.")
+    else:
+        setattr(ctx, '_consecutive_discovery', 0)
+    return False, None
+
+def _process_qa_rejection(self, ctx, text):
+    sig_start = text.find('[QA REJECTED]')
+    rejection_sig = text[sig_start:sig_start + 200].strip()
+    
+    last_sig = getattr(ctx, '_last_rejection_signature', None)
+    consecutive = getattr(ctx, '_consecutive_qa_rejections', 0)
+    
+    if rejection_sig == last_sig:
+        consecutive += 1
+    else:
+        consecutive = 1
+        setattr(ctx, '_last_rejection_signature', rejection_sig)
+        
+    setattr(ctx, '_consecutive_qa_rejections', consecutive)
+
+    if consecutive >= 2:
+        return True, ZeroTrustEscalationEvent(
+            f"[ESCALATING TO DIRECTOR]\n\n"
+            f"ZERO-TRUST VIOLATION: QA rejection loop detected...\n"
+            f"Last rejection: {rejection_sig[:150]}"
+        )
+    return False, None
+
+def _intercept_tool(self, ctx, part, event):
+    fc = getattr(part, 'function_call', None) or getattr(part, 'functionCall', None)
+    if not (fc and hasattr(fc, 'name')):
+        return False, None
+
+    func_name = str(getattr(fc, 'name', ''))
+    
+    handlers = {
+        'mark_system_complete': _handle_mark_complete,
+        'approve_staging_qa': _handle_approve_staging,
+        'mark_qa_passed': _handle_mark_qa,
+        'escalate_to_director': _handle_escalate,
+    }
+    
+    if func_name in handlers:
+        stop, esc = handlers[func_name](self, ctx, event)
+        if stop: return True, esc
+        
+    stop, esc = _handle_excessive_discovery(self, ctx, func_name)
+    if stop: return True, esc
+    
+    return False, None
+
+async def patched_loop_run(self, ctx):
+    async with Aclosing(_original_loop_run(self, ctx)) as agen:
+        async for event in agen:
+            content = getattr(event, 'content', None)
+            if content:
+                for part in getattr(content, 'parts', []):
+                    stop, esc = _intercept_tool(self, ctx, part, event)
+                    if stop:
+                        if esc: yield esc
+                        return
+                        
                     text = getattr(part, 'text', None)
                     if text and isinstance(text, str) and '[QA REJECTED]' in text:
-                        sig_start = text.find('[QA REJECTED]')
-                        rejection_sig = text[sig_start:sig_start + 200].strip()
-                        if rejection_sig == last_rejection_signature:
-                            consecutive_qa_rejections += 1
-                        else:
-                            consecutive_qa_rejections = 1
-                            last_rejection_signature = rejection_sig
-
-                        if consecutive_qa_rejections >= 2:
-                            yield ZeroTrustEscalationEvent(
-                                f"[ESCALATING TO DIRECTOR]\n\n"
-                                f"ZERO-TRUST VIOLATION: QA rejection loop detected...\n"
-                                f"Last rejection: {last_rejection_signature[:150]}"
-                            )
+                        stop, esc = _process_qa_rejection(self, ctx, text)
+                        if stop:
+                            yield esc
                             return
-
-            setattr(ctx, '_consecutive_discovery', consecutive_discovery_tools)
-            setattr(ctx, '_consecutive_qa_rejections', consecutive_qa_rejections)
-            setattr(ctx, '_last_rejection_signature', last_rejection_signature)
 
             yield event
 
@@ -208,19 +260,24 @@ try:
     from google.adk.evaluation.local_eval_service import LocalEvalService
     _original_eval_single = LocalEvalService._evaluate_single_inference_result
 
-    async def patched_eval_single(self, eval_case, evaluation_task, evaluate_config, user_id=None):
-        # Safely await the dynamic Swarm inference generation first
-        inference_result, eval_case_result = await evaluation_task
+    async def patched_eval_single(self, inference_result, evaluate_config):
+        # Override the eval case getter to dynamically pad bounds linearly before deep pip execution
+        original_get = self._eval_sets_manager.get_eval_case
         
-        # Dynamically pad the linear Conversation bounds list natively tracking git instead of VENV overrides
-        actual_len = len(inference_result.inferences)
-        if eval_case.conversation:
-            while len(eval_case.conversation) < actual_len:
-                eval_case.conversation.append(eval_case.conversation[-1])
-                
-        # With bounds dynamically bridged securely, delegate cleanly to the true ADK engine!
-        return await _original_eval_single(self, eval_case, evaluation_task, evaluate_config, user_id)
-        
+        def padded_get_eval_case(*args, **kwargs):
+            eval_case = original_get(*args, **kwargs)
+            if eval_case and hasattr(eval_case, 'conversation') and eval_case.conversation:
+                actual_len = len(inference_result.inferences)
+                while len(eval_case.conversation) < actual_len:
+                    eval_case.conversation.append(eval_case.conversation[-1])
+            return eval_case
+            
+        self._eval_sets_manager.get_eval_case = padded_get_eval_case
+        try:
+            return await _original_eval_single(self, inference_result=inference_result, evaluate_config=evaluate_config)
+        finally:
+            self._eval_sets_manager.get_eval_case = original_get
+            
     LocalEvalService._evaluate_single_inference_result = patched_eval_single
 except ImportError:
     pass
