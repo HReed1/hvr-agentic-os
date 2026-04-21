@@ -19,7 +19,7 @@ for test_file in tests/adk_evals/*.test.json; do
     PYTHONUNBUFFERED=1 HEADLESS_EVAL=true adk eval agent_app "$test_file" || true 
     
     TEST_NAME=$(python -c 'import sys,json; print(json.load(open(sys.argv[1])).get("eval_set_id", sys.argv[1]))' "$test_file")
-    CRITERIA=$(python -c 'import sys,json; print(json.load(open(sys.argv[1])).get("conversation", [{"user_content": {"parts": [{"text": "Unknown"}]}}])[0]["user_content"]["parts"][0]["text"])' "$test_file")
+    CRITERIA=$(python -c 'import sys,json; d=json.load(open(sys.argv[1])); print(d.get("eval_cases", [{}])[0].get("conversation", [{"user_content": {"parts": [{"text": "Unknown"}]}}])[0]["user_content"]["parts"][0]["text"])' "$test_file")
     
     echo "[SYSTEM] Running decoupled Meta-Evaluator on trace..."
     echo "Evaluate the trace cleanly. Use Test Name: $TEST_NAME. Original task: $CRITERIA" | PYTHONUNBUFFERED=1 ADK_SWARM_MODE=meta_eval adk run agent_app || true
