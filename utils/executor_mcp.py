@@ -63,8 +63,8 @@ def _ensure_staged():
             if not os.path.exists(staging_fp):
                 try:
                     shutil.copy2(base_fp, staging_fp)
-                    except Exception:
-                        pass
+                except Exception:
+                    pass
                         
     with open(flag_file, "w") as f:
         f.write("primed")
