@@ -60,68 +60,66 @@ def write_eval_report(content: str, test_name: str) -> str:
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     try:
+    try:
         import json
-        import sqlite3
+        import glob
         telemetry = ""
-        db_path = os.path.join(BASE_DIR, "agent_app", ".adk", "session.db")
-        if os.path.exists(db_path):
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1")
-                row = cursor.fetchone()
-                if row:
-                    session_id = row[0]
-                    cursor.execute("SELECT timestamp, event_data FROM events WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
-                    rows = cursor.fetchall()
+        
+        eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
+        test_slug = test_name.replace(' ', '_').lower()
+        matching_files = [f for f in glob.glob(os.path.join(eval_dir, "*.json")) if test_slug in f.lower() or test_name in f]
+        
+        target_file = None
+        if matching_files:
+            target_file = max(matching_files, key=os.path.getmtime)
+        elif glob.glob(os.path.join(eval_dir, "*.json")):
+            target_file = max(glob.glob(os.path.join(eval_dir, "*.json")), key=os.path.getmtime)
+            
+        if target_file and os.path.exists(target_file):
+            with open(target_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                
+            total_events = 0
+            agent_traces = {}
+            
+            def extract_trace(node, current_author=None):
+                nonlocal total_events
+                if isinstance(node, dict):
+                    author = node.get("author") or node.get("name") or current_author
                     
-                    total_events = len(rows)
-                    agent_traces = {}
-                    
-                    for ts, event_json in rows:
-                        try:
-                            e = json.loads(event_json)
-                        except:
-                            continue
-                            
-                        author = e.get('author', 'System')
-                        if author == 'System' and 'type' in e:
-                            author = f"System ({e.get('type')})"
-                            
+                    if "usage_metadata" in node and isinstance(node["usage_metadata"], dict) and author:
                         if author not in agent_traces:
-                            agent_traces[author] = {'count': 0, 'models': set(), 'tokens_in': 0, 'tokens_out': 0}
+                            agent_traces[author] = {'count': 0, 'tokens_in': 0, 'tokens_out': 0}
                             
                         agent_traces[author]['count'] += 1
+                        total_events += 1
+                        agent_traces[author]['tokens_in'] += node["usage_metadata"].get("prompt_token_count", 0)
+                        agent_traces[author]['tokens_out'] += node["usage_metadata"].get("candidates_token_count", 0)
+
+                    for k, v in node.items():
+                        extract_trace(v, author if k not in ['usage_metadata', 'actual_invocation'] else author)
+                elif isinstance(node, list):
+                    for item in node:
+                        extract_trace(item, current_author)
                         
-                        usage = e.get('usage_metadata', {})
-                        if isinstance(usage, dict):
-                            agent_traces[author]['tokens_in'] += usage.get('prompt_token_count', 0)
-                            agent_traces[author]['tokens_out'] += usage.get('candidates_token_count', 0)
-                        
-                        model = e.get('model_version')
-                        if model:
-                            agent_traces[author]['models'].add(model)
-                    
-                    telemetry += f"**ADK Session ID:** `{session_id}`\n"
-                    
-                    try:
-                        if rows:
-                            start_ts = rows[0][0]
-                            end_ts = rows[-1][0]
-                            duration = end_ts - start_ts
-                            mins = int(duration // 60)
-                            secs = int(duration % 60)
-                            telemetry += f"**Execution Time:** `{mins}m {secs}s`\n"
-                    except Exception:
-                        pass
-                        
-                    telemetry += f"**Total Trace Events:** `{total_events}`\n\n"
-                    telemetry += "### Trace Breakdown\n"
-                    for author, data in sorted(agent_traces.items()):
-                        model_str = f" (`{', '.join(sorted(data['models']))}`)" if data['models'] else ""
-                        token_str = f" [In: {data['tokens_in']:,} | Out: {data['tokens_out']:,}]" if (data['tokens_in'] or data['tokens_out']) else ""
-                        telemetry += f"- **{author}**: {data['count']} events{model_str}{token_str}\n"
-                    telemetry += "\n---\n\n"
-                    
+            extract_trace(data)
+            
+            telemetry += f"**Execution Source:** `{os.path.basename(target_file)}`\n"
+            telemetry += f"**Total LLM Inferences:** `{total_events}`\n\n"
+            telemetry += "### Trace Breakdown\n"
+            
+            if not agent_traces:
+                 telemetry += "- (No LLM execution bounds recorded in target trace)\n"
+                 
+            for author, stats in sorted(agent_traces.items()):
+                token_str = f" [In: {stats['tokens_in']:,} | Out: {stats['tokens_out']:,}]"
+                telemetry += f"- **{author}**: {stats['count']} inferences{token_str}\n"
+            
+            telemetry += "\n---\n\n"
+            
+        else:
+            telemetry = f"**Warning:** No corresponding ADK Eval Trace file found mapped to `{test_name}` in the cache.\n\n---\n\n"
+            
         content = telemetry + content
     except Exception as e:
         print(f"Failed to inject telemetry: {e}")
