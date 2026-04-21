@@ -1,15 +1,3 @@
-# ==============================================================================
-# 🚨 STRICT EVALUATION FIXTURE WARNING 🚨
-# ------------------------------------------------------------------------------
-# This script is a structural test fixture for Agentic OS evaluations.
-# Under NO circumstances should changes made by the Swarm (or Humans) to 
-# refactor or optimize this script be permanently committed or merged into the 
-# global repository.
-# 
-# The deep cyclomatic complexity within this file is INTENTIONAL and acts 
-# as the baseline assertion threshold for the TDAID AST QA pipeline.
-# ==============================================================================
-
 def submit_genomic_job(job_type, memory, vcpus, priority, use_spot):
     """
     Submits a job to AWS Batch.

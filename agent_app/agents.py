@@ -41,7 +41,7 @@ director_agent = LlmAgent(
 )
 
 architect_tools = [
-    list_docs, read_doc, approve_staging_qa, escalate_to_director
+    list_docs, read_doc, escalate_to_director
 ]
 
 architect_agent = LlmAgent(
@@ -163,16 +163,10 @@ development_loop = LoopAgent(
     sub_agents=[executor_agent, qa_agent]
 )
 
-architectural_loop = LoopAgent(
-    name="architectural_loop",
-    max_iterations=10,
-    sub_agents=[architect_agent, development_loop]
-)
-
 director_loop = LoopAgent(
     name="director_loop",
     max_iterations=10,
-    sub_agents=[director_agent, architectural_loop, auditor_agent]
+    sub_agents=[director_agent, architect_agent, development_loop, auditor_agent]
 )
 
 autonomous_swarm = SequentialAgent(
