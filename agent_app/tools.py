@@ -52,7 +52,7 @@ def write_retrospective(content: str, title: str) -> str:
         f.write(content)
     return f"[SUCCESS] Retrospective written to {filepath}"
 
-def write_eval_report(content: str) -> str:
+def write_eval_report(content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
     date_str = datetime.now().strftime('%Y-%m-%d')
@@ -63,7 +63,16 @@ def write_eval_report(content: str) -> str:
     try:
         import json
         import glob
+        import shutil
         telemetry = ""
+        status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
+        
+        src_pattern = os.path.join(BASE_DIR, "docs", "retrospectives", f"*{test_name}*")
+        dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
+        os.makedirs(dest_dir, exist_ok=True)
+        for src in glob.glob(src_pattern):
+            shutil.move(src, os.path.join(dest_dir, os.path.basename(src)))
+        
         
         eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
         test_slug = test_name.replace(' ', '_').lower()
@@ -119,7 +128,7 @@ def write_eval_report(content: str) -> str:
         else:
             telemetry = f"**Warning:** No corresponding ADK Eval Trace file found mapped to `{test_name}` in the cache.\n\n---\n\n"
             
-        content = telemetry + content
+        content = f"{status_label}\n\n" + telemetry + content
     except Exception as e:
         print(f"Failed to inject telemetry: {e}")
 
@@ -127,23 +136,8 @@ def write_eval_report(content: str) -> str:
         f.write(content)
     return f"[SUCCESS] Evaluation report written to {filepath}"
 
-def list_recent_retrospectives() -> str:
-    """Lists recent retrospective files in docs/retrospectives/ so the Evaluator can find the one matching the current test."""
-    files = glob.glob(os.path.join(BASE_DIR, "docs", "retrospectives", "*.md"))
-    files.sort(key=os.path.getmtime, reverse=True)
-    return "\n".join([os.path.basename(f) for f in files[:10]])
-
-def move_swarm_retrospective(filename: str) -> str:
-    """Moves a specific swarm generated retrospective to docs/evals/retrospectives/."""
-    import shutil
-    src = os.path.join(BASE_DIR, "docs", "retrospectives", filename)
-    dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
-    os.makedirs(dest_dir, exist_ok=True)
-    dest = os.path.join(dest_dir, filename)
-    if os.path.exists(src):
-        shutil.move(src, dest)
-        return f"[SUCCESS] Moved {filename} to {dest_dir}"
-    return f"[ERROR] File {filename} not found."
+# Note: Retrospective routing and directory sorting are now completely decoupled
+# and handled natively inside write_eval_report via OS bindings.
 
 # --- Cryptographic State Transition Tools ---
 def _get_qa_secret() -> bytes:
