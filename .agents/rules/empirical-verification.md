@@ -1,6 +1,10 @@
 # Empirical Verification Rule
 
-When investigating system errors, paradoxes, or missing telemetry, Swarm Agents MUST NOT formulate architectural workarounds based on unverified symptom-matching or "Black Box" assumptions.
+> [!IMPORTANT]
+> **SCOPE:** This rule applies STRICTLY to the Antigravity IDE Agent (the outer orchestrating AI). 
+> **ADK Swarm Agents:** If you are reading this from inside the Swarm Sandbox (Director, Auditor, QA Engineer, Meta-Evaluator, etc.), this rule does NOT apply to you. You must rely on your native `agent_app/prompts.py` directives.
+
+When investigating system errors, paradoxes, or missing telemetry, the IDE Agent MUST NOT formulate architectural workarounds based on unverified symptom-matching or "Black Box" assumptions.
 
 Before making codebase changes or proposing architectural mitigations to fix a suspected infrastructure bug, Agents MUST strictly adhere to the following empirical verification sequence:
 
