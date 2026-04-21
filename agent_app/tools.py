@@ -64,18 +64,41 @@ def _extract_adk_trace(node, current_author, agent_traces, total_events):
 def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     import time
-    # Force alignment to the bash boundary namespace; fallback to LLM tool extraction if missing.
-    test_name = os.environ.get("ACTIVE_TEST_ID", test_id)
-    mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
-    date_str = datetime.now().strftime('%Y-%m-%d')
+    import json
+    import glob
+    import shutil
     
-    filename = f"{date_str}_{test_name}_{mode}_eval.md"
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
+    
+    # 1. Deterministic Trace Extraction: Grab the most recent headless JSON array dynamically 
+    eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
+    os.makedirs(eval_dir, exist_ok=True)
+    all_trace_files = glob.glob(os.path.join(eval_dir, "*.json"))
+    target_file = max(all_trace_files, key=os.path.getmtime) if all_trace_files else None
+    
+    # 2. Namespace Resolution: Prioritize boundary variables, fallback to physical trace parsing
+    test_name = os.environ.get("ACTIVE_TEST_ID") 
+    if not test_name and target_file:
+        try:
+            with open(target_file, "r", encoding="utf-8") as f:
+                trace_data = json.load(f)
+                extracted_id = trace_data.get("eval_set_id")
+                if extracted_id:
+                    test_name = extracted_id
+        except Exception as e:
+            print(f"Failed to parse target trace JSON: {e}")
+            
+    # 3. Absolute Fallback: (Only occurs if firewall strips env AND file system is empty)
+    if not test_name:
+        test_name = test_id.strip() if test_id else "unknown_test_id"
+        
+    test_slug = test_name.replace(' ', '_').lower()
+    filename = f"{date_str}_{test_slug}_{mode}_eval.md"
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     try:
-        import json
-        import shutil
         telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
         
@@ -100,8 +123,7 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
         os.makedirs(dest_dir, exist_ok=True)
         
         current_time = time.time()
-        eval_mode = os.environ.get("EVALUATED_SWARM_MODE", "swarm")
-        for retro_file in glob.glob(os.path.join(retro_dir, f"*_{eval_mode}.md")):
+        for retro_file in glob.glob(os.path.join(retro_dir, f"*_{mode}.md")):
             if os.path.isfile(retro_file):
                 if current_time - os.path.getmtime(retro_file) < 300: # 5 minutes
                     dest_file = os.path.join(dest_dir, os.path.basename(retro_file))
@@ -113,16 +135,7 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
                         if "**ADK Session ID:**" not in retro_content:
                             with open(dest_file, 'w') as wf:
                                 wf.write(f"**ADK Session ID:** `{session_id_str}`\n\n" + retro_content)
-
         
-        eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
-        test_slug = test_name.replace(' ', '_').lower()
-        matching_files = [f for f in glob.glob(os.path.join(eval_dir, "*.json")) if test_slug in f.lower() or test_name in f]
-        
-        target_file = None
-        if matching_files:
-            target_file = max(matching_files, key=os.path.getmtime)
-            
         if target_file and os.path.exists(target_file):
             with open(target_file, "r", encoding="utf-8") as f:
                 data = json.load(f)

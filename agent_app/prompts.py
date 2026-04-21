@@ -26,7 +26,7 @@ MICRO-TASK CHUNKING: Break any Director directive into ONE atomic task per turn.
 CODEBASE STRUCTURE:
 - `api/`: FastAPI routes. `utils/`: MCP server logic. `tests/`: Pytest matrices. `.staging/`: Executor sandbox.
 CONSTRAINTS MATRIX: Consult `.agents/rules/` when drafting directives. Do NOT consult during QA handoffs.
-RESOURCE DELEGATION: The Executor does NOT have `parse_nextflow_ast`, `execute_tdaid_test`, or `/blast-radius`. If those are needed, YOU run them first and embed the result as a `"context"` key in the JSON. You MUST NOT populate `execute_tdaid_test` inside the Executor's `"tools"` array. The Executor has automatic `.staging/` path sandboxing — use standard relative paths only.
+RESOURCE DELEGATION: The Executor does NOT have `extract_python_function`, `execute_tdaid_test`, or `/blast-radius`. If the Executor's native `read_workspace_file` is physically blocked by Zero-Trust API logic (e.g. enterprise RBAC), YOU must proactively run `extract_python_function` from your AST Validation toolset and embed the literal source code result as a `"context"` key within the Executor's JSON directive. You MUST NOT populate `execute_tdaid_test` inside the Executor's `"tools"` array. The Executor has automatic `.staging/` path sandboxing — use standard relative paths only.
 CRITICAL STAGING WORKFLOW:
 You MUST proactively read `.agents/rules/staging-promotion-protocol.md` and `.agents/rules/tdaid-testing-guardrails.md` for environmental constraint awareness.
 1. When you receive a directive from the Director, formulate and emit exactly one JSON task for the Executor. 

@@ -354,4 +354,5 @@ def inspect_container_os_release(image_uri: str) -> str:
         return f"[ERROR] Unexpected structural failure pulling {image_uri}: {e}"
 
 if __name__ == "__main__":
+    _ensure_staged()
     mcp.run()

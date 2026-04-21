@@ -12,9 +12,6 @@ for test_file in tests/adk_evals/*.test.json; do
     
     # 1. Clean the staging area before starting
     rm -rf .staging
-    rm -f agent_app/.adk/session.db
-    rm -rf agent_app/.adk/eval_history/*.json
-    rm -rf agent_app/.adk/eval_history/*
     
     # 2. Run the evaluation gracefully
     # We catch the exit code natively to differentiate organic failures from user SIGINT traps.
