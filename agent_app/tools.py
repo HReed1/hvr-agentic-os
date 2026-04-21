@@ -52,8 +52,9 @@ def write_retrospective(content: str, title: str) -> str:
         f.write(content)
     return f"[SUCCESS] Retrospective written to {filepath}"
 
-def write_eval_report(content: str, test_name: str) -> str:
+def write_eval_report(content: str) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
+    test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
     date_str = datetime.now().strftime('%Y-%m-%d')
     filename = f"{date_str}_{test_name}.md"
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
