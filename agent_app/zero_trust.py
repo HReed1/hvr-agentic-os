@@ -22,7 +22,7 @@ def ZeroTrustEscalationEvent(text: str) -> Event:
     return Event(
         author="zero_trust_framework",
         content=Content(parts=[Part(text=text)]),
-        actions=EventActions(escalate=False),
+        actions=EventActions(escalate=True, endOfAgent=True),
     )
 
 

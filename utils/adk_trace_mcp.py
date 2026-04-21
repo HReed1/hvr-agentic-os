@@ -75,33 +75,17 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         if 'conn' in locals():
             conn.close()
 
-def _format_text_part(author: str, role: str, text: str) -> str:
-    text = text.strip()
-    if len(text) > 2000:
-        text = text[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-    return f"**[{author}] ({role})**:\n{text}\n"
-
-def _format_tool_call(author: str, role: str, fc: dict) -> str:
-    name = fc.get('name', 'unknown_tool')
-    args = json.dumps(fc.get('args', {}), indent=2)
-    return f"**[{author}] ({role})** called tool `{name}`:\n```json\n{args}\n```\n"
-
-def _format_tool_response(author: str, role: str, fr: dict) -> str:
-    name = fr.get('name', 'unknown_tool')
-    resp_str = json.dumps(fr.get('response', {}), indent=2)
-    if len(resp_str) > 2000:
-        resp_str = resp_str[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-    return f"**[{author}] ({role})** response from `{name}`:\n```json\n{resp_str}\n```\n"
-
 def _format_events(events) -> str:
     lines = []
-    for event in events:
+    for idx, event in enumerate(events, 1):
         if not isinstance(event, dict):
-            lines.append(f"**[System]**: [Raw Data]\n{str(event)[:200]}\n")
+            lines.append(f"**(Node #{idx}) [System]**: [Raw Data]\n{str(event)[:200]}\n")
             continue
             
         author = event.get('author') or 'System'
         content = event.get('content') or {}
+        actions = event.get('actions') or {}
+        
         if not isinstance(content, dict):
             content = {}
             
@@ -109,21 +93,41 @@ def _format_events(events) -> str:
         parts = content.get('parts', [])
         if not isinstance(parts, list):
             parts = []
+            
+        action_str = ""
+        if isinstance(actions, dict) and actions:
+            action_parts = []
+            for k, v in actions.items():
+                if v: # Highlight truthy graph transformations like escalate=True
+                    action_parts.append(f"{k}={v}")
+            if action_parts:
+                action_str = f" [ACTIONS: {', '.join(action_parts)}]"
+
+        header = f"**(Node #{idx}) [{author}] ({role}){action_str}**"
         
         for part in parts:
             if not isinstance(part, dict):
                 continue
                 
             if 'text' in part and isinstance(part['text'], str):
-                lines.append(_format_text_part(author, role, part['text']))
+                text = part['text'].strip()
+                if len(text) > 2000:
+                    text = text[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
+                lines.append(f"{header}:\n{text}\n")
             elif 'function_call' in part or 'functionCall' in part:
                 fc = part.get('function_call') or part.get('functionCall') or {}
-                lines.append(_format_tool_call(author, role, fc))
+                name = fc.get('name', 'unknown_tool')
+                args = json.dumps(fc.get('args', {}), indent=2)
+                lines.append(f"{header} called tool `{name}`:\n```json\n{args}\n```\n")
             elif 'function_response' in part or 'functionResponse' in part:
                 fr = part.get('function_response') or part.get('functionResponse') or {}
-                lines.append(_format_tool_response(author, role, fr))
+                name = fr.get('name', 'unknown_tool')
+                resp_str = json.dumps(fr.get('response', {}), indent=2)
+                if len(resp_str) > 2000:
+                    resp_str = resp_str[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
+                lines.append(f"{header} response from `{name}`:\n```json\n{resp_str}\n```\n")
             else:
-                lines.append(f"**[{author}] ({role})**: [Unknown Content Type]\n{json.dumps(part)[:200]}\n")
+                lines.append(f"{header}: [Unknown Content Type]\n{json.dumps(part)[:200]}\n")
                 
     return "\n".join(lines)
 
