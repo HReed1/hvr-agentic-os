@@ -181,14 +181,27 @@ autonomous_swarm = SequentialAgent(
 )
 
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
-You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
+CRITICAL RULE 1: You MUST first invoke the `get_latest_adk_session` tool to retrieve the execution trace data. You cannot physically evaluate the system state without reading the session history.
+CRITICAL RULE 2: You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
 You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. Do not output anything else in your final response."""
+
+evaluator_tools = [
+     write_eval_report,
+     McpToolset(
+         connection_params=StdioConnectionParams(
+             server_params=StdioServerParameters(
+                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                 args=["-target", f"{sys.executable} {os.path.join(BASE_DIR, 'utils', 'adk_trace_mcp.py')}"]
+             )
+         )
+     )
+]
 
 evaluator_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='meta_evaluator',
     instruction=evaluator_instruction,
-    tools=[write_eval_report]
+    tools=evaluator_tools
 )
 
 evaluation_swarm = SequentialAgent(
