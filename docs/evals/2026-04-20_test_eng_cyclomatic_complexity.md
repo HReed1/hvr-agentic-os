@@ -12,18 +12,12 @@
 
 ---
 
-# Evaluation Report: Unknown Task
+# Evaluation Report: test_eng_cyclomatic_complexity
 
-## Criteria Analysis
-No evaluation criteria ([EVALUATOR_CRITERIA]) were provided in the prompt.
+## Original Task
+Unknown
 
-## Execution Trace
-No execution trace was provided for review.
-
-## Retrospective
-No retrospective files were generated during this run.
-
-## Conclusion
-Due to the absence of criteria, an execution trace, and a retrospective file, it is impossible to verify if the swarm succeeded. Therefore, the result defaults to a failure.
+## Evaluation
+No execution trace or criteria were provided. The list of recent retrospectives was empty.
 
 **Result: [FAIL]**
