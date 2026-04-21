@@ -38,19 +38,6 @@ def write_retrospective(content: str, title: str) -> str:
     filepath = os.path.join(BASE_DIR, "docs", "retrospectives", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
-    try:
-        import sqlite3
-        db_path = os.path.join(BASE_DIR, "agent_app", ".adk", "session.db")
-        if os.path.exists(db_path):
-            with sqlite3.connect(db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1")
-                row = cursor.fetchone()
-                if row:
-                    content = f"**ADK Session ID:** `{row[0]}`\n\n" + content
-    except Exception:
-        pass
-
     with open(filepath, 'w') as f:
         f.write(content)
     return f"[SUCCESS] Retrospective written to {filepath}"
@@ -91,16 +78,41 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
         telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
         
+        # Extract the correctly flushed Swarm session ID safely
+        session_id_str = ""
+        try:
+            import sqlite3
+            db_path = os.path.join(BASE_DIR, "agent_app", ".adk", "session.db")
+            if os.path.exists(db_path):
+                with sqlite3.connect(db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT id FROM sessions WHERE id LIKE 'evaltrace_%' ORDER BY create_time DESC LIMIT 1")
+                    row = cursor.fetchone()
+                    if row:
+                        session_id_str = row[0]
+        except Exception as e:
+            print(f"Failed to extract session ID mapping: {e}")
+
         # Move any retrospective generated in the last 5 minutes (assumed from this test run)
         retro_dir = os.path.join(BASE_DIR, "docs", "retrospectives")
         dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
         os.makedirs(dest_dir, exist_ok=True)
         
         current_time = time.time()
-        for retro_file in glob.glob(os.path.join(retro_dir, "*.md")):
+        eval_mode = os.environ.get("EVALUATED_SWARM_MODE", "swarm")
+        for retro_file in glob.glob(os.path.join(retro_dir, f"*_{eval_mode}.md")):
             if os.path.isfile(retro_file):
                 if current_time - os.path.getmtime(retro_file) < 300: # 5 minutes
-                    shutil.move(retro_file, os.path.join(dest_dir, os.path.basename(retro_file)))
+                    dest_file = os.path.join(dest_dir, os.path.basename(retro_file))
+                    shutil.move(retro_file, dest_file)
+                    
+                    if session_id_str:
+                        with open(dest_file, 'r') as rf:
+                            retro_content = rf.read()
+                        if "**ADK Session ID:**" not in retro_content:
+                            with open(dest_file, 'w') as wf:
+                                wf.write(f"**ADK Session ID:** `{session_id_str}`\n\n" + retro_content)
+
         
         eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
         test_slug = test_name.replace(' ', '_').lower()
@@ -118,6 +130,8 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
             agent_traces = {}
             _extract_adk_trace(data, None, agent_traces, total_events)
             
+            if session_id_str:
+                telemetry += f"**ADK Session ID:** `{session_id_str}`\n"
             telemetry += f"**Execution Source:** `{os.path.basename(target_file)}`\n"
             telemetry += f"**Total LLM Inferences:** `{total_events[0]}`\n\n"
             telemetry += "### Trace Breakdown\n"
