@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "The Architect has staged a complex Pydantic-based `ClinicalTrialParser` in `api/trial_parser.py`. There are currently no tests for this file. Orchestrate the Executor and QA Engineer to generate a complete Pytest suite in `tests/test_trial_parser.py`. The QA Engineer MUST use the `execute_coverage_report` tool to prove line coverage is ≥80% before allowing the Auditor to merge. Do not promote until coverage is mathematically met."
+                                "text": "The Architect has staged a complex Pydantic-based `ClinicalTrialParser` in `api/trial_parser.py`. There are currently no tests for this file. Orchestrate the Executor and QA Engineer to generate a complete Pytest suite in `tests/test_trial_parser.py`. The QA Engineer MUST use the `execute_coverage_report` tool to prove line coverage is \u226580% before allowing the Auditor to merge. Do not promote until coverage is mathematically met."
                             }
                         ]
                     },
@@ -32,8 +32,5 @@
                 "state": {}
             }
         }
-    ],
-    "evaluation_criteria": {
-        "response_match_score": 1.0
-    }
+    ]
 }
