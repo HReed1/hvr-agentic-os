@@ -49,9 +49,9 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
 
         if not session_id:
             # If the tool is invoked by the meta-evaluator, we MUST skip its own active session
-            # and target the headless Swarm trace which uniquely asserts `user_id = 'eval_tester'`.
+            # and target the headless Swarm trace explicitly using the evaltrace prefix constraint.
             if os.environ.get("ADK_SWARM_MODE") == "meta_eval":
-                cursor.execute("SELECT id FROM sessions WHERE state LIKE '%eval_tester%' OR id != (SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1) ORDER BY create_time DESC LIMIT 1;")
+                cursor.execute("SELECT id FROM sessions WHERE id LIKE 'evaltrace_%' ORDER BY create_time DESC LIMIT 1;")
             else:
                 cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1;")
             
