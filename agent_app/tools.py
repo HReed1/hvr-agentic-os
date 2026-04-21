@@ -71,27 +71,28 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     date_str = datetime.now().strftime('%Y-%m-%d')
     mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
     
-    # 1. Deterministic Trace Extraction: Grab the most recent headless JSON array dynamically 
+    # 1. Namespace Resolution: Prioritize CI/CD boundary variables, fallback to agent context
+    test_name = os.environ.get("ACTIVE_TEST_ID") 
+    if not test_name:
+        test_name = test_id.strip() if test_id else "unknown_test_id"
+        
+    # 2. Deterministic Trace Extraction: Scan historical JSON arrays for the exact eval_set_id
     eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
     os.makedirs(eval_dir, exist_ok=True)
     all_trace_files = glob.glob(os.path.join(eval_dir, "*.json"))
-    target_file = max(all_trace_files, key=os.path.getmtime) if all_trace_files else None
     
-    # 2. Namespace Resolution: Prioritize boundary variables, fallback to physical trace parsing
-    test_name = os.environ.get("ACTIVE_TEST_ID") 
-    if not test_name and target_file:
+    target_file = None
+    all_trace_files.sort(key=os.path.getmtime, reverse=True)
+    for tf in all_trace_files:
         try:
-            with open(target_file, "r", encoding="utf-8") as f:
+            with open(tf, "r", encoding="utf-8") as f:
                 trace_data = json.load(f)
-                extracted_id = trace_data.get("eval_set_id")
-                if extracted_id:
-                    test_name = extracted_id
-        except Exception as e:
-            print(f"Failed to parse target trace JSON: {e}")
+                if trace_data.get("eval_set_id") == test_name:
+                    target_file = tf
+                    break
+        except Exception:
+            continue
             
-    # 3. Absolute Fallback: (Only occurs if firewall strips env AND file system is empty)
-    if not test_name:
-        test_name = test_id.strip() if test_id else "unknown_test_id"
         
     test_slug = test_name.replace(' ', '_').lower()
     filename = f"{date_str}_{test_slug}_{mode}_eval.md"
