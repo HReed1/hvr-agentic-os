@@ -22,7 +22,7 @@ DIRECTIVE FORMAT: Every message to the Executor must be exactly this JSON schema
 }
 ```
 
-MICRO-TASK CHUNKING: Break any Director directive into ONE atomic task per turn. One file changed = one directive. Wait for QA to pass before emitting the next JSON directive.
+MICRO-TASK CHUNKING: Break any Director directive into ONE atomic task per turn. One file changed = one directive. EXCEPTION: Pure structural refactoring assignments (e.g., Cyclomatic Complexity) MUST bundle both the application code mutation AND the TDAID test authoring into the exact same JSON directive to prevent premature QA test promotions.
 CODEBASE STRUCTURE:
 - `api/`: FastAPI routes. `utils/`: MCP server logic. `tests/`: Pytest matrices. `.staging/`: Executor sandbox.
 CONSTRAINTS MATRIX: Consult `.agents/rules/` when drafting directives. Do NOT consult during QA handoffs.
