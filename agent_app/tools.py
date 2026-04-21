@@ -62,8 +62,8 @@ def _extract_adk_trace(node, current_author, agent_traces, total_events):
                 
             agent_traces[author]['count'] += 1
             total_events[0] += 1
-            agent_traces[author]['tokens_in'] += node["usage_metadata"].get("prompt_token_count", 0)
-            agent_traces[author]['tokens_out'] += node["usage_metadata"].get("candidates_token_count", 0)
+            agent_traces[author]['tokens_in'] += (node["usage_metadata"].get("prompt_token_count") or 0)
+            agent_traces[author]['tokens_out'] += (node["usage_metadata"].get("candidates_token_count") or 0)
 
         for k, v in node.items():
             _extract_adk_trace(v, author if k not in ['usage_metadata', 'actual_invocation'] else author, agent_traces, total_events)
@@ -75,7 +75,17 @@ def write_eval_report(content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
     date_str = datetime.now().strftime('%Y-%m-%d')
-    filename = f"{date_str}_{test_name}.md"
+    
+    retro_dir = os.path.join(BASE_DIR, "docs", "retrospectives")
+    retrospectives = glob.glob(os.path.join(retro_dir, "*.md"))
+    newest_retro = max(retrospectives, key=os.path.getmtime) if retrospectives else None
+
+    if newest_retro:
+        retro_basename = os.path.basename(newest_retro)
+        filename = retro_basename.replace(".md", "_eval.md")
+    else:
+        filename = f"{date_str}_{test_name}_eval.md"
+
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
@@ -85,11 +95,10 @@ def write_eval_report(content: str, is_passing: bool) -> str:
         telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
         
-        src_pattern = os.path.join(BASE_DIR, "docs", "retrospectives", f"*{test_name}*")
-        dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
-        os.makedirs(dest_dir, exist_ok=True)
-        for src in glob.glob(src_pattern):
-            shutil.move(src, os.path.join(dest_dir, os.path.basename(src)))
+        if newest_retro:
+            dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
+            os.makedirs(dest_dir, exist_ok=True)
+            shutil.move(newest_retro, os.path.join(dest_dir, os.path.basename(newest_retro)))
         
         eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
         test_slug = test_name.replace(' ', '_').lower()
