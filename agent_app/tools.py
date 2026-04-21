@@ -64,7 +64,8 @@ def _extract_adk_trace(node, current_author, agent_traces, total_events):
 def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     import time
-    test_name = test_id
+    # Force alignment to the bash boundary namespace; fallback to LLM tool extraction if missing.
+    test_name = os.environ.get("ACTIVE_TEST_ID", test_id)
     mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
     date_str = datetime.now().strftime('%Y-%m-%d')
     

@@ -55,7 +55,7 @@ def _get_approved_directories() -> list:
     whitelist_env = os.environ.get("ADK_ALLOWED_STAGING_DIRS", "")
     if whitelist_env:
         return [d.strip() for d in whitelist_env.split(",") if d.strip()]
-    return ["api", "agent_app", "orchestrator", "infrastructure", "utils", "tests", "core", "src", "etl", "db-init", "alembic", "bin", "docker"]
+    return [".agents", "api", "agent_app", "orchestrator", "infrastructure", "utils", "tests", "core", "src", "etl", "db-init", "alembic", "bin", "docker"]
 
 @mcp.tool()
 def read_workspace_file(file_path: str) -> str:
