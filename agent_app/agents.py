@@ -177,6 +177,7 @@ autonomous_swarm = SequentialAgent(
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
 CRITICAL RULE 1: You MUST first invoke the `get_latest_adk_session` tool to retrieve the execution trace data. You cannot physically evaluate the system state without reading the session history.
 CRITICAL RULE 2: You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
+CRITICAL RULE 3: You MUST explicitly map the test identifier provided to you in the prompt text format [TEST_ID: xyz] structurally into the `test_id` parameter of your `write_eval_report` tool invocation.
 You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. Do not output anything else in your final response."""
 
 evaluator_tools = [

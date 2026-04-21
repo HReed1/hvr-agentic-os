@@ -48,12 +48,19 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         cursor = conn.cursor()
 
         if not session_id:
-            cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1;")
+            # If the tool is invoked by the meta-evaluator, we MUST skip its own active session
+            # and target the headless Swarm trace which uniquely asserts `user_id = 'eval_tester'`.
+            if os.environ.get("ADK_SWARM_MODE") == "meta_eval":
+                cursor.execute("SELECT id FROM sessions WHERE state LIKE '%eval_tester%' OR id != (SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1) ORDER BY create_time DESC LIMIT 1;")
+            else:
+                cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1;")
+            
             row = cursor.fetchone()
             if not row:
                 return "No sessions found in database."
             session_id = row['id']
-
+            
+        # Optional safeguard for trace reader: double check if the session is empty
         cursor.execute("SELECT event_data FROM events WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
         rows = cursor.fetchall()
 

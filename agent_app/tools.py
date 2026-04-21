@@ -74,10 +74,10 @@ def _extract_adk_trace(node, current_author, agent_traces, total_events):
         for item in node:
             _extract_adk_trace(item, current_author, agent_traces, total_events)
 
-def write_eval_report(content: str, is_passing: bool) -> str:
+def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
     import time
-    test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
+    test_name = test_id
     mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
     date_str = datetime.now().strftime('%Y-%m-%d')
     
