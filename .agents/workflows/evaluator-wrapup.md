@@ -5,11 +5,11 @@
 ## Execution Steps
 
 ### 1. Pre-Flight Reporting `[AGENT DUTY]`
+- **The Reporting Director**:
+    - MUST call `write_retrospective` to synthesize the narrative engineering summary.
 - **The Meta-Evaluator**: 
     - MUST call `write_eval_report`.
     - MUST explicitly determine the `is_passing: bool` technical verdict.
-- **The Reporting Director**:
-    - MUST call `write_retrospective` to synthesize the narrative engineering summary.
 - **Handoff Finality**: The last agent in the sequence must output the termination string: `[EVALUATION COMPLETE]`.
 
 ---

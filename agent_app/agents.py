@@ -218,5 +218,5 @@ evaluator_loop = LoopAgent(
 
 evaluation_swarm = SequentialAgent(
     name="evaluation_wrapper",
-    sub_agents=[autonomous_swarm, evaluator_loop, reporter_agent]
+    sub_agents=[autonomous_swarm, reporter_agent, evaluator_loop]
 )
