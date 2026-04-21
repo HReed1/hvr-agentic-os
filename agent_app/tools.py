@@ -60,7 +60,6 @@ def write_eval_report(content: str, test_name: str) -> str:
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     try:
-    try:
         import json
         import glob
         telemetry = ""
