@@ -1,15 +1,11 @@
 # Empirical Verification Rule
 
-> [!IMPORTANT]
-> **SCOPE:** This rule applies STRICTLY to the Antigravity IDE Agent (the outer orchestrating AI). 
-> **ADK Swarm Agents:** If you are reading this from inside the Swarm Sandbox (Director, Auditor, QA Engineer, Meta-Evaluator, etc.), this rule does NOT apply to you. You must rely on your native `agent_app/prompts.py` directives.
+When investigating system errors, unexpected behaviors, or data inconsistencies, the IDE Agent MUST NOT implement architectural changes or code workarounds based solely on symptom-matching or "Black Box" assumptions.
 
-When investigating system errors, paradoxes, or missing telemetry, the IDE Agent MUST NOT formulate architectural workarounds based on unverified symptom-matching or "Black Box" assumptions.
+Before modifying codebases or proposing infrastructure mitigations to fix a suspected bug, the IDE Agent MUST strictly adhere to the following empirical verification sequence:
 
-Before making codebase changes or proposing architectural mitigations to fix a suspected infrastructure bug, Agents MUST strictly adhere to the following empirical verification sequence:
+1. **Physical Evidence First:** Actively verify the ground-truth state of the environment using native diagnostic tools (e.g., executing trace logs, inspecting physical file states, querying raw databases, and isolating environment boundaries).
+2. **Never Guess:** If a system constraint or script is suspected of interfering with normal execution, the Agent must read and verify the structural constraints or the exact source code governing that boundary. Provide verifiable proof of the failure mechanism.
+3. **Data Over Hypotheses:** Do not rely on assumptions about what an external system "might" be doing to resolve discrepancies. Trace the literal data pipeline bounds and exact structural inputs/outputs.
 
-1. **Physical Evidence First:** Agents must verify the actual physical state utilizing log outputs, raw database queries (e.g. SQLite), and filesystem states (identifying cached Git artifacts vs truly generated footprints).
-2. **Never Guess:** If an environment boundary (like a Firewall or Sandbox) is suspected of stripping variables or blocking commands, Agents must read the structural execution bounds or raw source code of the infrastructure to unequivocally PROVE the behavior.
-3. **Data Over Hypotheses:** Do not rely strictly on observed LLM behavior variations to diagnose system bounds. Agents must trace the full script pipeline and exact inputs/outputs (e.g., extracting literal pipe strings and bash parameters).
-
-Architectural workarounds are strictly prohibited until the actual root mechanic of the failure has been physically verified.
+Architectural workarounds and systemic modifications are strictly prohibited until the precise root mechanism of the failure has been empirically identified and verified.
