@@ -31,7 +31,8 @@ def read_doc(file_path: str) -> str:
 def write_retrospective(content: str, title: str) -> str:
     """Writes a markdown retrospective document to the docs/retrospectives directory. Title should be snake_case, no extension."""
     date_str = datetime.now().strftime('%Y-%m-%d')
-    filename = f"{date_str}_{title}.md"
+    unique_suffix = secrets.token_hex(4)
+    filename = f"{date_str}_{title}_{unique_suffix}.md"
     filepath = os.path.join(BASE_DIR, "docs", "retrospectives", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
