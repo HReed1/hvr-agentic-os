@@ -76,48 +76,14 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     if not test_name:
         test_name = test_id.strip() if test_id else "unknown_test_id"
         
-    # 2. Deterministic Trace Extraction: Scan historical JSON arrays for the exact eval_set_id
-    eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
-    os.makedirs(eval_dir, exist_ok=True)
-    all_trace_files = glob.glob(os.path.join(eval_dir, "*.json"))
-    
-    target_file = None
-    all_trace_files.sort(key=os.path.getmtime, reverse=True)
-    for tf in all_trace_files:
-        try:
-            with open(tf, "r", encoding="utf-8") as f:
-                trace_data = json.load(f)
-                if trace_data.get("eval_set_id") == test_name:
-                    target_file = tf
-                    break
-        except Exception:
-            continue
-            
-        
     test_slug = test_name.replace(' ', '_').lower()
     filename = f"{date_str}_{test_slug}_{mode}_eval.md"
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
     try:
-        telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
         
-        # Extract the correctly flushed Swarm session ID safely
-        session_id_str = ""
-        try:
-            import sqlite3
-            db_path = os.path.join(BASE_DIR, "agent_app", ".adk", "session.db")
-            if os.path.exists(db_path):
-                with sqlite3.connect(db_path) as conn:
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT id FROM sessions WHERE id LIKE 'evaltrace_%' ORDER BY create_time DESC LIMIT 1")
-                    row = cursor.fetchone()
-                    if row:
-                        session_id_str = row[0]
-        except Exception as e:
-            print(f"Failed to extract session ID mapping: {e}")
-
         # Move any retrospective generated in the last 5 minutes (assumed from this test run)
         retro_dir = os.path.join(BASE_DIR, "docs", "retrospectives")
         dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
@@ -129,37 +95,9 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
                 if current_time - os.path.getmtime(retro_file) < 300: # 5 minutes
                     dest_file = os.path.join(dest_dir, os.path.basename(retro_file))
                     shutil.move(retro_file, dest_file)
-                    
-                    if session_id_str:
-                        with open(dest_file, 'r') as rf:
-                            retro_content = rf.read()
-                        if "**ADK Session ID:**" not in retro_content:
-                            with open(dest_file, 'w') as wf:
-                                wf.write(f"**ADK Session ID:** `{session_id_str}`\n\n" + retro_content)
         
-        if target_file and os.path.exists(target_file):
-            with open(target_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                
-            total_events = [0]
-            agent_traces = {}
-            _extract_adk_trace(data, None, agent_traces, total_events)
-            
-            if session_id_str:
-                telemetry += f"**ADK Session ID:** `{session_id_str}`\n"
-            telemetry += f"**Execution Source:** `{os.path.basename(target_file)}`\n"
-            telemetry += f"**Total LLM Inferences:** `{total_events[0]}`\n\n"
-            telemetry += "### Trace Breakdown\n"
-            
-            if not agent_traces:
-                 telemetry += "- (No LLM execution bounds recorded in target trace)\n"
-                 
-            for author, stats in sorted(agent_traces.items()):
-                token_str = f" [In: {stats['tokens_in']:,} | Out: {stats['tokens_out']:,}]"
-                telemetry += f"- **{author}**: {stats['count']} inferences{token_str}\n"
-            telemetry += "\n---\n\n"
-        else:
-            telemetry = f"**Warning:** No corresponding ADK Eval Trace file found mapped to `{test_name}` in the cache.\n\n---\n\n"
+        telemetry = "<!-- TELEMETRY_INJECTION_POINT -->\n\n---\n\n"
+
             
         content = f"{status_label}\n\n" + telemetry + content
     except Exception as e:

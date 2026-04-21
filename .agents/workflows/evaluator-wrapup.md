@@ -19,9 +19,9 @@
 - **Goal**: Synchronize any memories generated inside the throwaway sandbox back to the project root before the sandbox is destroyed.
 - **Context**: This ensures that even failed swarms leave their experience behind for future iterations.
 
-### 3. Telemetry Preservation `[SYSTEM AUTOMATION]`
-- **Targets**: `docs/evals/`, `docs/retrospectives/`, `.agents/memory/`.
-- **Action**: `git add <targets>` to stage documentation and memories for persistence.
+### 3. Telemetry Injection & Preservation `[SYSTEM AUTOMATION]`
+- **Action 1 (Injection)**: `python utils/inject_telemetry.py` to synchronously map exactly how many tokens and inferences the Swarm used based on the exact final JSON log, replacing the `<!-- TELEMETRY_INJECTION_POINT -->` placeholder.
+- **Action 2 (Preservation)**: `git add docs/evals/ docs/retrospectives/ .agents/memory/ || true` to safely stage the evaluations.
 
 ### 4. Amnesia Sweep `[SYSTEM AUTOMATION]`
 - **Target**: Entire root workspace.

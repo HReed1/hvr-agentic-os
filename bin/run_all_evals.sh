@@ -26,6 +26,9 @@ for test_file in tests/adk_evals/*.test.json; do
         exit 130
     fi
     
+    # 2.5 Ensure organic post-evaluation trace data is merged natively into the static md structure
+    ACTIVE_TEST_ID="$TEST_NAME" python utils/inject_telemetry.py
+    
     
     # 3. The Memory Bridge (Ref: Evaluator Wrapup Workflow Step 2)
     # Physically reconcile internal swarm memories from the airlock back to the root.
