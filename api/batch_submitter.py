@@ -1,53 +1,24 @@
+def get_vc_queue(memory, vcpus, priority, use_spot):
+    if memory <= 32: return "queue_default"
+    if vcpus < 16: return "queue_ondemand_low_vc"
+    if use_spot: return "queue_spot_high_vc" if priority == "high" else "queue_spot_std_vc"
+    return "queue_ondemand_crit_vc" if priority == "critical" else "queue_ondemand_std_vc"
+
+def get_alignment_queue(memory, vcpus, priority, use_spot):
+    if not use_spot: return "queue_ondemand_high_align" if priority == "high" else "queue_ondemand_std_align"
+    if memory >= 64: return "queue_spot_high_align"
+    return "queue_spot_std_align" if vcpus > 8 else "queue_spot_low_align"
+
+def get_qc_queue(memory, vcpus, priority, use_spot):
+    if priority == "low": return "queue_spot_qc" if use_spot else "queue_ondemand_qc"
+    return "queue_priority_critical_qc" if priority == "critical" else "queue_priority_qc"
+
 def submit_genomic_job(job_type, memory, vcpus, priority, use_spot):
-    """
-    Submits a job to AWS Batch.
-    Intentionally designed with massive cyclomatic complexity to guarantee the 
-    Auditor's McCabe AST calculation exceeds the Threshold limit of 5.
-    """
-    if job_type == "variant_calling":
-        if memory > 32:
-            if vcpus >= 16:
-                if use_spot:
-                    if priority == "high":
-                        return "queue_spot_high_vc"
-                    else:
-                        return "queue_spot_std_vc"
-                else:
-                    if priority == "critical":
-                        return "queue_ondemand_crit_vc"
-                    else:
-                        return "queue_ondemand_std_vc"
-            else:
-                return "queue_ondemand_low_vc"
-        else:
-            return "queue_default"
-            
-    elif job_type == "alignment":
-        if use_spot:
-            if memory >= 64:
-                return "queue_spot_high_align"
-            else:
-                if vcpus > 8:
-                    return "queue_spot_std_align"
-                else:
-                    return "queue_spot_low_align"
-        else:
-            if priority == "high":
-                return "queue_ondemand_high_align"
-            else:
-                return "queue_ondemand_std_align"
-                
-    elif job_type == "qc":
-        if priority == "low":
-            if use_spot:
-                return "queue_spot_qc"
-            else:
-                return "queue_ondemand_qc"
-        else:
-            if priority == "critical":
-                return "queue_priority_critical_qc"
-            else:
-                return "queue_priority_qc"
-            
-    else:
-        return "queue_fallback"
+    strategies = {
+        "variant_calling": get_vc_queue,
+        "alignment": get_alignment_queue,
+        "qc": get_qc_queue
+    }
+    strategy = strategies.get(job_type)
+    if not strategy: return "queue_fallback"
+    return strategy(memory, vcpus, priority, use_spot)

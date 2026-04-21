@@ -7,7 +7,7 @@ IS_HEADLESS_EVAL = "eval" in sys.argv or os.environ.get("HEADLESS_EVAL", "false"
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXECUTOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "executor_mcp.py")
-ARCHITECT_MCP_PATH = os.path.join(BASE_DIR, "utils", "architect_mcp.py")
+
 AUDITOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "auditor_mcp.py")
 AST_VALIDATION_MCP_PATH = os.path.join(BASE_DIR, "utils", "ast_validation_mcp.py")
 

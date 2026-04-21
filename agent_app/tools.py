@@ -71,7 +71,8 @@ def write_eval_report(content: str, test_name: str) -> str:
         target_file = None
         if matching_files:
             target_file = max(matching_files, key=os.path.getmtime)
-
+        elif glob.glob(os.path.join(eval_dir, "*.json")):
+            target_file = max(glob.glob(os.path.join(eval_dir, "*.json")), key=os.path.getmtime)
             
         if target_file and os.path.exists(target_file):
             with open(target_file, "r", encoding="utf-8") as f:

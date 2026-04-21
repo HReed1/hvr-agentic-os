@@ -43,15 +43,7 @@ director_agent = LlmAgent(
 )
 
 architect_tools = [
-    list_docs, read_doc, approve_staging_qa, escalate_to_director,
-    McpToolset(
-        connection_params=StdioConnectionParams(
-            server_params=StdioServerParameters(
-                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {ARCHITECT_MCP_PATH}"]
-            )
-        )
-    )
+    list_docs, read_doc, approve_staging_qa, escalate_to_director
 ]
 
 architect_agent = LlmAgent(
