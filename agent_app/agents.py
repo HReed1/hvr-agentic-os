@@ -127,7 +127,17 @@ reporter_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='reporting_director',
     instruction=reporter_instruction,
-    tools=[write_retrospective]
+    tools=[
+        write_retrospective,
+        McpToolset(
+            connection_params=StdioConnectionParams(
+                server_params=StdioServerParameters(
+                    command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                    args=["-target", f"{sys.executable} {os.path.join(BASE_DIR, 'utils', 'adk_trace_mcp.py')}"]
+                )
+            )
+        )
+    ]
 )
 
 codebase_research_agent = LlmAgent(
@@ -174,11 +184,12 @@ autonomous_swarm = SequentialAgent(
     sub_agents=[director_loop, reporter_agent]
 )
 
-evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
-CRITICAL RULE 1: You MUST first invoke the `import_eval_traces` tool to bridge the headless JSON arrays into the SQLite database. After that succeeds, you MUST invoke the `get_latest_adk_session` tool to retrieve the execution trace data. You cannot physically evaluate the system state without reading the session history.
+evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
+CRITICAL MANDATE: You MUST first read and adhere to the [Evaluator Governance Rule](file:///.agents/rules/evaluator-governance.md) and the [Evaluator Wrapup Workflow](file:///.agents/workflows/evaluator-wrapup.md) before performing your audit.
+CRITICAL RULE 1: You MUST invoke the `get_latest_adk_session` tool to retrieve the execution trace data. Since you are running in the same process as the swarm, the full history is already available in your session database. You cannot physically evaluate the system state without reading this history.
 CRITICAL RULE 2: You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
-CRITICAL RULE 3: You MUST explicitly map the test identifier provided to you in the prompt text format [TEST_ID: xyz] structurally into the `test_id` parameter of your `write_eval_report` tool invocation.
-You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. Once `write_eval_report` returns successfully, you MUST cleanly conclude your execution by exclusively outputting the text `[EVALUATION COMPLETE]`."""
+You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. 
+BOUNDARY ENFORCEMENT: Your duty ends at reporting. YOU ARE FORBIDDEN from attempting physical workspace resets or git commands. Once `write_eval_report` returns successfully, cleanly conclude your execution by exclusively outputting the text `[EVALUATION COMPLETE]` to hand control to the system automation."""
 
 evaluator_tools = [
      write_eval_report,
@@ -199,7 +210,13 @@ evaluator_agent = LlmAgent(
     tools=evaluator_tools
 )
 
+evaluator_loop = LoopAgent(
+    name="evaluator_loop",
+    max_iterations=1,
+    sub_agents=[evaluator_agent]
+)
+
 evaluation_swarm = SequentialAgent(
     name="evaluation_wrapper",
-    sub_agents=[autonomous_swarm, evaluator_agent]
+    sub_agents=[autonomous_swarm, evaluator_loop, reporter_agent]
 )

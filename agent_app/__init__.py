@@ -15,4 +15,4 @@ elif swarm_mode == "meta_eval":
     from .agents import evaluator_agent
     agent = evaluator_agent
 else:
-    agent = autonomous_swarm
+    agent = evaluation_swarm
