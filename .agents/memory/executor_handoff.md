@@ -28,3 +28,8 @@
 * **Launch Template Bindings:** When drafting HCL for AWS Batch `aws_launch_template`, NEVER use the static `version = "$Latest"` string, as this causes internal State Drift traps. Use dynamic traversal attributes (`latest_version`).
 * **IAM Least-Privilege Role Bifurcation:** Ensure task-specific execution boundaries by moving custom policies away from the host-level (EC2 Instance) down onto the task-level (ECS Task) roles to enforce Zero-Trust scoping.
 * **Authentication Boundary:** Deprecate insecure static passwords or token checks from backend systems. Auth0 JWT validation `Depends(verify_token)` is the mandated structural boundary for all user REST execution logic.
+
+
+### Refactoring Lessons: Cyclomatic Complexity Reduction
+* **Dispatch Mapping:** Structural flattening of nested conditionals via `dispatch_map` significantly reduces McCabe scores.
+* **Helper Decomposition:** Extracting leaf-level logic into discrete helper functions isolates branch complexity, ensuring the main entry point remains ≤ 5.
