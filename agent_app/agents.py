@@ -15,7 +15,8 @@ from .config import (
     PRIMARY_FLASH_MODEL,
     EXECUTOR_MCP_PATH,
     AUDITOR_MCP_PATH,
-    AST_VALIDATION_MCP_PATH
+    AST_VALIDATION_MCP_PATH,
+    ADK_TRACE_MCP_PATH
 )
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
@@ -133,7 +134,7 @@ reporter_agent = LlmAgent(
             connection_params=StdioConnectionParams(
                 server_params=StdioServerParameters(
                     command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                    args=["-target", f"{sys.executable} {os.path.join(BASE_DIR, 'utils', 'adk_trace_mcp.py')}"]
+                    args=["-target", f"{sys.executable} {ADK_TRACE_MCP_PATH}"]
                 )
             )
         )
@@ -197,7 +198,7 @@ evaluator_tools = [
          connection_params=StdioConnectionParams(
              server_params=StdioServerParameters(
                  command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                 args=["-target", f"{sys.executable} {os.path.join(BASE_DIR, 'utils', 'adk_trace_mcp.py')}"]
+                 args=["-target", f"{sys.executable} {ADK_TRACE_MCP_PATH}"]
              )
          )
      )
