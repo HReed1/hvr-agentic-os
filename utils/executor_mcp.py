@@ -50,12 +50,19 @@ def _ensure_staged():
         os.makedirs(staging_target_dir, exist_ok=True)
         
         for file in files:
-            if not file.startswith('.') and not file.endswith(('.pyc', '.so')):
-                base_fp = os.path.join(root, file)
-                staging_fp = os.path.join(staging_target_dir, file)
-                if not os.path.exists(staging_fp):
-                    try:
-                        shutil.copy2(base_fp, staging_fp)
+            # Surgical Whitelist: Only allow hidden files if they reside in .agents/memory/
+            if file.startswith('.') and not rel_path.startswith('.agents/memory'):
+                if not file.endswith(('.pyc', '.so')): # Standard excludes
+                    continue
+            
+            if file.endswith(('.pyc', '.so')):
+                continue
+                
+            base_fp = os.path.join(root, file)
+            staging_fp = os.path.join(staging_target_dir, file)
+            if not os.path.exists(staging_fp):
+                try:
+                    shutil.copy2(base_fp, staging_fp)
                     except Exception:
                         pass
                         
