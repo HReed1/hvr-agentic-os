@@ -181,7 +181,7 @@ director_loop = LoopAgent(
 
 autonomous_swarm = SequentialAgent(
     name="autonomous_swarm",
-    sub_agents=[director_loop, reporter_agent]
+    sub_agents=[director_loop]
 )
 
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
