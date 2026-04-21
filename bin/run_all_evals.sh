@@ -14,10 +14,13 @@ for test_file in tests/adk_evals/*.test.json; do
     rm -rf .staging
     
     # 2. Run the evaluation gracefully
-    # We allow the python exit code to proceed naturally using || true because ADK
-    # may return non-zero cleanly upon a philosophical failure, and we still want to clean up.
-    PYTHONUNBUFFERED=1 HEADLESS_EVAL=true adk eval agent_app "$test_file" || true 
-    
+    # We catch the exit code natively to differentiate organic failures from user SIGINT traps.
+    PYTHONUNBUFFERED=1 HEADLESS_EVAL=true adk eval agent_app "$test_file"
+    EVAL_EXIT=$?
+    if [ $EVAL_EXIT -eq 130 ] || [ $EVAL_EXIT -eq 2 ]; then
+        echo "[ABORT] Evaluation brutally killed via KeyboardInterrupt. Terminating pipeline."
+        exit 130
+    fi
     TEST_NAME=$(jq -r --arg default "$test_file" '.eval_set_id // $default' "$test_file")
     CRITERIA=$(jq -r '.eval_cases[0].conversation[0].user_content.parts[0].text // "Unknown"' "$test_file")
     
