@@ -31,8 +31,10 @@ def read_doc(file_path: str) -> str:
 def write_retrospective(content: str, title: str) -> str:
     """Writes a markdown retrospective document to the docs/retrospectives directory. Title should be snake_case, no extension."""
     date_str = datetime.now().strftime('%Y-%m-%d')
-    unique_suffix = secrets.token_hex(4)
-    filename = f"{date_str}_{title}_{unique_suffix}.md"
+    mode = os.environ.get("ADK_SWARM_MODE", "")
+    if not mode:
+        mode = "swarm"
+    filename = f"{date_str}_{title}_{mode}.md"
     filepath = os.path.join(BASE_DIR, "docs", "retrospectives", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
@@ -74,19 +76,12 @@ def _extract_adk_trace(node, current_author, agent_traces, total_events):
 
 def write_eval_report(content: str, is_passing: bool) -> str:
     """Writes a markdown evaluation report to the docs/evals directory."""
+    import time
     test_name = os.getenv("EVALUATING_TEST_NAME", "unknown_test")
+    mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
     date_str = datetime.now().strftime('%Y-%m-%d')
     
-    retro_dir = os.path.join(BASE_DIR, "docs", "retrospectives")
-    retrospectives = glob.glob(os.path.join(retro_dir, "*.md"))
-    newest_retro = max(retrospectives, key=os.path.getmtime) if retrospectives else None
-
-    if newest_retro:
-        retro_basename = os.path.basename(newest_retro)
-        filename = retro_basename.replace(".md", "_eval.md")
-    else:
-        filename = f"{date_str}_{test_name}_eval.md"
-
+    filename = f"{date_str}_{test_name}_{mode}_eval.md"
     filepath = os.path.join(BASE_DIR, "docs", "evals", filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     
@@ -96,10 +91,16 @@ def write_eval_report(content: str, is_passing: bool) -> str:
         telemetry = ""
         status_label = "**Result: [PASS]**" if is_passing else "**Result: [FAIL]**"
         
-        if newest_retro:
-            dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
-            os.makedirs(dest_dir, exist_ok=True)
-            shutil.move(newest_retro, os.path.join(dest_dir, os.path.basename(newest_retro)))
+        # Move any retrospective generated in the last 5 minutes (assumed from this test run)
+        retro_dir = os.path.join(BASE_DIR, "docs", "retrospectives")
+        dest_dir = os.path.join(BASE_DIR, "docs", "evals", "retrospectives")
+        os.makedirs(dest_dir, exist_ok=True)
+        
+        current_time = time.time()
+        for retro_file in glob.glob(os.path.join(retro_dir, "*.md")):
+            if os.path.isfile(retro_file):
+                if current_time - os.path.getmtime(retro_file) < 300: # 5 minutes
+                    shutil.move(retro_file, os.path.join(dest_dir, os.path.basename(retro_file)))
         
         eval_dir = os.path.join(BASE_DIR, "agent_app", ".adk", "eval_history")
         test_slug = test_name.replace(' ', '_').lower()
