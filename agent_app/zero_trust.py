@@ -267,13 +267,17 @@ try:
         def padded_get_eval_case(*args, **kwargs):
             eval_case = original_get(*args, **kwargs)
             if eval_case and hasattr(eval_case, 'conversation') and eval_case.conversation:
-                actual_len = len(inference_result.inferences)
+                actual_len = len(inference_result.inferences or [])
                 while len(eval_case.conversation) < actual_len:
                     eval_case.conversation.append(eval_case.conversation[-1])
             return eval_case
             
         self._eval_sets_manager.get_eval_case = padded_get_eval_case
         try:
+            # Bypass ADK's intrinsic NoneType len() crash if the agent strictly threw a systemic error
+            if inference_result.inferences is None:
+                inference_result.inferences = []
+                
             return await _original_eval_single(self, inference_result=inference_result, evaluate_config=evaluate_config)
         finally:
             self._eval_sets_manager.get_eval_case = original_get
