@@ -157,7 +157,7 @@ def _intercept_tool(self, ctx, part, event):
     handlers = {
         'mark_system_complete': _handle_mark_complete,
         'approve_staging_qa': _handle_approve_staging,
-        'mark_qa_passed': _handle_mark_qa,
+        'signal_task_complete': _handle_mark_qa,
         'escalate_to_director': _handle_escalate,
     }
     

@@ -21,7 +21,7 @@ from .config import (
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
     list_docs, read_doc, mark_system_complete, escalate_to_director,
-    approve_staging_qa, mark_qa_passed, write_retrospective, run_pipeline_diagnostics,
+    approve_staging_qa, signal_task_complete, write_retrospective, run_pipeline_diagnostics,
     research_read_file, research_list_directory, write_eval_report
 )
 from .prompts import (
@@ -54,7 +54,7 @@ architect_agent = LlmAgent(
 )
 
 executor_tools = [
-    escalate_to_director,
+    escalate_to_director, signal_task_complete,
     McpToolset(
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(

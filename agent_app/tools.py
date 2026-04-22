@@ -128,15 +128,15 @@ def escalate_to_director(reason: str) -> str:
     """Escalates an unresolvable testing paradox, physical constraint, or tooling limitation back up to the Director."""
     return "[FATAL] State Transition Tool Called: You have safely escalated to the Director."
 
-def mark_qa_passed(summary: str) -> str:
-    """Marks the current QA evaluation cycle as PASSED. Use this ONLY when test arrays securely exit with code 0."""
+def signal_task_complete(summary: str) -> str:
+    """Signals that the current execution loop is successfully finalized. Use this ONLY when test arrays natively exit with code 0 natively."""
     staging_dir = os.path.join(BASE_DIR, ".staging")
     os.makedirs(staging_dir, exist_ok=True)
     sig = hmac.new(_get_qa_secret(), b"QA_PASSED", hashlib.sha256).hexdigest()
     sig_path = _qa_signature_path()
     with open(sig_path, "w") as f:
         f.write(sig)
-    return f"[SUCCESS] State Transition Tool Called: QA Passed. HMAC signature written to .staging/.qa_signature"
+    return f"[SUCCESS] State Transition Tool Called: Task Complete. HMAC signature written to .staging/.qa_signature"
 
 def approve_staging_qa(summary: str) -> str:
     """Approves the Architect's evaluation of the QA loop, securely vetting the staging payload for the Auditor."""
@@ -144,7 +144,7 @@ def approve_staging_qa(summary: str) -> str:
     if not os.path.exists(sig_path):
         return (
             "[BLOCKED] Cannot approve staging: .staging/.qa_signature does not exist. "
-            "The QA Engineer must invoke mark_qa_passed after a successful test run. "
+            "The Executor must invoke signal_task_complete after a successful test run. "
             "Route control back to the QA Engineer."
         )
     with open(sig_path, "r") as f:
