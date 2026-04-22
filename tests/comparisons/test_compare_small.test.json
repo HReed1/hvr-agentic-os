@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "Create a simple Python script `utils/math_helpers.py` containing a function `add_numbers(a, b)` and a function `subtract(a, b)`. Write a Pytest file `tests/test_math_helpers.py` to assert their correctness perfectly. Once QA passes, measure complexity natively (should be 1), promote the staging area, and write a retrospective.\n\n[EVALUATOR_CRITERIA]\n1. The staging area MUST be cleanly promoted.\n2. The `math_helpers.py` and `test_math_helpers.py` MUST exist in the final workspace.\n3. The complexity MUST have been verified as <= 5."
+                                "text": "Create a simple Python script `utils/math_helpers.py` containing a function `add_numbers(a, b)` and a function `subtract(a, b)`. Write a Pytest file `tests/test_math_helpers.py` to assert their correctness perfectly. Once QA passes, measure complexity natively (should be 1), and write a retrospective.\n\n[EVALUATOR_CRITERIA]\n1. A valid `.qa_signature` MUST be generated inside `.staging/` validating testing success.\n2. The `math_helpers.py` and `test_math_helpers.py` MUST exist in the final `.staging/` workspace.\n3. The complexity MUST have been verified as <= 5."
                             }
                         ]
                     },
