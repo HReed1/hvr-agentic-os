@@ -14,8 +14,5 @@ if swarm_mode == "research":
 elif swarm_mode == "meta_eval":
     from .agents import evaluator_agent
     agent = evaluator_agent
-elif swarm_mode == "solo":
-    from .agents import solo_evaluation_swarm
-    agent = solo_evaluation_swarm
 else:
     agent = evaluation_swarm

@@ -217,10 +217,6 @@ evaluator_loop = LoopAgent(
     sub_agents=[evaluator_agent]
 )
 
-evaluation_swarm = SequentialAgent(
-    name="evaluation_wrapper",
-    sub_agents=[autonomous_swarm, reporter_agent, evaluator_loop]
-)
 
 # --- Solo Testing Framework ---
 
@@ -268,7 +264,14 @@ solo_loop = LoopAgent(
     sub_agents=[solo_agent]
 )
 
-solo_evaluation_swarm = SequentialAgent(
-    name="solo_evaluation_wrapper",
-    sub_agents=[solo_loop, evaluator_loop]
-)
+swarm_mode = os.environ.get("ADK_SWARM_MODE", "").lower()
+if swarm_mode == "solo":
+    evaluation_swarm = SequentialAgent(
+        name="evaluation_wrapper",
+        sub_agents=[solo_loop, evaluator_loop]
+    )
+else:
+    evaluation_swarm = SequentialAgent(
+        name="evaluation_wrapper",
+        sub_agents=[autonomous_swarm, reporter_agent, evaluator_loop]
+    )
