@@ -34,3 +34,6 @@
 * **Dispatch Mapping:** Structural flattening of nested conditionals via `dispatch_map` significantly reduces McCabe scores.
 * **Helper Decomposition:** Extracting leaf-level logic into discrete helper functions isolates branch complexity, ensuring the main entry point remains ≤ 5.
 
+
+
+* **Pytest Async Fixtures:** When asserting tests involving async SQLAlchemy sessions in newer versions of pytest, explicitly use `@pytest_asyncio.fixture` over `@pytest.fixture` to avoid deprecation warnings and 'no plugin or hook' errors.
