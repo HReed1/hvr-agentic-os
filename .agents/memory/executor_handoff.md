@@ -34,6 +34,3 @@
 * **Dispatch Mapping:** Structural flattening of nested conditionals via `dispatch_map` significantly reduces McCabe scores.
 * **Helper Decomposition:** Extracting leaf-level logic into discrete helper functions isolates branch complexity, ensuring the main entry point remains ≤ 5.
 
-
-### Cyclomatic Complexity Control
-* Verified that using dynamic dictionary dispatch for routing in `NotificationRouter` maintains a McCabe score of 2, significantly below the limit of 5.

@@ -57,8 +57,7 @@ def _get_approved_directories() -> list:
         return [d.strip() for d in whitelist_env.split(",") if d.strip()]
     return [".agents", "api", "agent_app", "orchestrator", "infrastructure", "utils", "tests", "core", "src", "etl", "db-init", "alembic", "bin", "docker"]
 
-@mcp.tool()
-def read_workspace_file(file_path: str) -> str:
+def _read_impl(file_path: str) -> str:
     """Reads a file natively. Evaluates the `.staging` airlock first, falling back to the main workspace."""
     target_path = _resolve_airlock_path(file_path)
 
@@ -69,6 +68,16 @@ def read_workspace_file(file_path: str) -> str:
         
     with open(target_path, "r") as f:
         return f.read()
+
+# Conditionally expose the exact tool depending on Swarm vs Solo deployment architecture
+if os.environ.get("ADK_SWARM_MODE") == "solo":
+    @mcp.tool()
+    def auditor_read_workspace_file(file_path: str) -> str:
+        return _read_impl(file_path)
+else:
+    @mcp.tool()
+    def read_workspace_file(file_path: str) -> str:
+        return _read_impl(file_path)
 
 @mcp.tool()
 def promote_staging_area() -> str:
