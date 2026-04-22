@@ -15,7 +15,7 @@ for test_file in tests/comparisons/*.test.json; do
     echo "Task: $TEST_NAME"
     echo "================================================="
 
-    for MODE in "swarm" "solo"; do
+    for MODE in "solo" "swarm"; do
         echo ">>> Executing Paradigm: [$MODE MODE] <<<"
 
         # 1. Clean the staging area before starting

@@ -229,7 +229,7 @@ solo_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {EXECUTOR_MCP_PATH}"]
             )
         )
     ),
@@ -237,7 +237,7 @@ solo_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AUDITOR_MCP_PATH}"]
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {AUDITOR_MCP_PATH}"]
             )
         )
     ),
@@ -245,7 +245,7 @@ solo_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {AST_VALIDATION_MCP_PATH}"]
             )
         )
     )
