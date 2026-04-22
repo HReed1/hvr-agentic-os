@@ -2,7 +2,7 @@
 
 | Benchmark Task | Swarm Verdict | Swarm Inferences | Swarm Tokens (In / Out) | Solo Verdict | Solo Inferences | Solo Tokens (In / Out) |
 |---|---|---|---|---|---|---|
-| Small | ✅ PASS | 29 | 285,484 / 2,425 | ✅ PASS | 25 | 128,462 / 1,716 |
-| Medium | ✅ PASS | 21 | 225,288 / 2,519 | ✅ PASS | 28 | 170,717 / 2,033 |
-| Large | ✅ PASS | 18 | 191,314 / 2,178 | ✅ PASS | 26 | 137,223 / 1,118 |
-| Fullstack | ✅ PASS | 25 | 253,565 / 5,474 | ✅ PASS | 46 | 1,491,205 / 12,431 |
+| Small | N/A | - | - | N/A | - | - |
+| Medium | N/A | - | - | N/A | - | - |
+| Large | N/A | - | - | N/A | - | - |
+| Fullstack | ✅ PASS | 43 | 875,745 / 11,304 | ✅ PASS | 27 | 415,678 / 8,413 |

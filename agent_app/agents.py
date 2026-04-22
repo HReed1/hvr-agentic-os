@@ -26,7 +26,7 @@ from .tools import (
 )
 from .prompts import (
     director_instruction, architect_instruction, executor_instruction,
-    qa_instruction, auditor_instruction, reporter_instruction,
+    auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction, solo_instruction
 )
@@ -62,21 +62,7 @@ executor_tools = [
                 args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
             )
         )
-    )
-]
-if rag_tool:
-    executor_tools.append(rag_tool)
-
-executor_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='executor',
-    instruction=executor_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=executor_tools
-)
-
-qa_tools = [
-    mark_qa_passed, escalate_to_director,
+    ),
     McpToolset(
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
@@ -87,14 +73,14 @@ qa_tools = [
     )
 ]
 if rag_tool:
-    qa_tools.append(rag_tool)
+    executor_tools.append(rag_tool)
 
-qa_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='qa_engineer',
-    instruction=qa_instruction,
+executor_agent = LlmAgent(
+    model=PRIMARY_PRO_MODEL,
+    name='executor',
+    instruction=executor_instruction,
     before_tool_callback=zero_trust_callback,
-    tools=qa_tools
+    tools=executor_tools
 )
 
 auditor_tools = [
@@ -171,7 +157,7 @@ research_discovery_loop = SequentialAgent(
 development_loop = LoopAgent(
     name="developer_qa_loop",
     max_iterations=10,
-    sub_agents=[executor_agent, qa_agent]
+    sub_agents=[executor_agent]
 )
 
 director_loop = LoopAgent(
