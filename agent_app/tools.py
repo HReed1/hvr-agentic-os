@@ -69,7 +69,7 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
     import shutil
     
     date_str = datetime.now().strftime('%Y-%m-%d')
-    mode = os.getenv("EVALUATED_SWARM_MODE", "swarm")
+    mode = os.getenv("ADK_SWARM_MODE", "swarm")
     
     # 1. Namespace Resolution: Prioritize CI/CD boundary variables, fallback to agent context
     test_name = os.environ.get("ACTIVE_TEST_ID") 

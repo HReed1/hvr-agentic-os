@@ -28,7 +28,7 @@ from .prompts import (
     director_instruction, architect_instruction, executor_instruction,
     qa_instruction, auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
-    synthesis_instruction
+    synthesis_instruction, solo_instruction
 )
 from .rag import rag_tool
 
@@ -220,4 +220,55 @@ evaluator_loop = LoopAgent(
 evaluation_swarm = SequentialAgent(
     name="evaluation_wrapper",
     sub_agents=[autonomous_swarm, reporter_agent, evaluator_loop]
+)
+
+# --- Solo Testing Framework ---
+
+solo_tools = [
+    list_docs,
+    read_doc,
+    write_retrospective,
+    get_user_choice,
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
+            )
+        )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {AUDITOR_MCP_PATH}"]
+            )
+        )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+            )
+        )
+    )
+]
+
+solo_agent = LlmAgent(
+    model=PRIMARY_PRO_MODEL,
+    name='solo_agent',
+    instruction=solo_instruction,
+    tools=solo_tools
+)
+
+solo_loop = LoopAgent(
+    name="solo_loop",
+    max_iterations=15,
+    sub_agents=[solo_agent]
+)
+
+solo_evaluation_swarm = SequentialAgent(
+    name="solo_evaluation_wrapper",
+    sub_agents=[solo_loop, evaluator_loop]
 )

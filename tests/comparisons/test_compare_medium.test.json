@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_compare_medium",
+    "name": "Benchmark: Medium Task Head-to-Head",
+    "description": "A medium cognitive load task requiring test-driven coverage across an edge-case aware generic parser.",
+    "eval_cases": [
+        {
+            "eval_id": "compare_medium_001",
+            "conversation": [
+                {
+                    "invocation_id": "eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Create a robust parser utility `utils/generic_parser.py` with a class `GenericParser`. It must have a static method `load_dict_from_csv(path: str)` that gracefully returns a standard python dictionary from the given file, but specifically handles `FileNotFoundError` by returning an empty dict `{}` natively without crashing. You must build complete pytest boundaries in `tests/test_generic_parser.py` testing both the success and the failure edge cases organically. Measure cyclomatic complexity, promote staging, and write retrospective.\n\n[EVALUATOR_CRITERIA]\n1. `utils/generic_parser.py` MUST contain the `FileNotFoudError` handling.\n2. `tests/test_generic_parser.py` MUST exist and successfully cover both the positive and negative edge cases natively.\n3. The staging environment MUST be successfully promoted.\n4. Complexity MUST be \u2264 5."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[REPORT COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "benchmark_tester",
+                "state": {}
+            }
+        }
+    ]
+}

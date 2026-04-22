@@ -98,10 +98,11 @@ def main():
 
     # Find the matching markdown file
     test_slug = test_name.replace(' ', '_').lower()
-    search_pattern = os.path.join(BASE_DIR, "docs", "evals", f"*_{test_slug}_swarm_eval.md")
+    swarm_mode = os.environ.get("ADK_SWARM_MODE", "swarm").lower()
+    search_pattern = os.path.join(BASE_DIR, "docs", "evals", f"*_{test_slug}_{swarm_mode}_eval.md")
     md_files = glob.glob(search_pattern)
     if not md_files:
-        print(f"[Telemetry Injection] Markdown file matching {test_slug} not found.")
+        print(f"[Telemetry Injection] Markdown file matching {test_slug}_{swarm_mode} not found.")
         return
         
     md_files.sort(key=os.path.getmtime, reverse=True)
