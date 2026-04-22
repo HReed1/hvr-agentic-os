@@ -110,52 +110,12 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
 # Note: Retrospective routing and directory sorting are now completely decoupled
 # and handled natively inside write_eval_report via OS bindings.
 
-# --- Cryptographic State Transition Tools ---
-def _get_qa_secret() -> bytes:
-    """Fetches the deterministic or dynamic secret for HMAC signing to validate state passes natively."""
-    key_file = os.path.join(BASE_DIR, ".agents", "memory", "staging_key.txt")
-    if not os.path.exists(key_file):
-        os.makedirs(os.path.dirname(key_file), exist_ok=True)
-        with open(key_file, "w") as f:
-            f.write(secrets.token_hex(32))
-    with open(key_file, "r") as f:
-        return f.read().strip().encode('utf-8')
-
-def _qa_signature_path() -> str:
-    return os.path.join(BASE_DIR, ".staging", ".qa_signature")
-
+# --- Escalation Flow Tools ---
 def escalate_to_director(reason: str) -> str:
     """Escalates an unresolvable testing paradox, physical constraint, or tooling limitation back up to the Director."""
     return "[FATAL] State Transition Tool Called: You have safely escalated to the Director."
 
-def signal_task_complete(summary: str) -> str:
-    """Signals that the current execution loop is successfully finalized. Use this ONLY when test arrays natively exit with code 0 natively."""
-    staging_dir = os.path.join(BASE_DIR, ".staging")
-    os.makedirs(staging_dir, exist_ok=True)
-    sig = hmac.new(_get_qa_secret(), b"QA_PASSED", hashlib.sha256).hexdigest()
-    sig_path = _qa_signature_path()
-    with open(sig_path, "w") as f:
-        f.write(sig)
-    return f"[SUCCESS] State Transition Tool Called: Task Complete. HMAC signature written to .staging/.qa_signature"
 
-def approve_staging_qa(summary: str) -> str:
-    """Approves the Architect's evaluation of the QA loop, securely vetting the staging payload for the Auditor."""
-    sig_path = _qa_signature_path()
-    if not os.path.exists(sig_path):
-        return (
-            "[BLOCKED] Cannot approve staging: .staging/.qa_signature does not exist. "
-            "The Executor must invoke signal_task_complete after a successful test run. "
-            "Route control back to the QA Engineer."
-        )
-    with open(sig_path, "r") as f:
-        stored_sig = f.read().strip()
-    expected_sig = hmac.new(_get_qa_secret(), b"QA_PASSED", hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(stored_sig, expected_sig):
-        return (
-            "[BLOCKED] Cannot approve staging: .staging/.qa_signature contains an invalid HMAC. "
-            "The cryptographic gate has been tampered with or was written by an unauthorized process."
-        )
-    return "[SUCCESS] State Transition Tool Called: Staging QA Vetted. HMAC signature verified."
 
 def mark_system_complete() -> str:
     """Flags the global architectural directive as 100% physically complete across all constraints."""

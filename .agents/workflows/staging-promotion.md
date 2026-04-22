@@ -9,13 +9,13 @@ description: The official protocol for validating, auditing, and promoting `.sta
 ## Workflow Execution Steps
 
 1. **Pre-Flight Testing (QA Engineer)**: Execute the full validation suite against `.staging/` code:
-   - **Backend mutations**: Run `pytest tests/` via `execute_tdaid_test`. Then call `mark_qa_passed` to write `.staging/.qa_signature`.
-   - **Frontend mutations**: Run the full `/ui-qa-audit` workflow (TypeScript → Vitest → ESLint → visual screenshot). Then call `mark_qa_passed` to write `.staging/.qa_signature`.
-   - **CRITICAL**: `mark_qa_passed` is not optional. Without `.staging/.qa_signature`, `promote_staging_area` is hard-blocked by the HMAC crypto gate regardless of what the QA Engineer reports verbally.
+   - **Backend mutations**: Run `pytest tests/` via `execute_tdaid_test`. 
+   - **Frontend mutations**: Run the full `/ui-qa-audit` workflow (TypeScript → Vitest → ESLint → visual screenshot). 
+   - **CRITICAL**: Failing tests must be reported back to the Executor. Passing tests cleanly transition state natively up the workflow tree to the Auditor.
 
-2. **Handoff (QA Engineer)**: Report `[QA PASSED]` alongside a semantic summary of the changes (files modified, test results, ESLint status) to the Architect.
+## Phase 3: The Native Pipeline Transition
 
-3. **Staging Vetting (Architect)**: If tests passed and the QA report looks architecturally sound, the Architect verifies `.staging/.qa_signature` exists and yields the root execution line to the Auditor. (The Architect is explicitly forbidden from deploying code. The tool name is `mark_qa_passed` — there is no `approve_staging_qa` tool.)
+3. **Staging Vetting (QA Engineer)**: If tests passed and the QA report looks architecturally sound, the QA Engineer cleanly concludes, returning the native execution state back to the Director to yield the root execution line to the Auditor.
 
 4. **Holistic Audit (Auditor)**: The Lead Auditor reads the `.staging/` airspace AST structures. They run explicit FinOps anti-pattern queries and Zero-Trust credential sweeps. The Auditor independently verifies `.staging/.qa_signature` exists and the HMAC token is valid before calling `promote_staging_area`.
 

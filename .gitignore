@@ -6,3 +6,4 @@ venv/
 *.pyc
 .staging/
 .agents/memory/staging_key.txt
+docs/.DS_Store

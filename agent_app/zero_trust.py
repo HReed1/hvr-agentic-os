@@ -95,19 +95,7 @@ def _handle_mark_complete(self, ctx, event):
         return True, None
     return False, None
 
-def _handle_approve_staging(self, ctx, event):
-    if getattr(self, 'name', '') in ('architectural_loop', 'cicd_architectural_loop'):
-        if _verify_staging_signature():
-            return True, None
-        print("\n[Zero-Trust Intercepted] approve_staging_qa called but .qa_signature is missing or invalid. Loop continues.", flush=True)
-    return False, None
 
-def _handle_mark_qa(self, ctx, event):
-    if getattr(self, 'name', '') in ('developer_qa_loop', 'cicd_development_loop'):
-        setattr(ctx, '_consecutive_qa_rejections', 0)
-        setattr(ctx, '_last_rejection_signature', None)
-        return True, None
-    return False, None
 
 def _handle_escalate(self, ctx, event):
     esc = ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nEscalation explicitly triggered via state transition tool.")
@@ -156,8 +144,6 @@ def _intercept_tool(self, ctx, part, event):
     
     handlers = {
         'mark_system_complete': _handle_mark_complete,
-        'approve_staging_qa': _handle_approve_staging,
-        'signal_task_complete': _handle_mark_qa,
         'escalate_to_director': _handle_escalate,
     }
     

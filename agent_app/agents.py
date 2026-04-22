@@ -21,12 +21,12 @@ from .config import (
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
     list_docs, read_doc, mark_system_complete, escalate_to_director,
-    approve_staging_qa, signal_task_complete, write_retrospective, run_pipeline_diagnostics,
+    approve_staging_qa, mark_qa_passed, write_retrospective, run_pipeline_diagnostics,
     research_read_file, research_list_directory, write_eval_report
 )
 from .prompts import (
     director_instruction, architect_instruction, executor_instruction,
-    auditor_instruction, reporter_instruction,
+    qa_instruction, auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction, solo_instruction
 )
@@ -34,12 +34,7 @@ from .rag import rag_tool
 
 # --- Swarm Agent Definitions ---
 
-director_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='director',
-    instruction=director_instruction,
-    tools=[list_docs, read_doc, mark_system_complete]
-)
+director_agent = None  # Forward declaration placeholder for recursive loops if needed
 
 architect_tools = [
     list_docs, read_doc, escalate_to_director
@@ -53,16 +48,8 @@ architect_agent = LlmAgent(
     tools=architect_tools
 )
 
-executor_tools = [
-    escalate_to_director, signal_task_complete,
-    McpToolset(
-        connection_params=StdioConnectionParams(
-            server_params=StdioServerParameters(
-                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
-            )
-        )
-    ),
+qa_tools = [
+    escalate_to_director,
     McpToolset(
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
@@ -73,14 +60,37 @@ executor_tools = [
     )
 ]
 if rag_tool:
+    qa_tools.append(rag_tool)
+
+qa_agent = LlmAgent(
+    model=PRIMARY_FLASH_MODEL,
+    name='qa_engineer',
+    instruction=qa_instruction,
+    before_tool_callback=zero_trust_callback,
+    tools=qa_tools
+)
+
+executor_tools = [
+    escalate_to_director,
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
+            )
+        )
+    )
+]
+if rag_tool:
     executor_tools.append(rag_tool)
 
 executor_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
+    model=PRIMARY_FLASH_MODEL,
     name='executor',
     instruction=executor_instruction,
     before_tool_callback=zero_trust_callback,
-    tools=executor_tools
+    tools=executor_tools,
+    sub_agents=[qa_agent]
 )
 
 auditor_tools = [
@@ -154,21 +164,22 @@ research_discovery_loop = SequentialAgent(
 )
 
 # --- ADK Orchestration Patterns ---
-development_loop = LoopAgent(
-    name="developer_qa_loop",
-    max_iterations=10,
-    sub_agents=[executor_agent]
+development_workflow = SequentialAgent(
+    name="development_workflow",
+    sub_agents=[architect_agent, executor_agent]
 )
 
-director_loop = LoopAgent(
-    name="director_loop",
-    max_iterations=10,
-    sub_agents=[director_agent, architect_agent, development_loop, auditor_agent]
+director_agent = LlmAgent(
+    model=PRIMARY_PRO_MODEL,
+    name='director',
+    instruction=director_instruction,
+    tools=[list_docs, read_doc, mark_system_complete],
+    sub_agents=[development_workflow, auditor_agent]
 )
 
 autonomous_swarm = SequentialAgent(
     name="autonomous_swarm",
-    sub_agents=[director_loop]
+    sub_agents=[director_agent]
 )
 
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.

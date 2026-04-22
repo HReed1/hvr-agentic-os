@@ -22,5 +22,5 @@ All agents must adhere to the following file-isolation rules to ensure Zero-Trus
 
 4. **Approval Loop Architecture**
    - The `Executor` and `QA Engineer` communicate back and forth iteratively within the standard development sandbox until the CI matrix natively runs green.
-   - Once the QA engineer physically fires `mark_qa_passed`, the execution graph explicitly pushes the state boundary up to the `Auditor`.
+   - Once the QA engineer physically verifies the tests natively, the execution graph explicitly pushes the state boundary up to the `Auditor`.
    - The `Auditor` mathematically asserts the codebase structure and physically launches `promote_staging_area`.
