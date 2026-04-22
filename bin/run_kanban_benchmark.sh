@@ -57,6 +57,9 @@ for MODE in "solo" "swarm"; do
         cp -r .staging/* "$ARTIFACT_DIR/" 2>/dev/null || true
     fi
     
+    # Pre-emptively stage the isolated artifact vault so `git clean -fd` doesn't destroy it!
+    git add "$ARTIFACT_DIR" || true
+    
     # 6. Amnesia Sweep
     echo "[SYSTEM] Evaluation complete. Initiating localized amnesia sweep before next paradigm..."
     git checkout -- . > /dev/null 2>&1
