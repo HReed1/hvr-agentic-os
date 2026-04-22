@@ -41,6 +41,38 @@ for test_file in tests/comparisons/*.test.json; do
         # 5. Telemetry Preservation
         git add docs/evals/ docs/retrospectives/ .agents/memory/ || true
         
+        # 5.5 Air-Lock Artifact Discovery vaulting
+        ARTIFACT_DIR="docs/comparisons/artifacts_${MODE}_$(basename "${TEST_NAME%.test.json}")"
+        rm -rf "$ARTIFACT_DIR" && mkdir -p "$ARTIFACT_DIR"
+        
+        # Capture modified/untracked files (successfully promoted out of Air-Lock)
+        for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
+            if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == *.py ]]; then
+                mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
+                cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
+            fi
+        done
+        
+        # Capture anything aggressively stranded in the Air-Lock dynamically
+        if [ -d ".staging" ]; then
+            (
+                cd .staging || exit 0
+                for staged_file in $(find . -type f | sed 's/^\.\///'); do
+                    # Aggressively filter out systemic environments and caches
+                    if [[ "$staged_file" == .venv/* ]] || [[ "$staged_file" == venv/* ]] || [[ "$staged_file" == *__pycache__* ]] || [[ "$staged_file" == *.pytest_cache* ]] || [[ "$staged_file" == .adk/* ]] || [[ "$staged_file" == .git/* ]] || [[ "$staged_file" == session.db* ]] || [[ "$staged_file" == docs/evals/artifacts_* ]] || [[ "$staged_file" == docs/comparisons/artifacts_* ]] || [[ "$staged_file" == docs/comparisons/kanban_artifacts_* ]]; then
+                        continue
+                    fi
+                    
+                    # Vault the file if it was explicitly modified or physically created by the Swarm or Solo agent
+                    if ! cmp -s "$staged_file" "../$staged_file" 2>/dev/null; then
+                        mkdir -p "../$ARTIFACT_DIR/$(dirname "$staged_file")"
+                        cp "$staged_file" "../$ARTIFACT_DIR/$staged_file"
+                    fi
+                done
+            )
+        fi
+        git add "$ARTIFACT_DIR" || true
+        
         # 6. Amnesia Sweep
         echo "[SYSTEM] Evaluation complete. Initiating localized amnesia sweep before next paradigm..."
         git checkout -- . > /dev/null 2>&1
