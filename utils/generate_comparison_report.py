@@ -44,7 +44,7 @@ def parse_eval_file(filepath):
     return data
 
 def build_scorecard():
-    tasks = ["test_compare_small", "test_compare_medium", "test_compare_large"]
+    tasks = ["test_compare_small", "test_compare_medium", "test_compare_large", "test_compare_fullstack"]
     
     markdown = "# Head-to-Head: Autonomous Swarm vs Solo God-Mode\n\n"
     markdown += "| Benchmark Task | Swarm Verdict | Swarm Inferences | Swarm Tokens (In / Out) | Solo Verdict | Solo Inferences | Solo Tokens (In / Out) |\n"

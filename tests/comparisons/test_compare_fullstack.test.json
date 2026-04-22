@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_compare_fullstack",
+    "name": "Benchmark: Relational Kanban Board Full-Stack",
+    "description": "An extreme crucible testing multi-file architecture spanning SQLite schemas, FastAPI routing, strict ast-coverage pytest matrices, and a vanilla HTML frontend. Designed to exhaust the cognitive context window.",
+    "eval_cases": [
+        {
+            "eval_id": "compare_fullstack_kanban_001",
+            "conversation": [
+                {
+                    "invocation_id": "eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Execute a full-stack mutation to build a native Kanban Board capability inside the `.staging/` airspace.\n\nYou must explicitly architect the following:\n1. **Database Schema (`api/models_kanban.py`)**: Implement purely asynchronous SQLAlchemy 2.0 ORM models for `Board`, `Column` (has a foreign key to `Board`), and `Task` (has a foreign key to `Column`). Ensure `__tablename__` declarations are tight.\n2. **FastAPI Protocol (`api/routers/kanban.py`)**: Author three async HTTP routes using standard `APIRouter`: A route to create a board, a route to add a column, and a route to fetch the state of the board recursively. Wire this router into the primary application natively.\n3. **DOM Client (`api/templates/kanban.html`)**: Author a standard HTML file that explicitly triggers `fetch()` against your router to load and render the board data in a simple read-only block.\n4. **Testing Crucible (`tests/test_kanban_fullstack.py`)**: Engineer a Pytest environment utilizing an ephemeral `sqlite+aiosqlite:///:memory:` connection. It must instantiate the database cleanly and execute your routes, ensuring line coverage >= 80% to cross the TDAID gate.\n\nOnce tests clear, evaluate the overall Cyclomatic Complexity (must remain <= 5 per AST strictness boundaries). Promote out of the staging area and write the Retrospective.\n\n[EVALUATOR_CRITERIA]\n1. The staging area MUST be cleanly promoted via `promote_staging_area`.\n2. Both Python logic loops, standard html assets, and their test matrices MUST exist structurally in the final workspace.\n3. Payload Complexity MUST mathematically be verified natively to be <= 5 via the MCP audit tools."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[REPORT COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "benchmark_tester",
+                "state": {}
+            }
+        }
+    ]
+}
