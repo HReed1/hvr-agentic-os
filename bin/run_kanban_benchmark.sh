@@ -39,6 +39,24 @@ for MODE in "solo" "swarm"; do
     # 5. Telemetry Preservation
     git add docs/evals/ docs/retrospectives/ .agents/memory/ || true
     
+    # Extract Generated Artifacts Before Amnesia Sweep
+    echo "[SYSTEM] Auto-vaulting generated artifacts into docs/comparisons/kanban_artifacts_$MODE/..."
+    ARTIFACT_DIR="docs/comparisons/kanban_artifacts_$MODE"
+    rm -rf "$ARTIFACT_DIR" && mkdir -p "$ARTIFACT_DIR"
+    
+    # Capture modified/untracked files (successfully promoted out of Air-Lock)
+    for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
+        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == *.py ]]; then
+            mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
+            cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
+        fi
+    done
+    
+    # Capture anything aggressively stranded in the Air-Lock
+    if [ -d ".staging" ]; then
+        cp -r .staging/* "$ARTIFACT_DIR/" 2>/dev/null || true
+    fi
+    
     # 6. Amnesia Sweep
     echo "[SYSTEM] Evaluation complete. Initiating localized amnesia sweep before next paradigm..."
     git checkout -- . > /dev/null 2>&1

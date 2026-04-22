@@ -112,6 +112,13 @@ def promote_staging_area() -> str:
                         "--exclude", "*.pyc",
                         f"{source_path}/", f"{project_root}/{directory}/"
                     ], check=True, capture_output=True, text=True)
+                    
+            # Explictly copy any standalone Python root executables the LLM engineered
+            for item in os.listdir(staging_dir):
+                item_path = os.path.join(staging_dir, item)
+                if os.path.isfile(item_path) and item.endswith(".py"):
+                    import shutil
+                    shutil.copy2(item_path, os.path.join(project_root, item))
             
             shutil.rmtree(staging_dir)
             return redact_genomic_phi("[SUCCESS] Staging area gracefully integrated into Production Codebase.", redact_uuids=False)
