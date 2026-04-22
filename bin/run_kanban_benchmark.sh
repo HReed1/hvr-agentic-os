@@ -16,7 +16,8 @@ echo "================================================="
 echo "Task: $TEST_NAME"
 echo "================================================="
 
-for MODE in "solo" "swarm"; do
+# for MODE in "solo" "swarm"; do
+for MODE in "swarm"; do
     echo ">>> Executing Paradigm: [$MODE MODE] <<<"
 
     # 1. Clean the staging area before starting
