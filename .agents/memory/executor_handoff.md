@@ -7,9 +7,9 @@
 
 ### TDAID & Testing Mechanics
 * **Test Isolation Mechanism:** When drafting a new file that requires validation per the TDAID mandate, always write the test file to `tests/` first to establish the Red baseline before implementing the fix. Both the structural mutation and the test must be authored in the same session.
-* **Staging Sandbox Overwrites:** `write_workspace_file` fails if the file exists in the workspace but not in `.staging/`; use `replace_workspace_file_content` with identical target/replacement strings to force staging even if content is identical. Ensure you don't execute redundant text overwrites.
+* **Staging Sandbox File Generation:** When attempting to mutate existing files within the `.staging/` environment, you must explicitly read the target file states dynamically. Avoid redundant file system overrides that trigger infinitely looping execution chains.
 * **Test Client Pathing / Discovery:** When testing staged mutations in an ephemeral airlock, prepend the `.staging` directory to `sys.path`. When standard pathing fails to shadow a package, use `importlib.util` to explicitly load the staged file and manually inject it into `sys.modules` using the package relative name (e.g. `sys.modules["api.main"]`).
-* **Test Directory Initialization:** If `.staging/` is missing entirely in the root context, use `execute_transient_docker_sandbox` with `mkdir -p .staging` before attempting workflows dependent on promotion audits.
+* **Test Directory Initialization:** All tests must naturally execute within the isolated `.staging` sandbox. If `.staging/` is missing, you must execute `mkdir -p .staging` natively in your bash execution engine before attempting file writing pipelines dependent on Auditor promotion.
 * **Database Dependency Decoupling:** For testing isolated infrastructure routes (like `/ping`), initialize `TestClient` directly from the injected application object `app` rather than `conftest.py` fixtures. This decouples database connections and prevents `OperationalError` when testing logic that doesn't need DB access.
 * **Pytest Fixture Discovery:** Avoid explicit imports of fixtures (`from tests.conftest import client`). Rely on Pytest's automatic fixture discovery. If shadowing occurs, manually inject the modules and explicit imports.
 
@@ -34,6 +34,9 @@
 * **Dispatch Mapping:** Structural flattening of nested conditionals via `dispatch_map` significantly reduces McCabe scores.
 * **Helper Decomposition:** Extracting leaf-level logic into discrete helper functions isolates branch complexity, ensuring the main entry point remains ≤ 5.
 
-
+### Evaluation Edge-Cases (Fullstack Diagnostics)
+* **Pytest Playwright Latency Issues:** Local ASGI servers (Uvicorn) take time to bind! In Pytest fixtures natively yielding an application server to Playwright, you MUST implement a polling readiness loop (e.g., repeatedly requesting root with a timeout). Failure to do this results in an immediate `net::ERR_CONNECTION_REFUSED` trace. Do NOT alter backend logic to fix this testing framework race-condition.
+* **Database Dependency Override Integrity:** When overriding FastAPI Async Database yields in Pytest (like `var.dependency_overrides[get_db] = override`), you MUST meticulously guarantee the override function actually yields the active test connection cleanly.
+* **Sandbox File Path Integrity:** When engineering code across multi-file architectures in an airlocked runtime, explicitly guarantee identical root-relative paths. Writing dynamically evaluated modules to slightly disjointed structural paths will result in endless `ModuleNotFoundError`s during downstream validation.
 
 * **Pytest Async Fixtures:** When asserting tests involving async SQLAlchemy sessions in newer versions of pytest, explicitly use `@pytest_asyncio.fixture` over `@pytest.fixture` to avoid deprecation warnings and 'no plugin or hook' errors.

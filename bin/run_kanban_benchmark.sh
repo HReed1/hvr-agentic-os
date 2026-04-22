@@ -53,9 +53,23 @@ for MODE in "swarm"; do
         fi
     done
     
-    # Capture anything aggressively stranded in the Air-Lock
+    # Capture anything aggressively stranded in the Air-Lock dynamically
     if [ -d ".staging" ]; then
-        cp -r .staging/* "$ARTIFACT_DIR/" 2>/dev/null || true
+        (
+            cd .staging || exit 0
+            for staged_file in $(find . -type f | sed 's/^\.\///'); do
+                # Aggressively filter out systemic environments and caches
+                if [[ "$staged_file" == .venv/* ]] || [[ "$staged_file" == venv/* ]] || [[ "$staged_file" == *__pycache__* ]] || [[ "$staged_file" == *.pytest_cache* ]] || [[ "$staged_file" == .adk/* ]] || [[ "$staged_file" == .git/* ]] || [[ "$staged_file" == session.db* ]] || [[ "$staged_file" == docs/comparisons/kanban_artifacts_* ]]; then
+                    continue
+                fi
+                
+                # Vault the file if it was explicitly modified or physically created by the Swarm
+                if ! cmp -s "$staged_file" "../$staged_file" 2>/dev/null; then
+                    mkdir -p "../$ARTIFACT_DIR/$(dirname "$staged_file")"
+                    cp "$staged_file" "../$ARTIFACT_DIR/$staged_file"
+                fi
+            done
+        )
     fi
     
     # Pre-emptively stage the isolated artifact vault so `git clean -fd` doesn't destroy it!

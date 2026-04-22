@@ -7,3 +7,6 @@ venv/
 .staging/
 .agents/memory/staging_key.txt
 docs/.DS_Store
+*.qa_signature
+.primed
+.lock_mutex

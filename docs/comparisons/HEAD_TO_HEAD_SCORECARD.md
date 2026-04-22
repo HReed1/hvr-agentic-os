@@ -5,4 +5,4 @@
 | Small | N/A | - | - | N/A | - | - |
 | Medium | N/A | - | - | N/A | - | - |
 | Large | N/A | - | - | N/A | - | - |
-| Fullstack | ❌ FAIL | 35 | 437,077 / 3,997 | ✅ PASS | 34 | 522,016 / 10,466 |
+| Fullstack | ✅ PASS | 29 | 463,430 / 9,775 | ✅ PASS | 34 | 522,016 / 10,466 |
