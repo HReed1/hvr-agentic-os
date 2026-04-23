@@ -203,9 +203,18 @@ def execute_tdaid_test(test_path: str) -> str:
             staged_reqs_path = os.path.join(staging_dir, "requirements.txt")
             if os.path.exists(staged_reqs_path):
                 subprocess.run([venv_pip, "install", "-r", staged_reqs_path], capture_output=True, env=env)
+            cmd = [venv_pytest, test_path, "-v", "--tb=short"]
+            
+            # Autonomously inject Playwright artifact tracking if navigating UI layer
+            try:
+                test_content = open(target_path, "r", encoding="utf-8").read().lower()
+                if "playwright" in test_content or "page." in test_content:
+                    cmd.extend(["--video=on", "--screenshot=on", "--output=test-results/"])
+            except Exception:
+                pass
 
             result = subprocess.run(
-                [venv_pytest, test_path, "-v", "--tb=short"], 
+                cmd, 
                 capture_output=True, 
                 text=True, 
                 timeout=300,

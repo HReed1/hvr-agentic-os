@@ -53,6 +53,14 @@ qa_tools = [
                 args=["-target", f"{sys.executable} {DIAGNOSTICS_MCP_PATH}"]
             )
         )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
+            )
+        )
     )
 ]
 

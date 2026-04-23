@@ -8,7 +8,7 @@ description: The official protocol for validating, auditing, and promoting `.sta
 
 ## Workflow Execution Steps
 
-1. **Pre-Flight Testing (QA Engineer)**: Execute the full validation suite against `.staging/` code:
+1. **Pre-Flight Testing (QA Engineer)**: Initiate Spec-Driven TDD and execute the full validation suite against `.staging/` code:
    - **Backend mutations**: Run `pytest tests/` via `execute_tdaid_test`. 
    - **Frontend mutations**: Run the full `/ui-qa-audit` workflow (TypeScript → Vitest → ESLint → visual screenshot). 
    - **CRITICAL**: Failing tests must be reported back to the Executor's iterative looping trace. Passing tests (`[QA PASSED]`) natively unlock the Executor to conclude its loop and subsequently pass the root line downward to the Auditor.

@@ -16,11 +16,12 @@ All agents must adhere to the following file-isolation rules to ensure Zero-Trus
    - **FATAL ERROR:** `from .staging.api.batch_submitter import submit_genomic_job`
 
 3. **Tooling Capability Confinement**
-   - The Executor does **NOT** possess testing runner privileges or `promote_staging_area`. 
-   - The QA Engineer does **NOT** possess deployment capabilities.
+   - The Executor does **NOT** possess testing runner privileges, test-authoring responsibilities, or `promote_staging_area`. 
+   - The QA Engineer natively possesses codebase drafting capabilities (`write_workspace_file`) strictly trapped within the `.staging/tests/` boundary to draft testing specifications. The QA Engineer does **NOT** possess deployment capabilities.
    - The **Auditor** is the sole cryptographic gatekeeper.
 
 4. **Approval Loop Architecture**
+   - The `QA Engineer` authors the testing spec and provides the failing trace natively to the `Executor`.
    - The `Executor` and `QA Engineer` communicate back and forth iteratively within the standard development sandbox until the CI matrix natively runs green.
    - Once the QA engineer physically verifies the tests natively, the execution graph explicitly pushes the state boundary up to the `Auditor`.
    - The `Auditor` mathematically asserts the codebase structure and physically launches `promote_staging_area`.
