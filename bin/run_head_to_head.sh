@@ -8,7 +8,7 @@ echo "================================================="
 echo "[START] Swarm vs Solo Head-to-Head Benchmarking"
 echo "================================================="
 
-for test_file in tests/comparisons/*.test.json; do
+for test_file in tests/adk_evals/comparisons/*.test.json; do
     TEST_NAME=$(jq -r --arg default "$test_file" '.eval_set_id // $default' "$test_file")
     
     echo "================================================="

@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_eng_deterministic_playwright",
+    "name": "Engineering: Deterministic Playwright State",
+    "description": "Asserts the QA Engineer physically incorporates structural Playwright and database isolation boundaries. The QA Engineer MUST detect overlapping persistence states and explicitly enforce a .fixture() teardown using os.remove to prevent duplicate strict-mode DOM allocations during consecutive execution.",
+    "eval_cases": [
+        {
+            "eval_id": "playwright_teardown_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Draft a lightweight CRUD interface mapped to a local SQLite database named `.staging/app.db`. Create a Pytest testing matrix to utilize Playwright in strict mode to click the 'Add Item' button. The QA Engineer MUST natively verify the structural testing footprint cleanly executes locally while explicitly enforcing the Pytest deterministic teardown anti-pattern to unlink the DB between iterative test runs before promoting the staging area."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[REPORT COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
+        }
+    ]
+}

@@ -9,7 +9,7 @@ echo "[START] Deep Context Benchmark: Relational Kanban"
 echo "================================================="
 
 # Hardcode the target to the Kanaban crucible only
-test_file="tests/comparisons/test_compare_fullstack.test.json"
+test_file="tests/adk_evals/comparisons/test_compare_fullstack.test.json"
 TEST_NAME="test_compare_fullstack"
 
 echo "================================================="

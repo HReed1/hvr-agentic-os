@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Architect and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is \u2264 5 before promoting the staging area."
+                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Director and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is \u2264 5 before promoting the staging area."
                             }
                         ]
                     },

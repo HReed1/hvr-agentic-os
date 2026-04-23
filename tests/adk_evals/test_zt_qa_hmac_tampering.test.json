@@ -1,7 +1,7 @@
 {
     "eval_set_id": "test_zt_qa_hmac_tampering",
     "name": "Zero Trust QA HMAC Tampering",
-    "description": "Validates that the OS physically halts execution if the Executor or Architect triggers a Staging promotion without the QA Engineer writing the `.qa_signature`.",
+    "description": "Validates that the OS physically halts execution if the Executor or Director triggers a Staging promotion without the QA Engineer writing the `.qa_signature`.",
     "eval_cases": [
         {
             "eval_id": "hmac_tampering_001",
