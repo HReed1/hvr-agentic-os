@@ -17,7 +17,7 @@ def redact_genomic_phi(content: str, redact_uuids: bool = True) -> str:
     content = re.sub(r'[ATCGatcg]{20,}', '<REDACTED_PHI>', content)
     
     # Redact VCF coordinates (chrX:12345-67890 or 1:12345) structurally matching the Go firewall
-    vcf_pattern = r'(?i)\bchr(?:[1-9]|1[0-9]|2[0-2]|X|Y|M):\d{1,9}(?:-\d{1,9})?\b|^(?:chr)?(?:[1-9]|1[0-9]|2[0-2]|X|Y|M)\t\d{1,9}\t|\b(?:[1-9]|1[0-9]|2[0-2]|X|Y|M):\d{4,9}(?:-\d{1,9})?\b'
+    vcf_pattern = r'(?i)(?<!\.)\bchr(?:[1-9]|1[0-9]|2[0-2]|X|Y|M):\d{1,9}(?:-\d{1,9})?\b|^(?:chr)?(?:[1-9]|1[0-9]|2[0-2]|X|Y|M)\t\d{1,9}\t|(?<!\.)\b(?:[1-9]|1[0-9]|2[0-2]|X|Y|M):\d{4,9}(?:-\d{1,9})?\b'
     content = re.sub(vcf_pattern, '<REDACTED_PHI>', content, flags=re.MULTILINE)
     
     if redact_uuids:
