@@ -142,7 +142,7 @@ def promote_staging_area() -> str:
                     import shutil
                     shutil.copy2(item_path, os.path.join(project_root, item))
             
-            shutil.rmtree(staging_dir)
+            # Note: DO NOT run shutil.rmtree(staging_dir) here. The Bash orchestrator handles staging teardown so it can dynamically extract Playwright traces and Telemetry artifacts first.
             return redact_genomic_phi("[SUCCESS] Staging area gracefully integrated into Production Codebase.", redact_uuids=False)
             
     except BlockingIOError as e:
