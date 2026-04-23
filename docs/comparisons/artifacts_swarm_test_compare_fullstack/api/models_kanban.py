@@ -1,29 +1,29 @@
-from typing import List, Optional
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 class Board(Base):
-    __tablename__ = "boards"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    columns: Mapped[List["Column"]] = relationship("Column", back_populates="board", cascade="all, delete-orphan")
+    __tablename__ = 'boards'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, index=True)
+    columns = relationship("BoardColumn", back_populates="board", cascade="all, delete-orphan")
 
-class Column(Base):
-    __tablename__ = "columns"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"), nullable=False)
-    board: Mapped["Board"] = relationship("Board", back_populates="columns")
-    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="column", cascade="all, delete-orphan")
+class BoardColumn(Base):
+    __tablename__ = 'columns'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, index=True)
+    board_id = Column(Integer, ForeignKey('boards.id'))
+    
+    board = relationship("Board", back_populates="columns")
+    tasks = relationship("Task", back_populates="column", cascade="all, delete-orphan")
 
 class Task(Base):
-    __tablename__ = "tasks"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    tags: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    column_id: Mapped[int] = mapped_column(ForeignKey("columns.id"), nullable=False)
-    column: Mapped["Column"] = relationship("Column", back_populates="tasks")
+    __tablename__ = 'tasks'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String, index=True)
+    description = Column(String)
+    tags = Column(String)
+    column_id = Column(Integer, ForeignKey('columns.id'))
+    
+    column = relationship("BoardColumn", back_populates="tasks")

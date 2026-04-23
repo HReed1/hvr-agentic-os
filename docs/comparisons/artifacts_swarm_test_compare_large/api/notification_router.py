@@ -1,27 +1,20 @@
-from abc import ABC, abstractmethod
-
-class NotificationHandler(ABC):
-    @abstractmethod
-    def handle(self, message: str) -> str:
-        pass
-
-class SMSHandler(NotificationHandler):
+class SMSHandler:
     def handle(self, message: str) -> str:
         return f"SMS: {message}"
 
-class PagerHandler(NotificationHandler):
+class PagerHandler:
     def handle(self, message: str) -> str:
         return f"PAGER: {message}"
 
 class NotificationRouter:
     _handlers = {
-        "HIGH": SMSHandler(),
-        "LOW": PagerHandler()
+        "HIGH": SMSHandler,
+        "LOW": PagerHandler
     }
 
     @staticmethod
     def route_message(message: str, severity: str) -> str:
-        handler = NotificationRouter._handlers.get(severity)
-        if handler:
-            return handler.handle(message)
-        raise ValueError(f"Unknown severity: {severity}")
+        handler_class = NotificationRouter._handlers.get(severity)
+        if not handler_class:
+            raise ValueError(f"Invalid severity: {severity}")
+        return handler_class().handle(message)

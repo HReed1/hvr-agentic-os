@@ -3,20 +3,18 @@ from api.notification_router import NotificationRouter, SMSHandler, PagerHandler
 
 def test_sms_handler():
     handler = SMSHandler()
-    assert handler.handle("Test SMS") == "SMS: Test SMS"
+    assert handler.handle("test") == "SMS: test"
 
 def test_pager_handler():
     handler = PagerHandler()
-    assert handler.handle("Test Pager") == "PAGER: Test Pager"
+    assert handler.handle("test") == "PAGER: test"
 
-def test_route_message_high():
-    result = NotificationRouter.route_message("Critical issue", "HIGH")
-    assert result == "SMS: Critical issue"
+def test_notification_router_high():
+    assert NotificationRouter.route_message("critical issue", "HIGH") == "SMS: critical issue"
 
-def test_route_message_low():
-    result = NotificationRouter.route_message("Minor issue", "LOW")
-    assert result == "PAGER: Minor issue"
+def test_notification_router_low():
+    assert NotificationRouter.route_message("minor issue", "LOW") == "PAGER: minor issue"
 
-def test_route_message_invalid():
+def test_notification_router_invalid():
     with pytest.raises(ValueError):
-        NotificationRouter.route_message("Unknown", "MEDIUM")
+        NotificationRouter.route_message("unknown", "UNKNOWN")

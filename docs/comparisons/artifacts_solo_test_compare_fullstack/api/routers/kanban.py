@@ -3,25 +3,27 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ConfigDict
+from typing import List, Optional
 
-from api.models_kanban import Board, Column as DBColumn, Task
+from api.models_kanban import Base, Board, KanbanColumn, Task
 
-router = APIRouter()
+DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "kanban.db")
+DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 
-DB_URL = "sqlite+aiosqlite:///kanban.db"
-engine = create_async_engine(DB_URL, echo=False)
-async_session = async_sessionmaker(engine, expire_on_commit=False)
+engine = create_async_engine(DATABASE_URL, echo=False)
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+router = APIRouter(prefix="/api")
 
 async def get_db():
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         yield session
 
 class TaskCreate(BaseModel):
     title: str
-    description: str = ""
-    tags: str = ""
+    description: Optional[str] = None
+    tags: Optional[str] = None
     column_id: int
 
 class TaskUpdate(BaseModel):
@@ -34,61 +36,86 @@ class ColumnCreate(BaseModel):
     name: str
     board_id: int
 
-@router.get("/api/board")
-async def get_board(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Board).options(selectinload(Board.columns).selectinload(DBColumn.tasks)))
-    board = result.scalars().first()
-    if not board:
-        return {"error": "No board found"}
-    
-    cols = []
-    for col in board.columns:
-        tsks = []
-        for task in col.tasks:
-            tsks.append({
-                "id": task.id,
-                "title": task.title,
-                "description": task.description,
-                "tags": task.tags,
-                "column_id": task.column_id
-            })
-        cols.append({
-            "id": col.id,
-            "name": col.name,
-            "tasks": tsks
-        })
-        
-    return {
-        "id": board.id,
-        "name": board.name,
-        "columns": cols
-    }
+class BoardCreate(BaseModel):
+    name: str
 
-@router.post("/api/tasks")
-async def create_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
-    new_task = Task(**task.model_dump())
-    db.add(new_task)
+class TaskOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    description: Optional[str] = None
+    tags: Optional[str] = None
+    column_id: int
+
+class ColumnOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    board_id: int
+    tasks: List[TaskOut] = []
+
+class BoardOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    columns: List[ColumnOut] = []
+
+@router.post("/boards", response_model=BoardOut)
+async def create_board(board: BoardCreate, db: AsyncSession = Depends(get_db)):
+    db_board = Board(name=board.name)
+    db.add(db_board)
     await db.commit()
-    await db.refresh(new_task)
-    return new_task
+    await db.refresh(db_board)
+    return db_board
 
-@router.put("/api/tasks/{task_id}")
+@router.get("/boards/{board_id}", response_model=BoardOut)
+async def get_board(board_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Board)
+        .where(Board.id == board_id)
+    )
+    db_board = result.scalars().first()
+    if not db_board:
+        raise HTTPException(status_code=404, detail="Board not found")
+    return db_board
+
+@router.get("/boards", response_model=List[BoardOut])
+async def get_boards(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Board))
+    return result.scalars().all()
+
+@router.post("/columns", response_model=ColumnOut)
+async def create_column(column: ColumnCreate, db: AsyncSession = Depends(get_db)):
+    db_column = KanbanColumn(name=column.name, board_id=column.board_id)
+    db.add(db_column)
+    await db.commit()
+    await db.refresh(db_column)
+    return db_column
+
+@router.post("/tasks", response_model=TaskOut)
+async def create_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
+    db_task = Task(
+        title=task.title,
+        description=task.description,
+        tags=task.tags,
+        column_id=task.column_id
+    )
+    db.add(db_task)
+    await db.commit()
+    await db.refresh(db_task)
+    return db_task
+
+@router.put("/tasks/{task_id}", response_model=TaskOut)
 async def update_task(task_id: int, task: TaskUpdate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Task).where(Task.id == task_id))
     db_task = result.scalars().first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
-        
-    for key, value in task.model_dump(exclude_unset=True).items():
+    
+    update_data = task.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(db_task, key, value)
         
     await db.commit()
-    return {"status": "ok"}
-    
-@router.post("/api/columns")
-async def create_column(col: ColumnCreate, db: AsyncSession = Depends(get_db)):
-    new_col = DBColumn(**col.model_dump())
-    db.add(new_col)
-    await db.commit()
-    await db.refresh(new_col)
-    return new_col
+    await db.refresh(db_task)
+    return db_task

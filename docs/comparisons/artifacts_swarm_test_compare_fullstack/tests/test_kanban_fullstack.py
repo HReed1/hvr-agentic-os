@@ -1,91 +1,60 @@
-import sys
 import os
 import time
 import pytest
-import subprocess
 import requests
+import subprocess
 from playwright.sync_api import Page, expect
 
-@pytest.fixture(scope="session")
-def kanban_server():
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DB_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "kanban.db"))
+
+@pytest.fixture(scope="session", autouse=True)
+def boot_server():
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+        
+    launcher_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "launch_kanban.py"))
     
-    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "launch_kanban.py"))
+    server = subprocess.Popen(["python", launcher_path])
     
-    port = 8045
-    env["KANBAN_PORT"] = str(port)
-    process = subprocess.Popen(
-        [sys.executable, script_path],
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    
-    url = f"http://127.0.0.1:{port}"
-    
+    max_retries = 30
     ready = False
-    for _ in range(30):
+    for i in range(max_retries):
         try:
-            response = requests.get(url, timeout=1)
-            if response.status_code == 200:
+            r = requests.get("http://localhost:8000/")
+            if r.status_code in [200, 404]:
                 ready = True
                 break
         except requests.exceptions.ConnectionError:
-            pass
-        time.sleep(0.5)
-        
+            time.sleep(0.2)
+            
     if not ready:
-        process.terminate()
-        stdout, stderr = process.communicate()
-        raise RuntimeError(f"Server failed to start. stderr: {stderr.decode()}")
+        server.kill()
+        raise RuntimeError("Server failed to bind within the polling window (ERR_CONNECTION_REFUSED)")
         
-    yield url
+    yield
     
-    process.terminate()
-    process.wait(timeout=5)
+    server.kill()
+    if os.path.exists(DB_FILE):
+        try:
+            os.remove(DB_FILE)
+        except Exception:
+            pass
 
-def test_kanban_fullstack(page: Page, kanban_server: str):
-    page.goto(kanban_server)
-    page.wait_for_selector(".column-header")
+def test_kanban_ui(page: Page):
+    page.goto("http://localhost:8000/")
     
-    columns = page.locator(".column-header span").all_text_contents()
-    assert "To Do" in columns
-    assert "Doing" in columns
-    assert "Done" in columns
+    expect(page.locator("text=To Do").first).to_be_visible()
+    expect(page.locator("text=Doing").first).to_be_visible()
+    expect(page.locator("text=Done").first).to_be_visible()
     
-    page.click("text=+ Add Column")
-    page.wait_for_selector("#columnModal.active")
-    page.fill("#colName", "QA Validation")
-    page.click("#columnModal >> text=Save")
+    page.click("text=Add Task")
     
-    page.wait_for_selector("text=QA Validation")
+    expect(page.locator(".modal").first).to_be_visible()
     
-    first_col_add_btn = page.locator(".column").first.locator("button")
-    first_col_add_btn.click()
+    page.fill("input[name='title']", "QA Test Task")
+    page.fill("textarea[name='description']", "TDAID Description")
+    page.fill("input[name='tags']", "test, playwright")
     
-    page.wait_for_selector("#taskModal.active")
-    page.fill("#taskTitle", "End-to-End Test Task")
-    page.fill("#taskDesc", "Testing modal interactions natively.")
-    page.fill("#taskTags", "test, e2e")
-    page.click("#taskModal >> text=Save")
+    page.click("button.submit-btn")
     
-    page.wait_for_selector(".task >> text=End-to-End Test Task")
-    
-    page.click(".task >> text=End-to-End Test Task")
-    page.wait_for_selector("#viewTaskModal.active")
-    
-    expect(page.locator("#viewTaskTitle")).to_have_text("End-to-End Test Task")
-    expect(page.locator("#viewTaskDesc")).to_have_text("Testing modal interactions natively.")
-    expect(page.locator("#viewTaskTags")).to_have_text("test, e2e")
-    
-    page.click("#viewTaskModal >> text=Close")
-    
-    source = page.locator(".task >> text=End-to-End Test Task")
-    target = page.locator(".task-list").nth(2)
-    
-    source.drag_to(target)
-    
-    time.sleep(1)
-    done_column_tasks = target.locator(".task").all_text_contents()
-    assert any("End-to-End Test" in t for t in done_column_tasks)
+    expect(page.locator("text=QA Test Task").first).to_be_visible()

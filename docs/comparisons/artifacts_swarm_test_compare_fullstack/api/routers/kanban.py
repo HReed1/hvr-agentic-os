@@ -1,118 +1,97 @@
-import os
-from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
-from api.models_kanban import Base, Board, Column, Task
+from typing import List
 
-router = APIRouter(prefix="/api/kanban", tags=["kanban"])
+from api.models_kanban import Board, BoardColumn, Task
+from api.database import get_db
 
-DB_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///kanban.db")
-engine = create_async_engine(DB_URL, echo=False)
-AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+router = APIRouter()
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
-
-class TaskCreate(BaseModel):
+class TaskBase(BaseModel):
     title: str
-    description: Optional[str] = ""
-    tags: Optional[str] = ""
+    description: str
+    tags: str
+
+class TaskCreate(TaskBase):
+    column_id: int
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    tags: Optional[str] = None
-    column_id: Optional[int] = None
+    column_id: int
 
-class ColumnCreate(BaseModel):
+class TaskResponse(TaskBase):
+    id: int
+    column_id: int
+    class Config:
+        from_attributes = True
+
+class ColumnBase(BaseModel):
     name: str
 
-class BoardCreate(BaseModel):
+class ColumnCreate(ColumnBase):
+    board_id: int
+
+class ColumnResponse(ColumnBase):
+    id: int
+    board_id: int
+    tasks: List[TaskResponse] = []
+    class Config:
+        from_attributes = True
+
+class BoardBase(BaseModel):
     name: str
 
-@router.post("/boards")
-async def create_board(data: BoardCreate, db: AsyncSession = Depends(get_db)):
-    board = Board(name=data.name)
-    db.add(board)
+class BoardResponse(BoardBase):
+    id: int
+    columns: List[ColumnResponse] = []
+    class Config:
+        from_attributes = True
+
+@router.post("/boards/", response_model=BoardResponse)
+async def create_board(board: BoardBase, db: AsyncSession = Depends(get_db)):
+    db_board = Board(name=board.name)
+    db.add(db_board)
     await db.commit()
-    await db.refresh(board)
-    return {"id": board.id, "name": board.name}
+    await db.refresh(db_board)
+    return db_board
 
-@router.get("/boards/{board_id}")
+@router.get("/boards/{board_id}", response_model=BoardResponse)
 async def get_board(board_id: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(Board).options(selectinload(Board.columns).selectinload(Column.tasks)).where(Board.id == board_id)
-    result = await db.execute(stmt)
-    board = result.scalar_one_or_none()
+    result = await db.execute(
+        select(Board)
+        .options(selectinload(Board.columns).selectinload(BoardColumn.tasks))
+        .filter(Board.id == board_id)
+    )
+    board = result.scalars().first()
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
-    
-    return {
-        "id": board.id,
-        "name": board.name,
-        "columns": [
-            {
-                "id": col.id,
-                "name": col.name,
-                "tasks": [
-                    {
-                        "id": task.id,
-                        "title": task.title,
-                        "description": task.description,
-                        "tags": task.tags,
-                        "column_id": task.column_id
-                    } for task in col.tasks
-                ]
-            } for col in board.columns
-        ]
-    }
+    return board
 
-@router.post("/boards/{board_id}/columns")
-async def create_column(board_id: int, data: ColumnCreate, db: AsyncSession = Depends(get_db)):
-    col = Column(name=data.name, board_id=board_id)
-    db.add(col)
+@router.post("/columns/", response_model=ColumnResponse)
+async def create_column(column: ColumnCreate, db: AsyncSession = Depends(get_db)):
+    db_column = BoardColumn(name=column.name, board_id=column.board_id)
+    db.add(db_column)
     await db.commit()
-    await db.refresh(col)
-    return {"id": col.id, "name": col.name, "board_id": col.board_id}
+    await db.refresh(db_column)
+    return db_column
 
-@router.post("/columns/{column_id}/tasks")
-async def create_task(column_id: int, data: TaskCreate, db: AsyncSession = Depends(get_db)):
-    task = Task(title=data.title, description=data.description, tags=data.tags, column_id=column_id)
-    db.add(task)
+@router.post("/tasks/", response_model=TaskResponse)
+async def create_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
+    db_task = Task(title=task.title, description=task.description, tags=task.tags, column_id=task.column_id)
+    db.add(db_task)
     await db.commit()
-    await db.refresh(task)
-    return {"id": task.id, "title": task.title, "column_id": task.column_id}
+    await db.refresh(db_task)
+    return db_task
 
-@router.put("/tasks/{task_id}")
-async def update_task(task_id: int, data: TaskUpdate, db: AsyncSession = Depends(get_db)):
-    stmt = select(Task).where(Task.id == task_id)
-    result = await db.execute(stmt)
-    task = result.scalar_one_or_none()
-    if not task:
+@router.patch("/tasks/{task_id}", response_model=TaskResponse)
+async def update_task(task_id: int, task: TaskUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    db_task = result.scalars().first()
+    if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
-    update_data = data.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(task, key, value)
-        
+    db_task.column_id = task.column_id
     await db.commit()
-    await db.refresh(task)
-    return {"id": task.id, "title": task.title, "column_id": task.column_id}
-
-@router.get("/tasks/{task_id}")
-async def get_task(task_id: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(Task).where(Task.id == task_id)
-    result = await db.execute(stmt)
-    task = result.scalar_one_or_none()
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "tags": task.tags,
-        "column_id": task.column_id
-    }
+    await db.refresh(db_task)
+    return db_task

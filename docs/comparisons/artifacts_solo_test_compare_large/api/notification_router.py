@@ -1,15 +1,22 @@
-class SMSHandler:
+from typing import Dict, Type
+
+class NotificationHandler:
+    @staticmethod
+    def handle(message: str) -> str:
+        raise NotImplementedError
+
+class SMSHandler(NotificationHandler):
     @staticmethod
     def handle(message: str) -> str:
         return f"SMS: {message}"
 
-class PagerHandler:
+class PagerHandler(NotificationHandler):
     @staticmethod
     def handle(message: str) -> str:
         return f"PAGER: {message}"
 
 class NotificationRouter:
-    _handlers = {
+    _handlers: Dict[str, Type[NotificationHandler]] = {
         "HIGH": SMSHandler,
         "LOW": PagerHandler
     }

@@ -47,3 +47,15 @@
 * **Playwright CRUD & HTML Rendering:** Successfully implemented lightweight SQLite-backed HTML DOM rendering in FastAPI using `response_class=HTMLResponse` and `<form>` submissions with `RedirectResponse(status_code=303)` to natively pass Playwright UI tests in a sandboxed environment.
 
 * **Safe Server Testing and Complexity:** When booting ASGI servers in Playwright tests, utilize `multiprocessing.Process` executing `uvicorn.run` natively to bypass `subprocess` security violations. To satisfy AST McCabe complexity constraints (<=5), explicitly abstract the HTTP readiness polling loop into a separate helper function (e.g., `wait_for_server()`).
+
+* **Playwright Async Test Paradox:** When utilizing Pytest and Playwright for E2E testing, attempting to run Playwright's async API alongside FastAPI and Uvicorn background servers can cause event loop collisions (`RuntimeError: Cannot run the event loop while another loop is running`). Utilizing Playwright's synchronous API (`playwright.sync_api`) locally inside the Pytest fixture structurally bypasses the asyncio event loop collision issue.
+
+
+* **Dynamic Routing Complexity Reduction:** Implementing a static dictionary mapping strings to abstract handler classes (`_handlers = {"HIGH": SMSHandler, "LOW": PagerHandler}`) inside a router class successfully reduces cyclomatic complexity to ≤ 2, natively satisfying AST complexity constraints without relying on nested procedural logic.
+
+
+* **CSV Parsing Exception Handling:** Successfully implemented `FileNotFoundError` handling returning an empty dictionary during CSV parsing, ensuring gracefully failures within pipeline operations.
+
+
+
+* **Module Initialization:** When creating new Python utilities in the staging sandbox (e.g., `utils/math_helpers.py`), Pytest will correctly resolve module imports provided the surrounding directories are correctly treated as packages, though explicit `__init__.py` overrides must use `overwrite=True` or `replace_workspace_file_content` if they already exist lazily. Simple mathematical functions inherently score cyclomatic complexity 1.

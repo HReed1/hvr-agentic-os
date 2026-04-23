@@ -58,6 +58,9 @@ for test_file in tests/adk_evals/comparisons/*.test.json; do
         
         # Capture modified/untracked files (successfully promoted out of Air-Lock)
         for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
+            if [[ "$file" == docs/comparisons/artifacts_* ]] || [[ "$file" == docs/evals/artifacts_* ]]; then
+                continue
+            fi
             if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == test-results/* ]] || [[ "$file" == *.py ]]; then
                 mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
                 cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
