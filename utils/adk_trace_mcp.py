@@ -242,5 +242,42 @@ def import_eval_traces() -> str:
     except Exception as e:
         return f"Error executing trace importer: {str(e)}"
 
+@mcp.tool()
+def read_eval_json_trace(file_path: Optional[str] = None, max_events: int = 50) -> str:
+    """
+    Parses an ADK evaluation JSON trace natively without requiring SQLite extraction.
+    If file_path is omitted, it automatically resolves to the latest .json file inside agent_app/.adk/eval_history/.
+    Returns a formatted markdown timeline of the Swarm's step-by-step execution.
+    """
+    if not file_path:
+        import glob
+        eval_dir = os.path.join(project_root, "agent_app", ".adk", "eval_history")
+        json_files = glob.glob(os.path.join(eval_dir, "*.json"))
+        if not json_files:
+            return f"Error: No evaluation files found in {eval_dir}"
+        file_path = max(json_files, key=os.path.getctime)
+        
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        events = []
+        for case in data.get("eval_case_results", []):
+            for inv in case.get("eval_metric_result_per_invocation", []):
+                events.extend(inv.get("actual_invocation", {}).get("intermediate_data", {}).get("invocation_events", []))
+                
+        if not events:
+            return f"Error: No trace events found inside the evaluation JSON at {file_path}"
+            
+        recent_events = events[-max_events:] if len(events) > max_events else events
+        
+        output = [f"### Evaluator JSON Trace ({os.path.basename(file_path)})"]
+        output.append(f"Total events in evaluation: {len(events)}. Showing last {len(recent_events)}.\n")
+        output.append(_format_events(recent_events))
+        
+        return "\n".join(output)
+    except Exception as e:
+        return f"Error reading evaluation trace JSON: {str(e)}"
+
 if __name__ == "__main__":
     mcp.run()
