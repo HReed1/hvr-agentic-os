@@ -74,6 +74,28 @@ if os.environ.get("ADK_SWARM_MODE") == "solo":
     @mcp.tool()
     def auditor_read_workspace_file(file_path: str) -> str:
         return _read_impl(file_path)
+
+    @mcp.tool()
+    def teardown_staging_area() -> str:
+        """
+        Linked to workflow: @staging-promotion fallback.
+        Forcefully purges the `.staging/` buffer. Essential for resetting the environment 
+        when testing loops are aborted or architectural violations occur.
+        """
+        staging_dir = os.path.abspath(os.path.join(project_root, ".staging"))
+        
+        if not os.path.exists(staging_dir):
+            return redact_genomic_phi("[INFO] Staging area does not exist. No teardown required.", redact_uuids=False)
+            
+        try:
+            with acquire_staging_lease(exclusive=True):
+                import shutil
+                shutil.rmtree(staging_dir)
+                return redact_genomic_phi("[SUCCESS] Staging area successfully purged.", redact_uuids=False)
+        except BlockingIOError as e:
+            return str(e)
+        except Exception as e:
+            return redact_genomic_phi(f"[ERROR] Teardown Failure: {str(e)}", redact_uuids=False)
 else:
     @mcp.tool()
     def read_workspace_file(file_path: str) -> str:
@@ -128,26 +150,7 @@ def promote_staging_area() -> str:
     except Exception as e:
         return redact_genomic_phi(f"[ERROR] Promotion Failure: {str(e)}", redact_uuids=False)
 
-@mcp.tool()
-def teardown_staging_area() -> str:
-    """
-    Linked to workflow: @staging-promotion fallback.
-    Forcefully purges the `.staging/` buffer. Essential for resetting the environment 
-    when testing loops are aborted or architectural violations occur.
-    """
-    staging_dir = os.path.abspath(os.path.join(project_root, ".staging"))
-    
-    if not os.path.exists(staging_dir):
-        return redact_genomic_phi("[INFO] Staging area does not exist. No teardown required.", redact_uuids=False)
-        
-    try:
-        with acquire_staging_lease(exclusive=True):
-            shutil.rmtree(staging_dir)
-            return redact_genomic_phi("[SUCCESS] Staging area successfully purged.", redact_uuids=False)
-    except BlockingIOError as e:
-        return str(e)
-    except Exception as e:
-        return redact_genomic_phi(f"[ERROR] Teardown Failure: {str(e)}", redact_uuids=False)
+
 
 if __name__ == "__main__":
     mcp.run()

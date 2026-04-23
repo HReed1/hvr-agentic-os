@@ -22,8 +22,7 @@ for test_file in tests/adk_evals/*.test.json; do
     ACTIVE_TEST_ID="$TEST_NAME" PYTHONUNBUFFERED=1 HEADLESS_EVAL=true adk eval agent_app "$test_file"
     EVAL_EXIT=$?
     if [ $EVAL_EXIT -eq 130 ] || [ $EVAL_EXIT -eq 2 ]; then
-        echo "[ABORT] Evaluation brutally killed via KeyboardInterrupt. Terminating pipeline."
-        exit 130
+        echo "[ABORT] Evaluation brutally killed via KeyboardInterrupt. Salvaging memory and artifacts before terminating..."
     fi
     
     # 2.5 Ensure organic post-evaluation trace data is merged natively into the static md structure
@@ -33,6 +32,14 @@ for test_file in tests/adk_evals/*.test.json; do
     # 3. The Memory Bridge (Ref: Evaluator Wrapup Workflow Step 2)
     # Physically reconcile internal swarm memories from the airlock back to the root.
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true
+    
+    # Playwright Media Bridge
+    echo "[SYSTEM] Mirroring Playwright visual artifacts to .agents/memory/..."
+    mkdir -p .agents/memory/media
+    find . -path "*/test-results/*" -type f \( -name "*.png" -o -name "*.webm" -o -name "*.zip" \) 2>/dev/null | while read media_file; do
+        base_name=$(basename "$media_file")
+        cp "$media_file" ".agents/memory/media/global_eval_${base_name}"
+    done
     
     # 4. Telemetry Preservation (Ref: Evaluator Wrapup Workflow Step 3)
     # The 'Memory Shield' stages all documentation and reconciled memories for persistence.
@@ -44,7 +51,7 @@ for test_file in tests/adk_evals/*.test.json; do
     
     # Capture modified/untracked files (successfully promoted out of Air-Lock)
     for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
-        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == *.py ]]; then
+        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == test-results/* ]] || [[ "$file" == *.py ]]; then
             mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
             cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
         fi
@@ -78,6 +85,12 @@ for test_file in tests/adk_evals/*.test.json; do
     
     # 6. Sandbox Destruction (Ref: Evaluator Wrapup Workflow Step 5)
     rm -rf .staging
+    
+    # 7. Hard Pipeline Abort Execution
+    if [ $EVAL_EXIT -eq 130 ] || [ $EVAL_EXIT -eq 2 ]; then
+        echo "[TERMINATED] Soft-abort complete. Exiting with Code 130."
+        exit 130
+    fi
     
     echo "Workspace fully reset. Moving to next evaluation."
     echo ""

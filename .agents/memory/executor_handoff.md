@@ -39,4 +39,4 @@
 * **Database Dependency Override Integrity:** When overriding FastAPI Async Database yields in Pytest (like `var.dependency_overrides[get_db] = override`), you MUST meticulously guarantee the override function actually yields the active test connection cleanly.
 * **Sandbox File Path Integrity:** When engineering code across multi-file architectures in an airlocked runtime, explicitly guarantee identical root-relative paths. Writing dynamically evaluated modules to slightly disjointed structural paths will result in endless `ModuleNotFoundError`s during downstream validation.
 
-* **Pytest Async Fixtures:** When asserting tests involving async SQLAlchemy sessions in newer versions of pytest, explicitly use `@pytest_asyncio.fixture` over `@pytest.fixture` to avoid deprecation warnings and 'no plugin or hook' errors.
+* **Pytest Async Fixtures:** When asserting tests involving async SQLAlchemy sessions in newer versions of pytest, explicitly use `@pytest_asyncio.fixture` over `@pytest.fixture` to avoid deprecation warnings and 'no plugin or hook' errors.test

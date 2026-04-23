@@ -27,8 +27,7 @@ for MODE in "swarm"; do
     ACTIVE_TEST_ID="$TEST_NAME" PYTHONUNBUFFERED=1 HEADLESS_EVAL=true ADK_SWARM_MODE=$MODE adk eval agent_app "$test_file"
     EVAL_EXIT=$?
     if [ $EVAL_EXIT -eq 130 ] || [ $EVAL_EXIT -eq 2 ]; then
-        echo "[ABORT] Evaluation brutally killed via KeyboardInterrupt. Terminating pipeline."
-        exit 130
+        echo "[ABORT] Evaluation brutally killed via KeyboardInterrupt. Salvaging memory and artifacts before terminating..."
     fi
     
     # 3. Telemetry Injection
@@ -36,6 +35,14 @@ for MODE in "swarm"; do
     
     # 4. The Memory Bridge
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true
+    
+    # Playwright Media Bridge
+    echo "[SYSTEM] Mirroring Playwright visual artifacts to .agents/memory/..."
+    mkdir -p .agents/memory/media
+    find . -path "*/test-results/*" -type f \( -name "*.png" -o -name "*.webm" -o -name "*.zip" \) 2>/dev/null | while read media_file; do
+        base_name=$(basename "$media_file")
+        cp "$media_file" ".agents/memory/media/${MODE}_kanban_${base_name}"
+    done
     
     # 5. Telemetry Preservation
     git add docs/evals/ docs/retrospectives/ .agents/memory/ || true
@@ -47,7 +54,7 @@ for MODE in "swarm"; do
     
     # Capture modified/untracked files (successfully promoted out of Air-Lock)
     for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
-        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == *.py ]]; then
+        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == test-results/* ]] || [[ "$file" == *.py ]]; then
             mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
             cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
         fi
@@ -82,6 +89,12 @@ for MODE in "swarm"; do
     
     # 7. Sandbox Destruction
     rm -rf .staging
+    
+    # 8. Hard Pipeline Abort Execution
+    if [ $EVAL_EXIT -eq 130 ] || [ $EVAL_EXIT -eq 2 ]; then
+        echo "[TERMINATED] Soft-abort complete. Exiting with Code 130."
+        exit 130
+    fi
     
     echo ""
     sleep 2

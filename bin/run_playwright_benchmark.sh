@@ -37,6 +37,14 @@ for MODE in "swarm"; do
     # 4. The Memory Bridge
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true
     
+    # Playwright Media Bridge
+    echo "[SYSTEM] Mirroring Playwright visual artifacts to .agents/memory/..."
+    mkdir -p .agents/memory/media
+    find . -path "*/test-results/*" -type f \( -name "*.png" -o -name "*.webm" -o -name "*.zip" \) 2>/dev/null | while read media_file; do
+        base_name=$(basename "$media_file")
+        cp "$media_file" ".agents/memory/media/${MODE}_playwright_${base_name}"
+    done
+    
     # 5. Telemetry Preservation
     git add docs/evals/ docs/retrospectives/ .agents/memory/ || true
     
@@ -47,7 +55,7 @@ for MODE in "swarm"; do
     
     # Capture modified/untracked files (successfully promoted out of Air-Lock)
     for file in $(git ls-files --others --exclude-standard) $(git diff --name-only); do
-        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == *.py ]]; then
+        if [[ "$file" == api/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == bin/* ]] || [[ "$file" == test-results/* ]] || [[ "$file" == *.py ]]; then
             mkdir -p "$ARTIFACT_DIR/$(dirname "$file")"
             cp "$file" "$ARTIFACT_DIR/$file" 2>/dev/null || true
         fi
