@@ -176,7 +176,8 @@ async def patched_loop_run(self, ctx):
                                 return
                         elif '[EXECUTION COMPLETE]' in text:
                             yield event
-                            return
+                            if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                                return
 
             yield event
 
