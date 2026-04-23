@@ -21,6 +21,10 @@ for test_file in tests/adk_evals/comparisons/*.test.json; do
         # 1. Clean the staging area before starting
         rm -rf .staging
         
+        # 1.5. Purge Ghost Telemetry
+        # Ensures that the Meta-Evaluator and inject_telemetry scripts don't query a bloated SQLite ledger.
+        rm -f agent_app/.adk/session.db*
+        
         # 2. Run the evaluation gracefully
         # We catch the exit code natively to differentiate organic failures from user SIGINT traps.
         # Notice ADK_SWARM_MODE=$MODE injected dynamically here
