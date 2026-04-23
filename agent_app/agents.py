@@ -158,7 +158,7 @@ research_discovery_loop = SequentialAgent(
 # --- ADK Orchestration Patterns ---
 development_workflow = SequentialAgent(
     name="development_workflow",
-    sub_agents=[executor_agent]
+    sub_agents=[executor_agent, auditor_agent]
 )
 
 director_agent = LlmAgent(
@@ -166,7 +166,7 @@ director_agent = LlmAgent(
     name='director',
     instruction=director_instruction,
     tools=[list_docs, read_doc, mark_system_complete],
-    sub_agents=[development_workflow, auditor_agent]
+    sub_agents=[development_workflow]
 )
 
 autonomous_swarm = SequentialAgent(

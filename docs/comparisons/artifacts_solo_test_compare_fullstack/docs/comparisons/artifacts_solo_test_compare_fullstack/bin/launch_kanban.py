@@ -1,48 +1,41 @@
-import os
 import sys
-import asyncio
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+import os
 
-# Anchoring
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from api.routers.kanban import router as kanban_router
-from api.database import engine, async_session
-from api.models_kanban import Base, Board, ColumnModel
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+import uvicorn
+from api.models_kanban import Base, Board, Column as DBColumn
+from api.routers.kanban import router, engine, async_session
 
 app = FastAPI()
-
-app.include_router(kanban_router, prefix="/api")
+app.include_router(router)
 
 @app.on_event("startup")
-async def startup_event():
+async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
-    # Seeding
-    async with async_session() as session:
+    async with async_session() as db:
         from sqlalchemy.future import select
-        result = await session.execute(select(Board).where(Board.id == 1))
+        result = await db.execute(select(Board))
         board = result.scalars().first()
         if not board:
-            new_board = Board(name="Board 1")
-            session.add(new_board)
-            await session.flush()
+            board = Board(name="Board 1")
+            db.add(board)
+            await db.commit()
+            await db.refresh(board)
             
-            cols = ["To Do", "Doing", "Done"]
-            for col_name in cols:
-                session.add(ColumnModel(name=col_name, board_id=new_board.id))
-            
-            await session.commit()
+            for c_name in ["To Do", "Doing", "Done"]:
+                db.add(DBColumn(name=c_name, board_id=board.id))
+            await db.commit()
 
 @app.get("/")
-async def get_index():
+async def index():
     template_path = os.path.join(os.path.dirname(__file__), "..", "api", "templates", "kanban.html")
     with open(template_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-    return HTMLResponse(content=html_content)
+        return HTMLResponse(f.read())
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -2,279 +2,321 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Kanban</title>
+    <title>Kanban Board</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --col-bg: rgba(30, 41, 59, 0.7);
-            --card-bg: rgba(51, 65, 85, 0.8);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
+            --bg: #121212;
+            --col-bg: rgba(255, 255, 255, 0.05);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
             --border: rgba(255, 255, 255, 0.1);
+            --accent: #6200ea;
         }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             flex-direction: column;
             height: 100vh;
-            box-sizing: border-box;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(98, 0, 234, 0.15) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(3, 218, 197, 0.1) 0%, transparent 50%);
         }
         header {
+            padding: 1rem 2rem;
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
-        h1 {
+        header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 1.5rem;
             font-weight: 600;
         }
-        button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-        #board {
+        .board {
             display: flex;
-            gap: 20px;
-            flex-grow: 1;
+            flex: 1;
+            padding: 2rem;
+            gap: 1.5rem;
             overflow-x: auto;
-            padding-bottom: 10px;
+            align-items: flex-start;
         }
         .column {
             background: var(--col-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
             border-radius: 12px;
-            min-width: 300px;
-            width: 300px;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
-            padding: 16px;
+            max-height: 100%;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
-        .column h2 {
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 16px;
-            color: var(--text-main);
+        .column-header {
+            padding: 1.25rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .task-list {
-            flex-grow: 1;
+        .add-task-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text);
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .add-task-btn:hover {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+        .tasks {
+            padding: 1rem;
+            flex: 1;
             overflow-y: auto;
-            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 100px;
         }
         .task {
             background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 12px;
+            padding: 1.25rem;
             border-radius: 8px;
-            margin-bottom: 10px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            user-select: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .task:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-4px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15);
         }
         .task-title {
-            font-size: 14px;
             font-weight: 500;
+            font-size: 1.05rem;
+        }
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:hover { 
+            background: #7c4dff; 
+            transform: translateY(-1px);
         }
         
-        /* Modal Styles */
+        /* Modal */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 100;
+            backdrop-filter: blur(8px);
+            display: none;
             justify-content: center;
             align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            display: flex;
         }
         .modal {
-            background: var(--col-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            width: 400px;
+            background: rgba(30, 30, 30, 0.9);
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 450px;
             max-width: 90%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .modal h3 { margin-top: 0; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        .modal h2 { margin-top: 0; font-weight: 600; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #ccc; }
         .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box;
+            width: 100%; padding: 0.8rem;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            color: var(--text); border-radius: 6px; font-family: 'Inter', sans-serif;
+            box-sizing: border-box; transition: border-color 0.2s;
         }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-secondary { background: transparent; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
         
-        #task-detail-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
-        #task-detail-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; white-space: pre-wrap; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .tags-display {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+        }
         .tag {
-            display: inline-block;
-            background: var(--accent);
-            color: white;
-            padding: 4px 8px;
+            background: rgba(98, 0, 234, 0.3);
+            border: 1px solid var(--accent);
+            padding: 0.2rem 0.6rem;
             border-radius: 12px;
-            font-size: 12px;
-            margin-right: 6px;
-            margin-bottom: 6px;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Board</h1>
-        <button onclick="openColModal()">+ Add Column</button>
+        <h1 id="board-name">Board</h1>
+        <button class="btn" onclick="openColModal()">+ Add Column</button>
     </header>
-    <div id="board"></div>
+    <div class="board" id="board"></div>
 
-    <!-- Modals -->
-    <div id="col-modal" class="modal-overlay">
+    <div class="modal-overlay" id="task-modal">
         <div class="modal">
-            <h3>New Column</h3>
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="col-name">
-            </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeModal('col-modal')">Cancel</button>
-                <button onclick="createColumn()">Create</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="task-modal" class="modal-overlay">
-        <div class="modal">
-            <h3>New Task</h3>
+            <h2 id="task-modal-title">New Task</h2>
             <input type="hidden" id="task-col-id">
             <div class="form-group">
                 <label>Title</label>
-                <input type="text" id="task-title">
+                <input type="text" id="task-title" placeholder="Enter task title...">
             </div>
             <div class="form-group">
                 <label>Description</label>
-                <textarea id="task-desc" rows="3"></textarea>
+                <textarea id="task-desc" placeholder="Enter task details..."></textarea>
             </div>
             <div class="form-group">
-                <label>Tags (comma separated)</label>
-                <input type="text" id="task-tags">
+                <label>Tags</label>
+                <input type="text" id="task-tags" placeholder="e.g. bug, feature (comma separated)">
             </div>
             <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
-                <button id="btn-create-task" onclick="createTask()">Create</button>
+                <button class="btn" style="background:#444;" onclick="closeModals()">Cancel</button>
+                <button class="btn" id="save-task-btn" onclick="saveTask()">Save Task</button>
             </div>
         </div>
     </div>
 
-    <div id="detail-modal" class="modal-overlay">
+    <div class="modal-overlay" id="col-modal">
         <div class="modal">
-            <div id="task-detail-title"></div>
-            <div id="task-detail-tags"></div>
-            <div id="task-detail-desc"></div>
+            <h2>New Column</h2>
+            <div class="form-group">
+                <label>Column Name</label>
+                <input type="text" id="col-name" placeholder="e.g. In Review">
+            </div>
             <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeModal('detail-modal')">Close</button>
+                <button class="btn" style="background:#444;" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="saveColumn()">Create Column</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal">
+            <h2 id="detail-title" style="margin-bottom:0.5rem;">Task Title</h2>
+            <div class="tags-display" id="detail-tags"></div>
+            <div style="margin-bottom:1.5rem; line-height:1.6; color:#ddd;" id="detail-desc"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModals()">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        const BOARD_ID = 1;
-        let draggedTaskId = null;
+        let boardId = null;
+        let currentTasks = {};
 
-        async function fetchBoard() {
-            try {
-                const res = await fetch(`/api/boards/${BOARD_ID}`);
-                if (!res.ok) throw new Error('Board not found');
-                const board = await res.json();
-                renderBoard(board);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function renderBoard(board) {
-            const boardEl = document.getElementById('board');
-            boardEl.innerHTML = '';
-            board.columns.forEach(col => {
-                const colEl = document.createElement('div');
-                colEl.className = 'column';
-                colEl.innerHTML = `
-                    <h2>
-                        <span>${col.name}</span>
-                        <button onclick="openTaskModal(${col.id})" style="padding: 2px 8px; font-size: 12px;">+</button>
-                    </h2>
-                    <div class="task-list" data-col-id="${col.id}" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    </div>
-                `;
-                const listEl = colEl.querySelector('.task-list');
+        async function loadBoard() {
+            const res = await fetch('/api/board');
+            const data = await res.json();
+            if (data.error) return;
+            boardId = data.id;
+            document.getElementById('board-name').innerText = data.name;
+            
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+            currentTasks = {};
+            
+            data.columns.forEach(col => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'column';
+                colDiv.innerHTML = '<div class="column-header"><span>' + col.name + '</span><button class="add-task-btn" onclick="openTaskModal(' + col.id + ')" title="Add Task"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div><div class="tasks" data-col-id="' + col.id + '" ondragover="allowDrop(event)" ondrop="drop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"></div>';
+                const tasksDiv = colDiv.querySelector('.tasks');
                 col.tasks.forEach(task => {
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'task';
-                    taskEl.draggable = true;
-                    taskEl.ondragstart = (e) => drag(e, task.id);
-                    taskEl.onclick = () => openDetailModal(task);
-                    taskEl.innerHTML = `<div class="task-title">${task.title}</div>`;
-                    listEl.appendChild(taskEl);
+                    currentTasks[task.id] = task;
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task';
+                    taskDiv.draggable = true;
+                    taskDiv.ondragstart = (e) => drag(e, task.id);
+                    taskDiv.ondragend = (e) => dragEnd(e);
+                    
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'task-title';
+                    titleDiv.innerText = task.title;
+                    
+                    taskDiv.appendChild(titleDiv);
+                    taskDiv.onclick = () => openDetailModal(task.id);
+                    tasksDiv.appendChild(taskDiv);
                 });
-                boardEl.appendChild(colEl);
+                boardDiv.appendChild(colDiv);
             });
         }
 
-        function allowDrop(ev) { ev.preventDefault(); }
+        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }
+        function dragEnter(ev) { ev.preventDefault(); }
+        function dragLeave(ev) { ev.currentTarget.style.background = 'transparent'; }
         
-        function drag(ev, taskId) {
-            draggedTaskId = taskId;
+        function drag(ev, taskId) { 
+            ev.dataTransfer.setData('taskId', taskId); 
+            setTimeout(() => ev.target.style.opacity = '0.5', 0);
+        }
+        function dragEnd(ev) {
+            ev.target.style.opacity = '1';
+            document.querySelectorAll('.tasks').forEach(el => el.style.background = 'transparent');
         }
 
         async function drop(ev) {
             ev.preventDefault();
-            const colEl = ev.target.closest('.task-list');
-            if (!colEl || !draggedTaskId) return;
-            const colId = colEl.getAttribute('data-col-id');
+            document.querySelectorAll('.tasks').forEach(el => el.style.background = 'transparent');
             
-            await fetch(`/api/tasks/${draggedTaskId}`, {
+            const taskId = ev.dataTransfer.getData('taskId');
+            let target = ev.target;
+            while (target && !target.classList.contains('tasks')) {
+                target = target.parentNode;
+            }
+            if (!target) return;
+            const newColId = target.getAttribute('data-col-id');
+            
+            if (currentTasks[taskId].column_id == newColId) return; // No change
+            
+            await fetch('/api/tasks/' + taskId, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ column_id: parseInt(colId) })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({column_id: parseInt(newColId)})
             });
-            fetchBoard();
-        }
-
-        function openColModal() {
-            document.getElementById('col-name').value = '';
-            document.getElementById('col-modal').style.display = 'flex';
+            loadBoard();
         }
 
         function openTaskModal(colId) {
@@ -282,66 +324,98 @@
             document.getElementById('task-title').value = '';
             document.getElementById('task-desc').value = '';
             document.getElementById('task-tags').value = '';
-            document.getElementById('task-modal').style.display = 'flex';
+            const modal = document.getElementById('task-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            document.getElementById('task-title').focus();
         }
 
-        function openDetailModal(task) {
-            document.getElementById('task-detail-title').innerText = task.title;
-            document.getElementById('task-detail-desc').innerText = task.description || 'No description';
+        function openColModal() {
+            document.getElementById('col-name').value = '';
+            const modal = document.getElementById('col-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            document.getElementById('col-name').focus();
+        }
+
+        function openDetailModal(taskId) {
+            const task = currentTasks[taskId];
+            document.getElementById('detail-title').innerText = task.title;
             
-            const tagsEl = document.getElementById('task-detail-tags');
-            tagsEl.innerHTML = '';
+            const tagsDiv = document.getElementById('detail-tags');
+            tagsDiv.innerHTML = '';
             if (task.tags) {
-                task.tags.split(',').forEach(tag => {
-                    const t = tag.trim();
-                    if (t) {
+                task.tags.split(',').forEach(t => {
+                    const tagStr = t.trim();
+                    if (tagStr) {
                         const s = document.createElement('span');
                         s.className = 'tag';
-                        s.innerText = t;
-                        tagsEl.appendChild(s);
+                        s.innerText = tagStr;
+                        tagsDiv.appendChild(s);
                     }
                 });
             }
             
-            document.getElementById('detail-modal').style.display = 'flex';
+            document.getElementById('detail-desc').innerText = task.description || 'No description provided.';
+            
+            const modal = document.getElementById('detail-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        async function createColumn() {
-            const name = document.getElementById('col-name').value;
-            if (!name) return;
-            await fetch('/api/columns', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, board_id: BOARD_ID })
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                m.classList.remove('active');
+                setTimeout(() => m.style.display = 'none', 300);
             });
-            closeModal('col-modal');
-            fetchBoard();
         }
 
-        async function createTask() {
+        async function saveTask() {
             const colId = document.getElementById('task-col-id').value;
             const title = document.getElementById('task-title').value;
             const desc = document.getElementById('task-desc').value;
             const tags = document.getElementById('task-tags').value;
             
-            if (!title) return;
+            if (!title.trim()) return;
+
+            const btn = document.getElementById('save-task-btn');
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+            
             await fetch('/api/tasks', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title, description: desc, tags, column_id: parseInt(colId)
-                })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({column_id: parseInt(colId), title, description: desc, tags})
             });
-            closeModal('task-modal');
-            fetchBoard();
+            
+            btn.innerText = 'Save Task';
+            btn.disabled = false;
+            
+            closeModals();
+            loadBoard();
         }
 
-        // Init
-        fetchBoard();
+        async function saveColumn() {
+            const name = document.getElementById('col-name').value;
+            if (!name.trim()) return;
+            
+            await fetch('/api/columns', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({board_id: boardId, name})
+            });
+            closeModals();
+            loadBoard();
+        }
+
+        // Close modal on clicking overlay background
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('mousedown', function(e) {
+                if(e.target === this) closeModals();
+            });
+        });
+
+        loadBoard();
     </script>
 </body>
 </html>

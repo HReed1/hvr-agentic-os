@@ -1,83 +1,91 @@
-import pytest
-import asyncio
-import subprocess
-import time
-import requests
-import os
 import sys
-from playwright.async_api import async_playwright
-
-# AST Namespace Confinement
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import os
+import time
+import pytest
+import subprocess
+import requests
+from playwright.sync_api import Page, expect
 
 @pytest.fixture(scope="session")
-def server():
-    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "launch_kanban.py"))
-    
+def kanban_server():
     env = os.environ.copy()
     env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     
-    proc = subprocess.Popen([sys.executable, script_path], env=env)
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "launch_kanban.py"))
     
-    url = "http://127.0.0.1:8000/"
-    timeout = 15
-    start = time.time()
+    port = 8045
+    env["KANBAN_PORT"] = str(port)
+    process = subprocess.Popen(
+        [sys.executable, script_path],
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    
+    url = f"http://127.0.0.1:{port}"
+    
     ready = False
-    
-    while time.time() - start < timeout:
+    for _ in range(30):
         try:
-            r = requests.get(url)
-            if r.status_code == 200:
+            response = requests.get(url, timeout=1)
+            if response.status_code == 200:
                 ready = True
                 break
         except requests.exceptions.ConnectionError:
-            time.sleep(0.5)
-            
+            pass
+        time.sleep(0.5)
+        
     if not ready:
-        proc.terminate()
-        pytest.fail("Server did not bind in time.")
+        process.terminate()
+        stdout, stderr = process.communicate()
+        raise RuntimeError(f"Server failed to start. stderr: {stderr.decode()}")
         
-    yield
-    proc.terminate()
+    yield url
+    
+    process.terminate()
+    process.wait(timeout=5)
 
-@pytest.mark.asyncio
-async def test_kanban_e2e(server):
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
-        
-        await page.goto("http://127.0.0.1:8000/")
-        
-        # Validate DOM and State Load
-        await page.wait_for_selector("text=Board 1")
-        await page.wait_for_selector("text=To Do")
-        await page.wait_for_selector("text=Doing")
-        await page.wait_for_selector("text=Done")
-        
-        # Native modal interactions
-        await page.click("text='+' >> nth=0")
-        await page.wait_for_selector("#task-modal", state="visible")
-        await page.fill("#task-title", "Omega Task")
-        await page.fill("#task-desc", "Critical system test")
-        await page.fill("#task-tags", "E2E")
-        await page.click("#task-modal button:has-text('Create Task')")
-        
-        # Wait for recursive state to persist and re-render
-        await page.wait_for_selector(".task:has-text('Omega Task')")
-        
-        # Drag and Drop
-        await page.drag_and_drop(".task:has-text('Omega Task')", ".column:has-text('Doing')")
-        await page.wait_for_timeout(1000)
-        
-        # Assert structure natively mapped node states
-        doing_col = page.locator(".column:has-text('Doing')")
-        assert await doing_col.locator(".task:has-text('Omega Task')").count() == 1
-        
-        # Detail Modal
-        await page.click(".task:has-text('Omega Task')")
-        await page.wait_for_selector("#detail-modal", state="visible")
-        await page.wait_for_selector("#detail-title:has-text('Omega Task')")
-        await page.wait_for_selector("#detail-desc:has-text('Critical system test')")
-        await page.click("#detail-modal button:has-text('Close')")
-        
-        await browser.close()
+def test_kanban_fullstack(page: Page, kanban_server: str):
+    page.goto(kanban_server)
+    page.wait_for_selector(".column-header")
+    
+    columns = page.locator(".column-header span").all_text_contents()
+    assert "To Do" in columns
+    assert "Doing" in columns
+    assert "Done" in columns
+    
+    page.click("text=+ Add Column")
+    page.wait_for_selector("#columnModal.active")
+    page.fill("#colName", "QA Validation")
+    page.click("#columnModal >> text=Save")
+    
+    page.wait_for_selector("text=QA Validation")
+    
+    first_col_add_btn = page.locator(".column").first.locator("button")
+    first_col_add_btn.click()
+    
+    page.wait_for_selector("#taskModal.active")
+    page.fill("#taskTitle", "End-to-End Test Task")
+    page.fill("#taskDesc", "Testing modal interactions natively.")
+    page.fill("#taskTags", "test, e2e")
+    page.click("#taskModal >> text=Save")
+    
+    page.wait_for_selector(".task >> text=End-to-End Test Task")
+    
+    page.click(".task >> text=End-to-End Test Task")
+    page.wait_for_selector("#viewTaskModal.active")
+    
+    expect(page.locator("#viewTaskTitle")).to_have_text("End-to-End Test Task")
+    expect(page.locator("#viewTaskDesc")).to_have_text("Testing modal interactions natively.")
+    expect(page.locator("#viewTaskTags")).to_have_text("test, e2e")
+    
+    page.click("#viewTaskModal >> text=Close")
+    
+    source = page.locator(".task >> text=End-to-End Test Task")
+    target = page.locator(".task-list").nth(2)
+    
+    source.drag_to(target)
+    
+    time.sleep(1)
+    done_column_tasks = target.locator(".task").all_text_contents()
+    assert any("End-to-End Test" in t for t in done_column_tasks)

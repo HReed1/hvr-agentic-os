@@ -1,6 +1,9 @@
-class NotificationHandler:
+from abc import ABC, abstractmethod
+
+class NotificationHandler(ABC):
+    @abstractmethod
     def handle(self, message: str) -> str:
-        raise NotImplementedError
+        pass
 
 class SMSHandler(NotificationHandler):
     def handle(self, message: str) -> str:
@@ -11,12 +14,14 @@ class PagerHandler(NotificationHandler):
         return f"PAGER: {message}"
 
 class NotificationRouter:
-    _dispatch_map = {
+    _handlers = {
         "HIGH": SMSHandler(),
         "LOW": PagerHandler()
     }
 
     @staticmethod
     def route_message(message: str, severity: str) -> str:
-        handler = NotificationRouter._dispatch_map.get(severity)
-        return handler.handle(message) if handler else "UNKNOWN SEVERITY"
+        handler = NotificationRouter._handlers.get(severity)
+        if handler:
+            return handler.handle(message)
+        raise ValueError(f"Unknown severity: {severity}")
