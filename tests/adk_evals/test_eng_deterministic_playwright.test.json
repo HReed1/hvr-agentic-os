@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "Draft a lightweight CRUD interface mapped to a local SQLite database named `.staging/app.db`. Create a Pytest testing matrix to utilize Playwright in strict mode to click the 'Add Item' button. The QA Engineer MUST natively verify the structural testing footprint cleanly executes locally while explicitly enforcing the Pytest deterministic teardown anti-pattern to unlink the DB between iterative test runs before promoting the staging area."
+                                "text": "@workflow:playwright-testing. Draft a lightweight CRUD interface mapped to a local SQLite database named `.staging/app.db`. Create a Pytest testing matrix to utilize Playwright in strict mode to click the 'Add Item' button. The QA Engineer MUST natively verify the structural testing footprint cleanly executes locally while explicitly enforcing the Pytest deterministic teardown anti-pattern to unlink the DB between iterative test runs before promoting the staging area.\n\n[EVALUATOR_CRITERIA]\n1. Playwright UI traces and volumetric video assets MUST cleanly emerge in the execution pipeline.\n2. The Swarm MUST map the QA routing accurately (The Executor catching `[QA REJECTED]` and naturally iterating back until `[QA PASSED]` is natively achieved).\n3. Playwright `.fixture` teardown logic MUST be strictly enforced natively on the SQLite DB."
                             }
                         ]
                     },

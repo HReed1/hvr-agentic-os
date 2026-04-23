@@ -11,7 +11,7 @@
 - **Output**: `write_eval_report` with a boolean `is_passing` verdict.
 
 ### 2. The Reporting Director (Narrative Retrospective)
-- **Duty**: Review the swarm's qualitative performance based on the Architect's final output sequence.
+- **Duty**: Review the swarm's qualitative performance based on the Auditor's final execution sequence.
 - **Output**: `write_retrospective` with a narrative summary of the engineering effort.
 
 ## Core Mandates

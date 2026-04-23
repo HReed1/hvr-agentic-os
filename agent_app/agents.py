@@ -156,9 +156,15 @@ research_discovery_loop = SequentialAgent(
 )
 
 # --- ADK Orchestration Patterns ---
+executor_loop = LoopAgent(
+    name="executor_loop",
+    max_iterations=15,
+    sub_agents=[executor_agent]
+)
+
 development_workflow = SequentialAgent(
     name="development_workflow",
-    sub_agents=[executor_agent, auditor_agent]
+    sub_agents=[executor_loop, auditor_agent]
 )
 
 director_agent = LlmAgent(

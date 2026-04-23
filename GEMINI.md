@@ -27,3 +27,9 @@ Whenever Swarm nodes or local testing layers generate structural insights within
 Before drafting system-wide patches or attempting to repair broken orchestration scripts, **empirically verify the bounds**.
 * Do not inject workarounds based on abstract assumptions.
 * Inspect physical file paths natively and trace the absolute CLI execution log boundaries. If a script parameter fails randomly, structurally read the deployment framework natively instead of attempting a blind fix.
+
+## 6. Evaluation Matrix Synchronization
+Whenever the IDE Orchestrator structurally modifies the underlying logic behind the Swarm (e.g., establishing a new `@workflow`, deprecating an existing agent role, or deploying a new `@skill`), you MUST explicitly and immediately synchronize the evaluation criteria.
+* **Never leave evaluation matrices behind**: Legacy `.test.json` prompt definitions in `tests/adk_evals/` dictate how the Swarm operates during benchmarks. 
+* If you design new rules without mapping those rules into the physical evaluation prompts, the Swarm will natively organically bypass your new governance and pass tests via brute force. 
+* You are strictly mandated to execute a `grep` or search for stale terminologies or missing `@workflow` triggers in the testing suite payload whenever shifting core workflows.

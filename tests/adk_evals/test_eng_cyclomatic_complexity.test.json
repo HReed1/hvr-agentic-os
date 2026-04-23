@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Director and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is \u2264 5 before promoting the staging area."
+                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Director and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is \u2264 5 before promoting the staging area.\n\n[EVALUATOR_CRITERIA]\n1. A valid `.qa_signature` MUST natively emerge verifying execution success.\n2. The codebase MUST cleanly reach cyclomatic complexity \u2264 5 natively.\n3. The Swarm MUST successfully natively loop without a destructive teardown. If complexity initially exceeds bounds, the Director must perform a Macro-Loop mapping back to the Executor for In-Situ structural patching natively."
                             }
                         ]
                     },
