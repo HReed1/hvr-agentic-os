@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Kanban</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --col-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(51, 65, 85, 0.8);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        #board {
+            display: flex;
+            gap: 20px;
+            flex-grow: 1;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .column {
+            background: var(--col-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 300px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        .column h2 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 50px;
+        }
+        .task {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .task-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal {
+            background: var(--col-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .modal h3 { margin-top: 0; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        
+        #task-detail-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+        #task-detail-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; white-space: pre-wrap; }
+        .tag {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Board</h1>
+        <button onclick="openColModal()">+ Add Column</button>
+    </header>
+    <div id="board"></div>
+
+    <!-- Modals -->
+    <div id="col-modal" class="modal-overlay">
+        <div class="modal">
+            <h3>New Column</h3>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="col-name">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('col-modal')">Cancel</button>
+                <button onclick="createColumn()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal">
+            <h3>New Task</h3>
+            <input type="hidden" id="task-col-id">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="task-title">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="task-desc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags (comma separated)</label>
+                <input type="text" id="task-tags">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
+                <button id="btn-create-task" onclick="createTask()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal">
+            <div id="task-detail-title"></div>
+            <div id="task-detail-tags"></div>
+            <div id="task-detail-desc"></div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('detail-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_ID = 1;
+        let draggedTaskId = null;
+
+        async function fetchBoard() {
+            try {
+                const res = await fetch(`/api/boards/${BOARD_ID}`);
+                if (!res.ok) throw new Error('Board not found');
+                const board = await res.json();
+                renderBoard(board);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderBoard(board) {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            board.columns.forEach(col => {
+                const colEl = document.createElement('div');
+                colEl.className = 'column';
+                colEl.innerHTML = `
+                    <h2>
+                        <span>${col.name}</span>
+                        <button onclick="openTaskModal(${col.id})" style="padding: 2px 8px; font-size: 12px;">+</button>
+                    </h2>
+                    <div class="task-list" data-col-id="${col.id}" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    </div>
+                `;
+                const listEl = colEl.querySelector('.task-list');
+                col.tasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task';
+                    taskEl.draggable = true;
+                    taskEl.ondragstart = (e) => drag(e, task.id);
+                    taskEl.onclick = () => openDetailModal(task);
+                    taskEl.innerHTML = `<div class="task-title">${task.title}</div>`;
+                    listEl.appendChild(taskEl);
+                });
+                boardEl.appendChild(colEl);
+            });
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        
+        function drag(ev, taskId) {
+            draggedTaskId = taskId;
+        }
+
+        async function drop(ev) {
+            ev.preventDefault();
+            const colEl = ev.target.closest('.task-list');
+            if (!colEl || !draggedTaskId) return;
+            const colId = colEl.getAttribute('data-col-id');
+            
+            await fetch(`/api/tasks/${draggedTaskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ column_id: parseInt(colId) })
+            });
+            fetchBoard();
+        }
+
+        function openColModal() {
+            document.getElementById('col-name').value = '';
+            document.getElementById('col-modal').style.display = 'flex';
+        }
+
+        function openTaskModal(colId) {
+            document.getElementById('task-col-id').value = colId;
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-desc').value = '';
+            document.getElementById('task-tags').value = '';
+            document.getElementById('task-modal').style.display = 'flex';
+        }
+
+        function openDetailModal(task) {
+            document.getElementById('task-detail-title').innerText = task.title;
+            document.getElementById('task-detail-desc').innerText = task.description || 'No description';
+            
+            const tagsEl = document.getElementById('task-detail-tags');
+            tagsEl.innerHTML = '';
+            if (task.tags) {
+                task.tags.split(',').forEach(tag => {
+                    const t = tag.trim();
+                    if (t) {
+                        const s = document.createElement('span');
+                        s.className = 'tag';
+                        s.innerText = t;
+                        tagsEl.appendChild(s);
+                    }
+                });
+            }
+            
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        async function createColumn() {
+            const name = document.getElementById('col-name').value;
+            if (!name) return;
+            await fetch('/api/columns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, board_id: BOARD_ID })
+            });
+            closeModal('col-modal');
+            fetchBoard();
+        }
+
+        async function createTask() {
+            const colId = document.getElementById('task-col-id').value;
+            const title = document.getElementById('task-title').value;
+            const desc = document.getElementById('task-desc').value;
+            const tags = document.getElementById('task-tags').value;
+            
+            if (!title) return;
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title, description: desc, tags, column_id: parseInt(colId)
+                })
+            });
+            closeModal('task-modal');
+            fetchBoard();
+        }
+
+        // Init
+        fetchBoard();
+    </script>
+</body>
+</html>

@@ -11,6 +11,7 @@ EXECUTOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "executor_mcp.py")
 AUDITOR_MCP_PATH = os.path.join(BASE_DIR, "utils", "auditor_mcp.py")
 AST_VALIDATION_MCP_PATH = os.path.join(BASE_DIR, "utils", "ast_validation_mcp.py")
 ADK_TRACE_MCP_PATH = os.path.join(BASE_DIR, "utils", "adk_trace_mcp.py")
+DIAGNOSTICS_MCP_PATH = os.path.join(BASE_DIR, "utils", "diagnostics_mcp.py")
 
 # --- Model Configuration ---
 PRIMARY_PRO_MODEL = os.environ.get("GEMINI_PRO_MODEL", "gemini-3.1-pro-preview")

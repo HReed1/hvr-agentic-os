@@ -1,26 +1,22 @@
-# Retrospective: Native Kanban Board Capability
+# Retrospective: Kanban Board Full-Stack Development
 
 ## Initial Goal
-The user requested a full-stack mutation to build a native Kanban Board capability, requiring explicit architecture across five domains:
-1. **Database Schema**: Purely asynchronous SQLAlchemy 2.0 ORM models (`Board`, `Column`, `Task`).
-2. **FastAPI Protocol**: Async HTTP routes for full board functionality and drag-and-drop state updates.
-3. **DOM Client**: A Vanilla JS/CSS HTML client featuring native HTML5 Drag and Drop and custom modals without browser `prompt()` or `alert()`.
-4. **App Launcher**: A standalone FastAPI executable (`bin/launch_kanban.py`) dynamically handling pathing and database seeding.
-5. **Testing Crucible**: An E2E Playwright testing environment with localized Uvicorn background fixtures.
+The objective was to execute a full-stack mutation to build a native Kanban Board capability. This required engineering several cohesive components within the `.staging/` environment:
+1. **Database Schema**: Purely asynchronous SQLAlchemy 2.0 ORM models (`Board`, `Column`, `Task`) with strict table boundaries and relationship mapping.
+2. **FastAPI Protocol**: Async HTTP routes to support board/column/task CRUD operations and state fetching.
+3. **DOM Client**: A native Vanilla CSS HTML client implementing HTML5 Drag and Drop and custom DOM modals, completely avoiding Tailwind and browser-native dialogs (`prompt()`, `alert()`).
+4. **App Launcher**: A standalone FastAPI application script with dynamic template mapping and synchronous database seeding.
+5. **Testing Crucible**: A native Pytest-Playwright E2E testing matrix featuring a strict Uvicorn background fixture with a polling readiness loop.
+6. **Complexity Validation**: Guaranteeing that the overall Cyclomatic Complexity of the codebase remains `<= 5`.
 
 ## Technical Hurdles
-The Director drafted a focused directive instructing the Architect and Executor to implement the backend database schema and Pydantic validation boundaries first.
+1. **Asynchronous ORM & Routing**: Ensuring proper integration of `sqlalchemy.ext.asyncio` constructs alongside FastAPI's routing matrix.
+2. **UI & E2E Testing Integration**: Bridging the native Vanilla CSS UI—with its custom modal interactions and native Drag and Drop—with the headless Playwright testing matrix. The test infrastructure strictly required a polling readiness loop to ensure the local ASGI server fully bound to the port before Playwright executed, preventing `net::ERR_CONNECTION_REFUSED` crashes.
+3. **FastAPI Dependency Injection Error**: The Executor drafted the `api/routers/kanban.py` routes with the signature `db: AsyncSession = Depends()`. Because the `Depends()` block lacked a callable provider function (e.g., `Depends(get_db)`), FastAPI failed to resolve the dependency injection. When the frontend executed `fetch('/api/boards/1')`, FastAPI attempted to parse `db` improperly, throwing a fatal `422 Unprocessable Content` validation error. 
 
-The Executor commenced work in the `.staging/` environment:
-- Successfully authored `api/models_kanban.py` containing pure async SQLAlchemy models (`Board`, `Column`, `Task`).
-- Successfully authored `api/schemas_kanban.py` defining strict Pydantic bounds for requests and responses.
-- Authored a localized Pytest suite (`tests/test_kanban_models.py`) to validate the schema structure natively.
+## Ultimate Resolution / Failure State
+**Execution Status: FAILURE**
 
-During validation, the Executor encountered a `pytest.PytestRemovedIn9Warning` regarding async fixtures. After a minor syntax glitch (IndentationError from a surgical file replacement), the Executor overwrote the file with the corrected `@pytest_asyncio.fixture` implementation. The TDAID test cleared successfully (Exit 0), natively writing the cryptographic `.qa_signature`. 
+The swarm successfully architected the structural components, authored the requested DOM elements (Vanilla CSS, Glassmorphism, Custom Modals), and passed the Cyclomatic Complexity audits (Scores: 1, 3, and 2 for the models, router, and launcher respectively, all well under the `<= 5` limit). 
 
-## Ultimate Resolution
-**Execution State:** **FAILURE**
-
-Despite successfully writing the backend database schema and passing the structural tests, the Executor agent became stuck in a repetitive loop, repeatedly outputting `[TASK COMPLETE]` rather than successfully initiating the QA handoff or proceeding with the remaining full-stack task generation. Because of the excessive loops, the zero-trust middleware intercepted the execution and forced a hard escalation. 
-
-The Architect never reached the stage to output `[DEPLOYMENT SUCCESS]`, the staging area was never promoted via the Auditor's cryptographic pass, and the remaining stack (FastAPI routes, DOM Client, App Launcher, Playwright Crucible) was left un-architected.
+However, during the `execute_tdaid_test` phase, the Playwright E2E matrix encountered the `422 Unprocessable Content` error stemming from the broken FastAPI dependency injection on the `GET /api/boards/1` route. As a result, the UI failed to render the seeded database columns ("To Do", "Doing", "Done"). The QA Engineer correctly intercepted this exception, issued a `[QA REJECTED]` signal, and halted the promotion loop before successful deployment.

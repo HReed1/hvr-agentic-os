@@ -16,7 +16,8 @@ from .config import (
     EXECUTOR_MCP_PATH,
     AUDITOR_MCP_PATH,
     AST_VALIDATION_MCP_PATH,
-    ADK_TRACE_MCP_PATH
+    ADK_TRACE_MCP_PATH,
+    DIAGNOSTICS_MCP_PATH
 )
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
@@ -25,28 +26,15 @@ from .tools import (
     research_read_file, research_list_directory, write_eval_report
 )
 from .prompts import (
-    director_instruction, architect_instruction, executor_instruction,
+    director_instruction, executor_instruction,
     qa_instruction, auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction, solo_instruction
 )
-from .rag import rag_tool
 
 # --- Swarm Agent Definitions ---
 
 director_agent = None  # Forward declaration placeholder for recursive loops if needed
-
-architect_tools = [
-    list_docs, read_doc, escalate_to_director
-]
-
-architect_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='architect',
-    instruction=architect_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=architect_tools
-)
 
 qa_tools = [
     escalate_to_director,
@@ -57,13 +45,19 @@ qa_tools = [
                 args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
             )
         )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {DIAGNOSTICS_MCP_PATH}"]
+            )
+        )
     )
 ]
-if rag_tool:
-    qa_tools.append(rag_tool)
 
 qa_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
+    model=PRIMARY_PRO_MODEL,
     name='qa_engineer',
     instruction=qa_instruction,
     before_tool_callback=zero_trust_callback,
@@ -81,11 +75,9 @@ executor_tools = [
         )
     )
 ]
-if rag_tool:
-    executor_tools.append(rag_tool)
 
 executor_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
+    model=PRIMARY_PRO_MODEL,
     name='executor',
     instruction=executor_instruction,
     before_tool_callback=zero_trust_callback,
@@ -166,7 +158,7 @@ research_discovery_loop = SequentialAgent(
 # --- ADK Orchestration Patterns ---
 development_workflow = SequentialAgent(
     name="development_workflow",
-    sub_agents=[architect_agent, executor_agent]
+    sub_agents=[executor_agent]
 )
 
 director_agent = LlmAgent(

@@ -1,87 +1,78 @@
 import os
 import sys
 import time
-import pytest
-import requests
 import subprocess
+import requests
+import pytest
 from playwright.sync_api import Page, expect
 
-# Path injection for local discovery
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-@pytest.fixture(scope="module")
-def kanban_server():
-    # Setup: Ensure DB is seeded using SEED_ONLY to avoid blocking
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    env["SEED_ONLY"] = "1"
+@pytest.fixture(scope="session", autouse=True)
+def background_server():
+    db_path = os.path.join(os.path.dirname(__file__), "..", "kanban.db")
+    if os.path.exists(db_path):
+        os.remove(db_path)
     
-    # Run seeding
-    subprocess.run([sys.executable, "bin/launch_kanban.py"], 
-                   env=env, timeout=10, capture_output=True)
+    script_path = os.path.join(os.path.dirname(__file__), "..", "bin", "launch_kanban.py")
+    proc = subprocess.Popen([sys.executable, script_path])
     
-    # Clear SEED_ONLY and spawn server
-    env.pop("SEED_ONLY", None)
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "bin.launch_kanban:app", "--host", "127.0.0.1", "--port", "8000"],
-        env=env
-    )
-    
-    # Polling readiness loop
-    max_retries = 30
     ready = False
-    for i in range(max_retries):
+    start_time = time.time()
+    while time.time() - start_time < 15:
         try:
-            res = requests.get("http://127.0.0.1:8000/", timeout=1)
+            res = requests.get("http://127.0.0.1:8000/")
             if res.status_code == 200:
                 ready = True
                 break
-        except Exception:
-            time.sleep(0.5)
-    
+        except requests.ConnectionError:
+            pass
+        time.sleep(0.5)
+        
     if not ready:
         proc.terminate()
-        pytest.fail("Kanban server failed to start")
+        pytest.fail("Background Uvicorn server failed to bind in time.")
         
-    yield "http://127.0.0.1:8000"
-    
+    yield
     proc.terminate()
     proc.wait()
-    if os.path.exists("kanban.db"):
-        os.remove("kanban.db")
 
-def test_kanban_flow(kanban_server, page: Page):
-    page.goto(kanban_server)
+def test_kanban_fullstack_flow(page: Page):
+    page.goto("http://127.0.0.1:8000/", timeout=15000)
     
-    # 1. Verify Columns exist (seeded)
-    expect(page.get_by_text("To Do")).to_be_visible()
-    expect(page.get_by_text("Doing")).to_be_visible()
-    expect(page.get_by_text("Done")).to_be_visible()
+    expect(page.locator("h1#boardTitle")).to_contain_text("Board 1")
     
-    # 2. Create a Task
-    page.locator(".column h2 button").first.click()
-    expect(page.get_by_text("New Task")).to_be_visible()
+    columns = page.locator(".column-header span")
+    expect(columns).to_have_count(3)
+    expect(columns.nth(0)).to_have_text("To Do")
     
-    page.fill("#taskTitle", "Refactor Logic")
-    page.fill("#taskDesc", "Simplify the AST traversals")
-    page.fill("#taskTags", "backend, complexity")
-    page.click("#modalAction")
+    add_task_btns = page.locator(".column-header button")
+    add_task_btns.nth(0).click()
     
-    # Verify task appears
-    expect(page.locator(".task-card")).to_contain_text("Refactor Logic")
+    page.wait_for_selector("#taskModal.active")
+    page.fill("#taskTitle", "Test Playwright Task")
+    page.fill("#taskDesc", "This is an E2E test task")
+    page.fill("#taskTags", "e2e, testing")
     
-    # 3. View Task Detail
-    page.click("text=Refactor Logic")
-    expect(page.get_by_text("Task Details")).to_be_visible()
-    expect(page.get_by_text("Simplify the AST traversals")).to_be_visible()
-    expect(page.get_by_text("backend")).to_be_visible()
-    page.click("text=Close")
+    page.click("#taskModal button:has-text('Create')")
+    page.wait_for_selector("#taskModal.active", state="hidden")
     
-    # 4. Drag and Drop
-    task = page.locator(".task-card")
-    doing_col = page.locator(".task-list").nth(1)
+    task_locator = page.locator(".task-title", has_text="Test Playwright Task")
+    expect(task_locator).to_be_visible()
     
-    task.drag_to(doing_col)
+    task_locator.click()
+    page.wait_for_selector("#taskDetailModal.active")
+    expect(page.locator("#dtlTitle")).to_have_text("Test Playwright Task")
+    expect(page.locator("#dtlDesc")).to_have_text("This is an E2E test task")
+    expect(page.locator("#dtlTags")).to_have_text("e2e, testing")
     
-    # Verify it moved
-    expect(doing_col.locator(".task-card")).to_contain_text("Refactor Logic")
+    page.click("#taskDetailModal button:has-text('Close')")
+    page.wait_for_selector("#taskDetailModal.active", state="hidden")
+    
+    page.click("button:has-text('+ Add Column')")
+    page.wait_for_selector("#colModal.active")
+    page.fill("#colName", "QA Validation")
+    page.click("#colModal button:has-text('Create')")
+    page.wait_for_selector("#colModal.active", state="hidden")
+    
+    expect(page.locator(".column-header span", has_text="QA Validation")).to_be_visible()

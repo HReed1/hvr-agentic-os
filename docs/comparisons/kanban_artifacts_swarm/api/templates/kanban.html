@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Native Kanban</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         :root {
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #f8fafc;
-            --accent: #38bdf8;
-            --glass: rgba(255, 255, 255, 0.05);
+            --bg: #0f1115;
+            --surface: #1e2128;
+            --primary: #6366f1;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
             --border: rgba(255, 255, 255, 0.1);
         }
         body {
@@ -19,269 +19,299 @@
             font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
-            overflow-x: hidden;
-        }
-        .dashboard {
-            display: flex;
-            padding: 2rem;
-            gap: 1.5rem;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
-        .column {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 300px;
-            min-height: 200px;
-            padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            transition: transform 0.2s ease;
+            height: 100vh;
         }
-        .column h2 {
-            margin: 0;
-            font-size: 1.1rem;
+        header {
+            padding: 20px 40px;
+            background: rgba(30, 33, 40, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; font-weight: 600; }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { background: #4f46e5; transform: translateY(-1px); }
+        .board {
+            display: flex;
+            gap: 20px;
+            padding: 30px 40px;
+            flex: 1;
+            overflow-x: auto;
+            align-items: flex-start;
+        }
+        .column {
+            background: var(--surface);
+            border-radius: 12px;
+            width: 320px;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            max-height: 100%;
+        }
+        .column-header {
+            padding: 16px;
             font-weight: 600;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
         }
         .task-list {
-            min-height: 50px;
+            padding: 12px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 10px;
         }
-        .task-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 1rem;
+        .task {
+            background: rgba(255,255,255,0.05);
+            padding: 16px;
             border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
+            cursor: grab;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
         }
-        .task-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
+        .task:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--border);
         }
-        .task-card.dragging {
-            opacity: 0.5;
-            transform: scale(0.95);
-        }
-        .btn {
-            background: var(--accent);
-            color: var(--bg);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .btn:hover { opacity: 0.9; }
-        .btn-ghost {
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        /* Modal Styles */
+        .task:active { cursor: grabbing; }
+        .task-title { font-weight: 500; font-size: 0.95rem; }
+        /* Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
+        .modal-overlay.active { display: flex; opacity: 1; }
         .modal {
-            background: #1e293b;
-            padding: 2rem;
+            background: var(--surface);
+            padding: 30px;
             border-radius: 16px;
             width: 400px;
             border: 1px solid var(--border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
         }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #94a3b8; }
-        .form-group input, .form-group textarea {
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal h2 { margin-top: 0; margin-bottom: 20px; font-size: 1.25rem; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-muted); }
+        .form-control {
             width: 100%;
-            background: #0f172a;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
             border: 1px solid var(--border);
-            color: white;
-            padding: 0.75rem;
             border-radius: 6px;
+            color: var(--text);
             font-family: inherit;
             box-sizing: border-box;
         }
+        .form-control:focus { outline: none; border-color: var(--primary); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+        .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.05); }
+        #taskDetailModal .detail-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px; }
+        #taskDetailModal .detail-tags { display: inline-block; background: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
-    <div id="dashboard" class="dashboard">
-        <!-- Rendered via JS -->
+    <header>
+        <h1 id="boardTitle">Kanban Board</h1>
+        <button class="btn" onclick="openColModal()">+ Add Column</button>
+    </header>
+    <main class="board" id="boardEl"></main>
+
+    <!-- Create Column Modal -->
+    <div class="modal-overlay" id="colModal">
+        <div class="modal">
+            <h2>New Column</h2>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="colName" class="form-control" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="submitCol()">Create</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Modal for Task/Column Creation/View -->
-    <div id="modalOverlay" class="modal-overlay">
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="taskModal">
         <div class="modal">
-            <h3 id="modalTitle">New Task</h3>
-            <div id="modalContent"></div>
-            <div style="display:flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
-                <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                <button id="modalAction" class="btn">Save</button>
+            <h2>New Task</h2>
+            <input type="hidden" id="taskColId" />
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="taskTitle" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDesc" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags</label>
+                <input type="text" id="taskTags" class="form-control" placeholder="e.g. bug, ui" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="submitTask()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="taskDetailModal">
+        <div class="modal">
+            <h2 id="dtlTitle"></h2>
+            <div class="detail-desc" id="dtlDesc"></div>
+            <div class="detail-tags" id="dtlTags"></div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModals()">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentBoard = null;
-        const dashboard = document.getElementById('dashboard');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalContent = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalAction = document.getElementById('modalAction');
+        let boardId = 1;
+        let tasksData = {};
 
-        async function init() {
-            const res = await fetch('/api/v1/boards/1');
-            if (res.ok) {
-                currentBoard = await res.json();
-                render();
+        async function fetchBoard() {
+            try {
+                const res = await fetch('/api/board');
+                if(!res.ok) return;
+                const board = await res.json();
+                boardId = board.id;
+                document.getElementById('boardTitle').textContent = board.name;
+                renderBoard(board.columns);
+            } catch (e) {
+                console.error(e);
             }
         }
 
-        function render() {
-            dashboard.innerHTML = '';
-            currentBoard.columns.forEach(col => {
+        function renderBoard(columns) {
+            const boardEl = document.getElementById('boardEl');
+            boardEl.innerHTML = '';
+            columns.forEach(col => {
                 const colEl = document.createElement('div');
                 colEl.className = 'column';
                 colEl.innerHTML = `
-                    <h2>
-                        ${col.name}
-                        <button class="btn btn-ghost" style="padding: 2px 8px;" onclick="openTaskModal(${col.id})">+</button>
-                    </h2>
-                    <div class="task-list" data-column-id="${col.id}" ondragover="allowDrop(event)" ondrop="drop(event)">
-                        ${col.tasks.sort((a,b) => a.order - b.order).map(task => `
-                            <div class="task-card" draggable="true" 
-                                 ondragstart="drag(event, ${task.id})" 
-                                 onclick="viewTask(${task.id})">
-                                ${task.title}
-                            </div>
-                        `).join('')}
+                    <div class="column-header">
+                        <span>${col.name}</span>
+                        <button class="btn btn-ghost" style="padding:4px 8px;font-size:0.8rem" onclick="openTaskModal(${col.id})">+</button>
+                    </div>
+                    <div class="task-list" data-col-id="${col.id}" ondragover="allowDrop(event)" ondrop="drop(event)">
                     </div>
                 `;
-                dashboard.appendChild(colEl);
+                const listEl = colEl.querySelector('.task-list');
+                col.tasks.forEach(task => {
+                    tasksData[task.id] = task;
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task';
+                    taskEl.draggable = true;
+                    taskEl.id = 'task-' + task.id;
+                    taskEl.ondragstart = drag;
+                    taskEl.onclick = () => openTaskDetail(task.id);
+                    taskEl.innerHTML = `<div class="task-title">${task.title}</div>`;
+                    listEl.appendChild(taskEl);
+                });
+                boardEl.appendChild(colEl);
             });
-            
-            const addCol = document.createElement('button');
-            addCol.className = 'btn btn-ghost';
-            addCol.textContent = '+ Add Column';
-            addCol.onclick = openColumnModal;
-            dashboard.appendChild(addCol);
-        }
-
-        function drag(ev, taskId) {
-            ev.dataTransfer.setData("taskId", taskId);
-            ev.target.classList.add('dragging');
         }
 
         function allowDrop(ev) { ev.preventDefault(); }
-
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
         async function drop(ev) {
             ev.preventDefault();
-            const taskId = ev.dataTransfer.getData("taskId");
-            const columnId = ev.currentTarget.dataset.columnId;
-            
-            const res = await fetch(`/api/v1/tasks/${taskId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ column_id: parseInt(columnId) })
-            });
-            if (res.ok) init();
+            const data = ev.dataTransfer.getData("text");
+            const taskEl = document.getElementById(data);
+            const dropzone = ev.target.closest('.task-list');
+            if(dropzone && taskEl) {
+                dropzone.appendChild(taskEl);
+                const taskId = data.split('-')[1];
+                const newColId = dropzone.getAttribute('data-col-id');
+                await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({column_id: parseInt(newColId)})
+                });
+                fetchBoard();
+            }
         }
 
-        function openModal(title, content, actionLabel, actionFn) {
-            modalTitle.textContent = title;
-            modalContent.innerHTML = content;
-            modalAction.textContent = actionLabel;
-            modalAction.onclick = actionFn;
-            modalOverlay.style.display = 'flex';
-        }
-
-        function closeModal() { modalOverlay.style.display = 'none'; }
-
+        function openColModal() { document.getElementById('colModal').classList.add('active'); }
         function openTaskModal(colId) {
-            const content = `
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="taskTitle" placeholder="What needs to be done?">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="taskDesc" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Tags (comma separated)</label>
-                    <input type="text" id="taskTags" placeholder="urgent, fix">
-                </div>
-            `;
-            openModal('New Task', content, 'Create Task', async () => {
-                const title = document.getElementById('taskTitle').value;
-                const description = document.getElementById('taskDesc').value;
-                const tags = document.getElementById('taskTags').value;
-                const res = await fetch('/api/v1/tasks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, description, tags, column_id: colId })
-                });
-                if (res.ok) { closeModal(); init(); }
-            });
+            document.getElementById('taskColId').value = colId;
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskTags').value = '';
+            document.getElementById('taskModal').classList.add('active');
+        }
+        function openTaskDetail(taskId) {
+            const task = tasksData[taskId];
+            document.getElementById('dtlTitle').textContent = task.title;
+            document.getElementById('dtlDesc').textContent = task.description || 'No description';
+            document.getElementById('dtlTags').textContent = task.tags || '';
+            document.getElementById('dtlTags').style.display = task.tags ? 'inline-block' : 'none';
+            document.getElementById('taskDetailModal').classList.add('active');
+        }
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
         }
 
-        function openColumnModal() {
-            const content = `
-                <div class="form-group">
-                    <label>Column Name</label>
-                    <input type="text" id="colName" placeholder="Doing, Testing, etc.">
-                </div>
-            `;
-            openModal('New Column', content, 'Create Column', async () => {
-                const name = document.getElementById('colName').value;
-                const res = await fetch('/api/v1/columns', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, board_id: currentBoard.id })
-                });
-                if (res.ok) { closeModal(); init(); }
+        async function submitCol() {
+            const name = document.getElementById('colName').value;
+            if(!name) return;
+            await fetch('/api/columns', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, board_id: boardId})
             });
+            closeModals();
+            fetchBoard();
         }
 
-        async function viewTask(taskId) {
-            // Find task locally for speed
-            let task = null;
-            currentBoard.columns.forEach(c => {
-                const found = c.tasks.find(t => t.id === taskId);
-                if (found) task = found;
+        async function submitTask() {
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDesc').value;
+            const tags = document.getElementById('taskTags').value;
+            const column_id = document.getElementById('taskColId').value;
+            if(!title) return;
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title, description, tags, column_id: parseInt(column_id)})
             });
-
-            const content = `
-                <div style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1rem;">ID: #${task.id}</div>
-                <h2 style="margin: 0 0 1rem 0;">${task.title}</h2>
-                <p style="white-space: pre-wrap; line-height: 1.6;">${task.description || 'No description provided.'}</p>
-                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    ${(task.tags || '').split(',').map(t => t.trim()).filter(t => t).map(t => `
-                        <span style="background: var(--accent); color: var(--bg); font-size: 0.75rem; padding: 2px 8px; border-radius: 99px; font-weight: 600;">${t}</span>
-                    `).join('')}
-                </div>
-            `;
-            openModal('Task Details', content, 'Close', closeModal);
+            closeModals();
+            fetchBoard();
         }
 
-        init();
+        fetchBoard();
     </script>
 </body>
 </html>
