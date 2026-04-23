@@ -1,18 +1,19 @@
-# Retrospective: Playwright Testing CRUD Interface
+# Retrospective: Playwright Testing & CRUD Interface
 
-## Initial Goal
-The primary objective was to draft a lightweight CRUD interface mapped to a local SQLite database (`.staging/app.db`), alongside a Pytest testing matrix utilizing Playwright in strict mode to click an "Add Item" button. The execution required the structural testing verification to cleanly execute locally, while explicitly enforcing a Pytest deterministic teardown anti-pattern to unlink the DB between iterative test runs. Specific evaluation criteria included generating Playwright UI traces and volumetric video assets, accurately mapping QA routing back to the Executor, and maintaining a McCabe cyclomatic complexity score of $\le 5$ for separated fixture yields.
+## Goal
+Draft a lightweight CRUD interface mapped to a local SQLite database named `.staging/app.db`. Create a Pytest testing matrix utilizing Playwright in strict mode to click the 'Add Item' button. Ensure the QA Engineer structurally verifies the tests execute cleanly, while enforcing the Pytest deterministic teardown anti-pattern to unlink the DB between iterative test runs.
 
-## Technical Loops Encountered
-1. **Rule Discovery & Strategy Orchestration**: The Director ingested the `@workflow:playwright-testing` parameters and formalized the operational bounds, directly instructing the Executor and QA Engineer to abide by TDAID and complexity metrics.
-2. **Context Ingestion**: The Executor appropriately assessed the ephemeral handoff ledger, CI/CD hygiene guardrails, and TDAID testing guardrails before routing execution context directly to the QA Engineer.
-3. **Test Matrix & Fixture Implementation**: The QA Engineer successfully engineered `tests/test_crud_playwright.py` incorporating all architectural constraints:
-   - Formulated a `db_teardown` fixture to securely unlink `.staging/app.db` between runs.
-   - Engineered a `boot_server` fixture implementing a Uvicorn readiness polling loop to prevent baseline race conditions (`ERR_CONNECTION_REFUSED`).
-   - Configured Playwright's `new_context` and `tracing` to capture video assets into `.staging/videos/` and UI traces into `.staging/traces/trace.zip`.
-4. **TDAID Red Baseline Generation**: The QA Engineer executed the tests. Per the Test-Driven architecture, the Uvicorn server yielded a `404 Not Found` for the base route, resulting in a Playwright `TimeoutError` when searching for `locator("text=Add Item")`.
-5. **Cyclomatic Audit**: The Auditor successfully parsed the workspace and measured a maximum cyclomatic complexity of `5`, verifying architectural compliance for the fixtures.
+## Technical Execution Loops
 
-## Ultimate Resolution or Failure State
-**FAILURE** 
-The execution ultimately concluded in an `[AUDIT FAILED]` state. Although the QA Engineer successfully engineered the complex deterministic baseline test and achieved the initial Red Phase of the TDAID loop, the Swarm workflow prematurely halted. The macro-loop failed to iterate the `[QA REJECTED]` traceback back to the Executor to draft the functional FastAPI DOM logic required to render the button and resolve the failure. Consequently, the Swarm failed to natively achieve a `[QA PASSED]` transition and reach `[AUDIT PASSED]`.
+1. **Director Initialization & Scoping:** The Director evaluated the global architecture and explicitly fetched rules for TDAID boundaries, Staging Promotion, and Playwright execution parameters before passing control to the Executor.
+2. **Executor Bootstrapping:** The Executor read the Ephemeral Ledger, evaluated the `.staging` airspace, appended `aiosqlite` to the requirements, and drafted a FastAPI application with HTML form rendering in `api/main.py`.
+3. **QA Engineer Red/Green Loop (Red Baseline):** The QA Engineer authored `test_playwright_crud.py`, utilizing Playwright to target the DOM and click the "Add Item" button in strict mode. Upon executing the matrix natively using `execute_tdaid_test`, the test failed with `sqlalchemy.exc.OperationalError: unable to open database file`. The QA Engineer recognized that the `cwd` was already locked within the sandbox, causing a nested `.staging/.staging/app.db` error. The QA Engineer explicitly threw `[QA REJECTED]`.
+4. **Executor In-Situ Patch:** The Executor caught the rejected state, modified the `DATABASE_URL` in `api/main.py` to natively point to `sqlite+aiosqlite:///app.db` (accommodating the sandbox root), and pushed the iteration back.
+5. **QA Engineer Red/Green Loop (Green Assert):** The QA Engineer re-ran the structural tests, achieving a clean Exit 0. The QA Engineer returned `[QA PASSED]` and generated the local cryptographic signature `.qa_signature`. 
+6. **Executor Hand-Off:** The Executor logged the SQLite chroot pathing trap into its Ephemeral Handoff Ledger to preserve structural memory, then signaled `[EXECUTION COMPLETE]`.
+7. **Auditor Verification:** The Auditor ran metric-based verification on the generated components. While `api/main.py` cleared all evaluations with a maximum McCabe score of 2, the `test_playwright_crud.py` file hit a McCabe score of 10 inside the `boot_server()` fixture due to the embedded Uvicorn server polling/teardown logic.
+
+## Ultimate Resolution
+**State:** FAILURE 
+
+**Summary:** The Director's macro-loop escalated into a failed state as the Auditor explicitly declared `[AUDIT FAILED]`. Although the Swarm seamlessly routed the QA pipeline, achieved a Green Pytest evaluation natively, and respected the chroot database mechanics, it violated the strictly enforced cyclomatic complexity limit of $\le 5$ inside the Pytest fixture. The logic coupling testing orchestration and HTTP readiness loops required decomposition into separate helper functions to satisfy systemic code-quality guarantees.

@@ -168,10 +168,14 @@ async def patched_loop_run(self, ctx):
                         return
                         
                     text = getattr(part, 'text', None)
-                    if text and isinstance(text, str) and '[QA REJECTED]' in text:
-                        stop, esc = _process_qa_rejection(self, ctx, text)
-                        if stop:
-                            yield esc
+                    if text and isinstance(text, str):
+                        if '[QA REJECTED]' in text:
+                            stop, esc = _process_qa_rejection(self, ctx, text)
+                            if stop:
+                                yield esc
+                                return
+                        elif '[EXECUTION COMPLETE]' in text:
+                            yield event
                             return
 
             yield event

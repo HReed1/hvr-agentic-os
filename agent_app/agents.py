@@ -183,9 +183,15 @@ director_agent = LlmAgent(
     sub_agents=[development_workflow]
 )
 
+director_loop = LoopAgent(
+    name="director_loop",
+    max_iterations=5,
+    sub_agents=[director_agent]
+)
+
 autonomous_swarm = SequentialAgent(
     name="autonomous_swarm",
-    sub_agents=[director_agent]
+    sub_agents=[director_loop]
 )
 
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.

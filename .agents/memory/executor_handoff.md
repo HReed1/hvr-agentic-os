@@ -40,3 +40,6 @@
 * **Sandbox File Path Integrity:** When engineering code across multi-file architectures in an airlocked runtime, explicitly guarantee identical root-relative paths. Writing dynamically evaluated modules to slightly disjointed structural paths will result in endless `ModuleNotFoundError`s during downstream validation.
 
 * **Pytest Async Fixtures:** When asserting tests involving async SQLAlchemy sessions in newer versions of pytest, explicitly use `@pytest_asyncio.fixture` over `@pytest.fixture` to avoid deprecation warnings and 'no plugin or hook' errors.test
+
+
+* **Sandbox Chroot Pathing:** When configuring local file paths or SQLite database URIs (e.g., `sqlite+aiosqlite:///app.db`) inside application code, NEVER prepend `.staging/`. The testing framework dynamically chroots the execution `cwd` into `.staging`, so prepending it causes fatal nested pathing errors (e.g., `.staging/.staging/app.db`).
