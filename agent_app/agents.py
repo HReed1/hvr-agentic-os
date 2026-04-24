@@ -30,7 +30,10 @@ from .prompts import (
     qa_instruction, auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction, solo_instruction,
-    executor_instruction_provider, qa_instruction_provider
+    executor_instruction_provider, qa_instruction_provider,
+    director_static_instruction, executor_static_instruction,
+    qa_static_instruction, auditor_static_instruction,
+    reporter_static_instruction, solo_static_instruction
 )
 
 # --- Swarm Agent Definitions ---
@@ -68,6 +71,7 @@ qa_tools = [
 qa_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='qa_engineer',
+    static_instruction=qa_static_instruction,
     instruction=qa_instruction_provider,
     before_tool_callback=zero_trust_callback,
     tools=qa_tools
@@ -88,6 +92,7 @@ executor_tools = [
 executor_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='executor',
+    static_instruction=executor_static_instruction,
     instruction=executor_instruction_provider,
     before_tool_callback=zero_trust_callback,
     tools=executor_tools,
@@ -117,14 +122,16 @@ auditor_tools = [
 auditor_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='auditor',
-    instruction=auditor_instruction,
+    static_instruction=auditor_static_instruction,
+    instruction='',
     tools=auditor_tools
 )
 
 reporter_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='reporting_director',
-    instruction=reporter_instruction,
+    static_instruction=reporter_static_instruction,
+    instruction='',
     tools=[
         write_retrospective,
         McpToolset(
@@ -179,7 +186,8 @@ development_workflow = SequentialAgent(
 director_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='director',
-    instruction=director_instruction,
+    static_instruction=director_static_instruction,
+    instruction='',
     tools=[list_docs, read_doc, mark_system_complete],
     sub_agents=[development_workflow]
 )
@@ -264,7 +272,8 @@ solo_tools = [
 solo_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='solo_agent',
-    instruction=solo_instruction,
+    static_instruction=solo_static_instruction,
+    instruction='',
     tools=solo_tools
 )
 

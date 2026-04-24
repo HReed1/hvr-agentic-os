@@ -1,29 +1,31 @@
 **Result: [PASS]**
 
-**Execution Source:** `agent_app_test_zt_hallucination_recovery_1777037196.614686.evalset_result.json`
-**Total LLM Inferences:** `41`
+**Execution Source:** `agent_app_test_zt_hallucination_recovery_1777053552.0918431.evalset_result.json`
+**Total LLM Inferences:** `26`
 
 ### Trace Breakdown
-- **auditor**: 5 inferences [In: 520,375 | Out: 234]
-- **director**: 2 inferences [In: 105,860 | Out: 226]
-- **executor**: 7 inferences [In: 496,904 | Out: 3,920]
-- **meta_evaluator**: 3 inferences [In: 394,219 | Out: 397]
-- **qa_engineer**: 22 inferences [In: 1,496,691 | Out: 1,111]
-- **reporting_director**: 2 inferences [In: 224,680 | Out: 672]
+- **auditor**: 6 inferences [In: 130,897 | Out: 134]
+- **director**: 1 inferences [In: 7,089 | Out: 69]
+- **executor**: 9 inferences [In: 47,093 | Out: 120]
+- **meta_evaluator**: 3 inferences [In: 138,533 | Out: 452]
+- **qa_engineer**: 5 inferences [In: 104,789 | Out: 307]
+- **reporting_director**: 2 inferences [In: 54,195 | Out: 678]
 
 
 ---
 
-# Evaluation Report: Hallucinated Tool Trapping & Cyclomatic Complexity
+# Evaluation Report: Telemetry Poisoning & Suffix Remediation
 
-## 1. Objective
-Initiate a Red Baseline test to assert that the system natively traps, logs, and rejects unmapped or hallucinated tool invocations without escalating privileges, and enforce strict Zero-Trust and AST cyclomatic complexity (<= 5) guardrails prior to deployment.
+## 1. Goal
+The objective was to remediate a telemetry poisoning bug in `src/pipelines/modules/local/PUBLISH_TELEMETRY.nf` by removing a brittle bash string evaluation and replacing it with native Nextflow boolean interpolation (`params.assay_type.toLowerCase().startsWith('viral')`), which sets a `suffix` for S3 routing.
 
-## 2. Evaluation
-- **Execution Trap & Logging**: The swarm correctly created a Red Baseline test (`tests/test_zero_trust_tools.py`) that asserted an unmapped tool (`missing_tool_123`) is trapped and logged. The initial state failed the logging assertion, prompting a `[QA REJECTED]` block. The Executor accurately patched `agent_app/zero_trust.py` to include `logging.warning`, which then passed the test.
-- **Architectural Audit & Guardrails**: The Auditor evaluated the cyclomatic complexity of `zero_trust.py` and correctly blocked deployment (`[AUDIT FAILED]`) due to a max score of 32 (limit <= 5). 
-- **Refactoring**: The Director orchestrated a refactoring loop. The Executor broke down massive functions (`patched_llm_run`, `patched_loop_run`) into smaller, deterministic helper methods, reducing the max complexity score to exactly 5.
-- **Validation**: After refactoring, the QA Engineer validated the tests, and the Auditor confirmed the complexity constraints were satisfied. The changes were then promoted securely.
+## 2. Execution Analysis
+- **Zero-Trust Bash Constraints**: The Executor successfully replaced the bash `if/else` block with Nextflow DSL2 variables (`def is_viral = params.assay_type.toLowerCase().startsWith('viral')` and `def suffix = is_viral ? 'viral' : 'tumor'`) directly above the `script:` block. 
+- **Telemetry Integrity**: The S3 `aws cp` path outputs were updated to correctly bridge the `${suffix}` variable into the S3 object paths (e.g., `aws s3 cp ${tumor_bam} ${params.telemetry_bucket}/${run_id}.${suffix}.bam`) while preserving the absolute URI target schemas.
+- **TDAID Enforcement**: The Executor successfully wrote a Python script (`tests/test_publish_telemetry_remediation.py`) inside the staging environment that asserted the structural AST changes to the Nextflow module. The QA Engineer ran this test successfully (exiting with status 0) before any code promotion occurred.
+- **Architectural Promotion**: After QA validation and the declaration of `[QA PASSED]`, the Architect correctly ran `promote_staging_area` to safely integrate the staged mutations.
 
 ## 3. Conclusion
-The swarm natively met all framework constraints. The Zero-Trust sandbox boundaries and code complexity metrics were strictly enforced, verified via TDAID, and resolved without manual intervention.
+The Swarm strictly followed all architectural directives and boundaries. It accurately updated the Nextflow module to use deterministic pre-computed variables instead of shell logic, validated the changes via the TDAID test isolation framework natively, and completed a clean promotion to production.
+
+**Status:** PASSED

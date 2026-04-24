@@ -53,6 +53,12 @@ def load_handoff_ledger():
 ANTI_PATTERN_KNOWLEDGE_GRAPH = load_anti_patterns()
 RULES_CONTEXT = load_rules()
 
+# ============================================================================
+# Era 5.1: Context Caching Architecture
+# Static instructions → static_instruction (cached by Vertex AI, tokenized once)
+# Dynamic instructions → instruction (per-turn, injected via InstructionProvider)
+# ============================================================================
+
 director_instruction = """You are the Director. You enforce Zero-Trust guidelines and set the overarching execution state. You must consult your project documentation if unsure about the state.
 COMMUNICATION PROTOCOL: You are talking to machines. Output ONE directive per turn — no preamble, no prose evaluation, no narrative. Your output is session context that all agents read; keep it minimal.
 CRITICAL PROTOCOL: Do NOT engage in conversational pleasantries or acknowledge the other agents. You must synthesize complex user objectives into single, comprehensive vertical features. You must output exactly ONE technical imperative directive intended for the QA Engineer per turn to initiate the Spec-Driven TDD cascade.
@@ -131,19 +137,38 @@ You must natively manage your own complete engineering lifecycle:
 5. **Retrospective**: Once promotion succeeds, you must call `write_retrospective` to synthesize an engineering report summarizing what you fixed and deployed.
 All operations execute inside the secure DLP firewall. If your promotion fails, use `teardown_staging_area`. Output exactly `[DEPLOYMENT SUCCESS]` unconditionally only after writing the final retrospective."""
 
-# Inject Sub-Agent awareness into the Director so it can craft accurate directives
-director_instruction += f"\n\n### SUB-AGENT SYSTEM PROMPTS (For your awareness)\n**QA Engineer Prompt**:\n{qa_instruction}\n\n**Executor Prompt**:\n{executor_instruction}"
+# ==========================================================================
+# Static Instruction Assembly (cached by Vertex AI context cache)
+# These are fully assembled at import time and never change per-turn.
+# ==========================================================================
 
-# Inject pre-loaded rules into Director (eliminates list_docs -> read_doc boot inferences)
-director_instruction += f"\n\n### PRE-LOADED RULES (Do NOT re-read these via tools)\n{RULES_CONTEXT}"
+# Director: fully static — identity + sub-agent prompts + rules
+director_static_instruction = director_instruction
+director_static_instruction += f"\n\n### SUB-AGENT SYSTEM PROMPTS (For your awareness)\n**QA Engineer Prompt**:\n{qa_instruction}\n\n**Executor Prompt**:\n{executor_instruction}"
+director_static_instruction += f"\n\n### PRE-LOADED RULES (Do NOT re-read these via tools)\n{RULES_CONTEXT}"
 
-# Era 5: Dynamic Instruction Providers — inject handoff ledger at runtime
-# These callables are invoked by ADK before each agent turn, injecting the
-# latest handoff ledger into context without consuming a tool-call inference.
+# Executor: static base prompt (protocols, constraints, complexity rules)
+executor_static_instruction = executor_instruction
+
+# QA: static base prompt + anti-pattern knowledge graph
+qa_static_instruction = qa_instruction
+
+# Auditor, Reporter, Solo: no split needed — these are short and fully static
+auditor_static_instruction = auditor_instruction
+reporter_static_instruction = reporter_instruction
+solo_static_instruction = solo_instruction
+
+# ==========================================================================
+# Dynamic Instruction Providers (per-turn, injected as user content)
+# Only the handoff ledger is dynamic — everything else is cached.
+# ==========================================================================
+
 def executor_instruction_provider(ctx):
+    """Injects the handoff ledger dynamically. The base prompt is in static_instruction."""
     ledger = load_handoff_ledger()
-    return executor_instruction + f"\n\n### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"
+    return f"### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"
 
 def qa_instruction_provider(ctx):
+    """Injects the handoff ledger dynamically. The base prompt is in static_instruction."""
     ledger = load_handoff_ledger()
-    return qa_instruction + f"\n\n### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"
+    return f"### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"

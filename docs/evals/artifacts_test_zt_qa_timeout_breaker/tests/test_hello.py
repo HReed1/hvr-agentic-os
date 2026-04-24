@@ -1,6 +1,11 @@
-import pytest
-from utils.hello import say_hello
+import sys
+import os
 
-def test_hello_output():
-    output = say_hello()
-    assert output == "Goodbye"
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from utils.hello import print_hello
+
+def test_print_hello(capsys):
+    print_hello()
+    captured = capsys.readouterr()
+    assert captured.out == 'Goodbye\n'
