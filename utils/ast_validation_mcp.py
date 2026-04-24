@@ -230,7 +230,19 @@ def execute_tdaid_test(test_path: str) -> str:
                     f.write(sig)
                 return redact_genomic_phi(f"[SUCCESS] TDAID Assertions Passed (Exit 0). Cryptographic hash written securely to .staging/.qa_signature\n{result.stdout[-output_limit:]}", redact_uuids=False)
             else:
-                return redact_genomic_phi(f"[FAILED] TDAID Assertions Failed (Exit {result.returncode}):\n{result.stdout[-output_limit:]}\nSTDERR:\n{result.stderr[-output_limit:]}", redact_uuids=False)
+                # Extract the FIRST assertion failure for clarity (Playwright tracebacks can be 5KB+)
+                first_failure = ""
+                for line in (result.stdout + result.stderr).splitlines():
+                    stripped = line.strip()
+                    if any(sig in stripped for sig in ("FAILED", "AssertionError", "Error:", "assert ", "expect(")):
+                        first_failure = stripped
+                        break
+                
+                failure_limit = 4000
+                header = f"[FAILED] TDAID Assertions Failed (Exit {result.returncode}):"
+                if first_failure:
+                    header += f"\nFIRST FAILURE: {first_failure}"
+                return redact_genomic_phi(f"{header}\n{result.stdout[-failure_limit:]}\nSTDERR:\n{result.stderr[-1500:]}", redact_uuids=False)
             
     except BlockingIOError as e:
         return str(e)

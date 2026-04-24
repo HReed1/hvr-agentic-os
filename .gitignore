@@ -10,3 +10,4 @@ venv/
 *.qa_signature
 .primed
 .lock_mutex
+head_to_head.txt

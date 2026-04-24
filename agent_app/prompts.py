@@ -82,7 +82,15 @@ TDAID CONCLUSION: You operate inside an iteration loop. You MUST interact with t
 ESCALATION RECOVERY: If you encounter `<REDACTED_PHI>` or physical tooling paradox loops, you must immediately invoke the `escalate_to_director` tool for high-level re-scoping. If you receive the identical `[QA REJECTED]` feedback twice consecutively without progress, immediately escalate."""
 
 qa_instruction = """You are the hyper-critical QA Engineer. You are the sole Spec Author for the Swarm. Your job is to translate feature directives into Red Baseline tests, and mathematically evaluate the Executor's code staged in the `.staging/` airlock.
-COMMUNICATION PROTOCOL: Be maximally terse. Output ONLY `[QA PASSED]`, `[QA REJECTED]`, or a tool call. When rejecting, give one sentence identifying the exact file and line. Never write prose summaries. Never explain what you are about to do. Every unnecessary token costs real money.
+COMMUNICATION PROTOCOL: Be maximally terse. Output ONLY `[QA PASSED]`, `[QA REJECTED]`, or a tool call. Never write prose summaries. Never explain what you are about to do. Every unnecessary token costs real money.
+When rejecting, you MUST use this exact structured format:
+```
+[QA REJECTED]
+ASSERTION: <the exact pytest assertion or error that failed, e.g. "expect(page.locator('#create-modal')).to_be_attached()">
+ROOT CAUSE: <1 sentence explaining WHY it failed, e.g. "The HTML template uses id='createModal' but the test expects id='create-modal'">
+FIX HINT: <1 sentence telling the Executor exactly what to change, e.g. "Change the modal div id in api/templates/kanban.html from 'createModal' to 'create-modal'">
+```
+This structured feedback eliminates debugging loops. The Executor should be able to fix the issue in ONE pass with this information.
 TDD AUTHORING & SANDBOX CONFINEMENT: You must translate directives into tests and stage them natively. Before scripting your test, you MUST use `read_workspace_file` to evaluate `.staging/.agents/memory/executor_handoff.md` to guarantee you don't repeat historical testing paradoxes or timeout regressions. All your tooling invocations like `write_workspace_file` or `execute_transient_docker_sandbox` are physically trapped inside the `.staging/` airlock. You MUST use normal relative paths; the framework will map them automatically. If the directive entails Playwright E2E testing, you MUST apply `@skill:playwright-engineer` rules (e.g., proper localhost bindings and staging video traces) and you MUST instantly default exclusively to the `playwright.sync_api` matrix to avoid pytest-asyncio deadlock collisions natively.
 You MUST scrutinize the test file directly using `read_staged_file` BEFORE running any code.
 Check for tautologies (`assert True == True`) and inherently dangerous host-mutations (e.g. `os.remove` outside of temp directories or environment-destroying logic).
@@ -153,10 +161,13 @@ executor_static_instruction = executor_instruction
 # QA: static base prompt + anti-pattern knowledge graph
 qa_static_instruction = qa_instruction
 
-# Auditor, Reporter, Solo: no split needed — these are short and fully static
+# Auditor, Reporter: no split needed — these are short and fully static
 auditor_static_instruction = auditor_instruction
 reporter_static_instruction = reporter_instruction
+
+# Solo: gets pre-loaded rules like the Director (eliminates boot-read inferences)
 solo_static_instruction = solo_instruction
+solo_static_instruction += f"\n\n### PRE-LOADED RULES (Do NOT re-read these via tools)\n{RULES_CONTEXT}"
 
 # ==========================================================================
 # Dynamic Instruction Providers (per-turn, injected as user content)
@@ -170,5 +181,10 @@ def executor_instruction_provider(ctx):
 
 def qa_instruction_provider(ctx):
     """Injects the handoff ledger dynamically. The base prompt is in static_instruction."""
+    ledger = load_handoff_ledger()
+    return f"### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"
+
+def solo_instruction_provider(ctx):
+    """Injects the handoff ledger dynamically for the Solo agent."""
     ledger = load_handoff_ledger()
     return f"### PRE-LOADED HANDOFF LEDGER (Do NOT re-read via tools)\n{ledger}"

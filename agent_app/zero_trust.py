@@ -186,6 +186,10 @@ async def patched_loop_run(self, ctx):
                             yield event
                             if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
                                 return
+                        elif '[DEPLOYMENT SUCCESS]' in text:
+                            yield event
+                            if getattr(self, 'name', '') in ('solo_loop',):
+                                return
 
             yield event
 

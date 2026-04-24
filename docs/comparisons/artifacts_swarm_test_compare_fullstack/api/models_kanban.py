@@ -1,38 +1,29 @@
-import os
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import String, Integer, ForeignKey
+from typing import List
 
-DATABASE_URL = "sqlite+aiosqlite:///kanban.db"
-
-engine = create_async_engine(DATABASE_URL, echo=False)
-AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
-
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class Board(Base):
-    __tablename__ = 'boards'
+    __tablename__ = "boards"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column()
-    columns = relationship("Column", back_populates="board", cascade="all, delete-orphan")
+    name: Mapped[str] = mapped_column(String)
+    columns: Mapped[List["Column"]] = relationship(back_populates="board", cascade="all, delete-orphan")
 
 class Column(Base):
-    __tablename__ = 'columns'
+    __tablename__ = "columns"
     id: Mapped[int] = mapped_column(primary_key=True)
-    board_id: Mapped[int] = mapped_column(ForeignKey('boards.id'))
-    name: Mapped[str] = mapped_column()
-    board = relationship("Board", back_populates="columns")
-    tasks = relationship("Task", back_populates="column", cascade="all, delete-orphan")
+    name: Mapped[str] = mapped_column(String)
+    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"))
+    board: Mapped["Board"] = relationship(back_populates="columns")
+    tasks: Mapped[List["Task"]] = relationship(back_populates="column", cascade="all, delete-orphan")
 
 class Task(Base):
-    __tablename__ = 'tasks'
+    __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True)
-    column_id: Mapped[int] = mapped_column(ForeignKey('columns.id'))
-    title: Mapped[str] = mapped_column()
-    description: Mapped[str] = mapped_column()
-    tags: Mapped[str] = mapped_column()
-    column = relationship("Column", back_populates="tasks")
-
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+    title: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String)
+    tags: Mapped[str] = mapped_column(String)
+    column_id: Mapped[int] = mapped_column(ForeignKey("columns.id"))
+    column: Mapped["Column"] = relationship(back_populates="tasks")

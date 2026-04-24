@@ -31,6 +31,7 @@ from .prompts import (
     codebase_research_instruction, best_practices_research_instruction,
     synthesis_instruction, solo_instruction,
     executor_instruction_provider, qa_instruction_provider,
+    solo_instruction_provider,
     director_static_instruction, executor_static_instruction,
     qa_static_instruction, auditor_static_instruction,
     reporter_static_instruction, solo_static_instruction
@@ -239,8 +240,6 @@ evaluator_loop = LoopAgent(
 # --- Solo Testing Framework ---
 
 solo_tools = [
-    list_docs,
-    read_doc,
     write_retrospective,
     get_user_choice,
     McpToolset(
@@ -273,13 +272,13 @@ solo_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='solo_agent',
     static_instruction=solo_static_instruction,
-    instruction='',
+    instruction=solo_instruction_provider,
     tools=solo_tools
 )
 
 solo_loop = LoopAgent(
     name="solo_loop",
-    max_iterations=15,
+    max_iterations=25,
     sub_agents=[solo_agent]
 )
 

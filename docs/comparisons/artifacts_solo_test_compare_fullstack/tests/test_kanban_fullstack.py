@@ -1,62 +1,99 @@
 import os
 import sys
-import pytest
-import threading
 import time
+import pytest
+import multiprocessing
 import requests
-import uvicorn
-from pathlib import Path
+from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from bin.launch_kanban import app
 
-def wait_for_server(url: str, retries: int = 40):
-    for _ in range(retries):
+TEST_DB = f"sqlite+aiosqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'test_kanban.db'))}"
+
+def run_server():
+    os.environ["DB_PATH"] = TEST_DB
+    import uvicorn
+    from bin.launch_kanban import app
+    uvicorn.run(app, host="127.0.0.1", port=8001, log_level="error")
+
+def wait_for_server(url: str, timeout: int = 15):
+    start = time.time()
+    while time.time() - start < timeout:
         try:
-            if requests.get(url).status_code == 200:
-                return
+            r = requests.get(url)
+            if r.status_code == 200:
+                return True
         except requests.exceptions.ConnectionError:
-            pass
-        time.sleep(0.5)
-    pytest.fail("Server did not start in time")
+            time.sleep(0.5)
+    raise Exception("Server failed to bind")
 
-@pytest.fixture(scope="session")
-def kanban_server():
-    Path("kanban.db").unlink(missing_ok=True)
+@pytest.fixture(scope="module")
+def local_server():
+    db_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'test_kanban.db'))
+    if os.path.exists(db_file):
+        os.remove(db_file)
         
-    def run_server():
+    p = multiprocessing.Process(target=run_server)
+    p.start()
+    
+    url = "http://127.0.0.1:8001/"
+    wait_for_server(url)
+    
+    yield url
+    
+    p.terminate()
+    p.join()
+    if os.path.exists(db_file):
         try:
-            uvicorn.run(app, host="127.0.0.1", port=8006, log_level="error")
-        except Exception as e:
+            os.remove(db_file)
+        except:
             pass
 
-    thread = threading.Thread(target=run_server, daemon=True)
-    thread.start()
-
-    base_url = "http://127.0.0.1:8006"
-    wait_for_server(base_url)
+def test_kanban_e2e(local_server):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
         
-    yield base_url
-    
-def test_kanban_fullstack(kanban_server, page):
-    page.goto(kanban_server)
-    
-    page.wait_for_selector("text=To Do")
-    
-    page.locator(".add-task-btn").first.click()
-    page.wait_for_selector("#createTaskModal", state="visible")
-    page.fill("#taskTitle", "My Test Task")
-    page.fill("#taskDesc", "Test Desc")
-    page.locator("#saveTaskBtn").click()
-    
-    page.wait_for_selector(".task", state="visible")
-    
-    page.locator(".task").first.click()
-    page.wait_for_selector("#taskDetailModal", state="visible")
-    page.wait_for_selector("text=Test Desc")
-    
-    page.locator("#taskDetailModal .btn-secondary").click()
-    page.wait_for_selector("#taskDetailModal", state="hidden")
-    
-    with open(".qa_signature", "w") as f:
-        f.write("DEPLOYMENT_READY")
+        page.goto(local_server)
+        
+        page.wait_for_selector("text=To Do")
+        page.wait_for_selector("text=Doing")
+        page.wait_for_selector("text=Done")
+        
+        add_task_btns = page.locator("button:has-text('+')")
+        add_task_btns.nth(0).click()
+        
+        page.wait_for_selector("#modalTask", state="visible")
+        
+        page.fill("data-testid=task-title-input", "Buy Groceries")
+        page.fill("data-testid=task-desc-input", "Milk, Eggs, Bread")
+        page.fill("data-testid=task-tags-input", "shopping")
+        
+        page.click("data-testid=save-task-btn")
+        
+        page.wait_for_selector("#modalTask", state="hidden")
+        
+        page.wait_for_selector(".task", state="visible")
+        
+        page.locator(".task", has_text="Buy Groceries").click()
+        page.wait_for_selector("#modalTaskDetail", state="visible")
+        
+        assert page.locator("data-testid=detail-title").text_content() == "Buy Groceries"
+        assert page.locator("data-testid=detail-desc").text_content() == "Milk, Eggs, Bread"
+        assert page.locator("data-testid=detail-tags").text_content() == "shopping"
+        
+        page.click("data-testid=close-detail-btn")
+        page.wait_for_selector("#modalTaskDetail", state="hidden")
+        
+        source = page.locator(".task", has_text="Buy Groceries")
+        target_list = page.locator("data-testid=task-list-2")
+        
+        source.drag_to(target_list)
+        
+        page.reload()
+        page.wait_for_selector(".task", state="visible")
+        
+        task_in_col2 = page.locator("data-testid=task-list-2").locator(".task", has_text="Buy Groceries")
+        assert task_in_col2.count() == 1
+        
+        browser.close()
