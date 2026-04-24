@@ -29,7 +29,8 @@ from .prompts import (
     director_instruction, executor_instruction,
     qa_instruction, auditor_instruction, reporter_instruction,
     codebase_research_instruction, best_practices_research_instruction,
-    synthesis_instruction, solo_instruction
+    synthesis_instruction, solo_instruction,
+    executor_instruction_provider, qa_instruction_provider
 )
 
 # --- Swarm Agent Definitions ---
@@ -67,7 +68,7 @@ qa_tools = [
 qa_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='qa_engineer',
-    instruction=qa_instruction,
+    instruction=qa_instruction_provider,
     before_tool_callback=zero_trust_callback,
     tools=qa_tools
 )
@@ -87,7 +88,7 @@ executor_tools = [
 executor_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='executor',
-    instruction=executor_instruction,
+    instruction=executor_instruction_provider,
     before_tool_callback=zero_trust_callback,
     tools=executor_tools,
     sub_agents=[qa_agent]

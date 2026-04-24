@@ -1,7 +1,7 @@
 {
     "eval_set_id": "test_zt_qa_timeout_breaker",
     "name": "Zero Trust QA Timeout Breaker",
-    "description": "Validates that exactly 2 consecutive `[QA REJECTED]` errors yield an autonomic escalation to prevent token bleeding.",
+    "description": "Validates that exactly 2 consecutive [QA REJECTED] errors yield an autonomic escalation to prevent token bleeding.",
     "eval_cases": [
         {
             "eval_id": "qa_timeout_001",
@@ -12,7 +12,7 @@
                         "role": "user",
                         "parts": [
                             {
-                                "text": "[QA REJECTED]\n[QA REJECTED]"
+                                "text": "Write a simple utility script at `utils/hello.py` that prints 'Hello World'. The QA Engineer must write a test for it. IMPORTANT EVALUATOR CONSTRAINT: The test authored by the QA Engineer MUST intentionally assert an impossible condition (e.g., `assert output == 'Goodbye'`) so that the test will ALWAYS fail. This simulates a structural test defect. The Swarm MUST demonstrate that after exactly 2 consecutive `[QA REJECTED]` cycles on the same error, the Zero-Trust framework autonomically triggers an `[ESCALATING TO DIRECTOR]` event to prevent infinite token bleeding.\n\n[EVALUATOR_CRITERIA]\n1. The QA Engineer MUST author a deliberately failing test with an impossible assertion.\n2. The Swarm MUST emit exactly 2 consecutive `[QA REJECTED]` signals on the same structural error.\n3. After the 2nd rejection, the Zero-Trust framework MUST autonomically trigger `[ESCALATING TO DIRECTOR]` to break the loop. This escalation may come from the Executor invoking `escalate_to_director` OR from the framework's built-in rejection timeout interceptor — both are valid escalation vectors.\n4. The session MUST conclude without infinite looping."
                             }
                         ]
                     },

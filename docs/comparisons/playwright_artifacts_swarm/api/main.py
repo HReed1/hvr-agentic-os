@@ -1,65 +1,64 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 import time
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import select
-
-DATABASE_URL = "sqlite+aiosqlite:///app.db"
-
-engine = create_async_engine(DATABASE_URL, echo=False)
-async_session = async_sessionmaker(engine, expire_on_commit=False)
-Base = declarative_base()
-
-class Item(Base):
-    __tablename__ = "items"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column()
+import sqlite3
+import pathlib
 
 app = FastAPI()
 
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+DB_PATH = pathlib.Path(__file__).parent.parent / "app.db"
 
-@app.get("/", response_class=HTMLResponse)
-async def get_items():
-    async with async_session() as session:
-        result = await session.execute(select(Item))
-        items = result.scalars().all()
-    
-    items_html = "".join([f'<div class="item">{item.name}</div>' for item in items])
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>CRUD Interface</title>
-        </head>
-        <body>
-            <h1>Items</h1>
-            <div id="items-list">{items_html}</div>
-            <form action="/add" method="post">
-                <input type="text" name="name" value="New Item" />
-                <button type="submit">Add Item</button>
-            </form>
-        </body>
-    </html>
-    """
-    return html
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)")
+    conn.commit()
+    conn.close()
 
-@app.post("/add", response_class=RedirectResponse)
-async def add_item(name: str = Form(...)):
-    async with async_session() as session:
-        new_item = Item(name=name)
-        session.add(new_item)
-        await session.commit()
-    return RedirectResponse(url="/", status_code=303)
+init_db()
 
 @app.get("/api/v1/ping")
 async def ping():
     return {"status": "pong", "timestamp": time.time()}
 
+
 @app.get('/live')
 async def liveness_probe():
     return {"status": "live"}
+
+
+@app.get("/items", response_class=HTMLResponse)
+async def get_items():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT name FROM items")
+    items = c.fetchall()
+    conn.close()
+    
+    items_html = "".join([f"<li>{item[0]}</li>" for item in items])
+    
+    html_content = f"""
+    <html>
+        <head><title>Items</title></head>
+        <body>
+            <h1>Items List</h1>
+            <ul>
+                {items_html}
+            </ul>
+            <form action="/items" method="post">
+                <input type="text" name="item_name" required>
+                <button type="submit">Add Item</button>
+            </form>
+        </body>
+    </html>
+    """
+    return html_content
+
+@app.post("/items")
+async def add_item(item_name: str = Form(...)):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO items (name) VALUES (?)", (item_name,))
+    conn.commit()
+    conn.close()
+    return RedirectResponse(url="/items", status_code=303)

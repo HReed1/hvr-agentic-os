@@ -178,6 +178,14 @@ async def patched_loop_run(self, ctx):
                             yield event
                             if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
                                 return
+                        elif '[QA PASSED]' in text:
+                            yield event
+                            if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                                return
+                        elif '[AUDIT PASSED]' in text:
+                            yield event
+                            if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
+                                return
 
             yield event
 
