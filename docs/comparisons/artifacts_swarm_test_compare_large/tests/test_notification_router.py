@@ -2,19 +2,17 @@ import pytest
 from api.notification_router import NotificationRouter, SMSHandler, PagerHandler
 
 def test_sms_handler():
-    handler = SMSHandler()
-    assert handler.handle("test") == "SMS: test"
+    assert SMSHandler.handle("alert") == "SMS: alert"
 
 def test_pager_handler():
-    handler = PagerHandler()
-    assert handler.handle("test") == "PAGER: test"
+    assert PagerHandler.handle("alert") == "PAGER: alert"
 
 def test_notification_router_high():
-    assert NotificationRouter.route_message("critical issue", "HIGH") == "SMS: critical issue"
+    assert NotificationRouter.route_message("system down", "HIGH") == "SMS: system down"
 
 def test_notification_router_low():
-    assert NotificationRouter.route_message("minor issue", "LOW") == "PAGER: minor issue"
+    assert NotificationRouter.route_message("system slow", "LOW") == "PAGER: system slow"
 
 def test_notification_router_invalid():
-    with pytest.raises(ValueError):
-        NotificationRouter.route_message("unknown", "UNKNOWN")
+    with pytest.raises(KeyError):
+        NotificationRouter.route_message("hello", "UNKNOWN")

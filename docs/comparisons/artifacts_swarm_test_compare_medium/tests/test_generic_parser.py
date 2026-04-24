@@ -1,18 +1,25 @@
 import os
 import csv
+import tempfile
 from utils.generic_parser import GenericParser
 
-def test_load_dict_from_csv_success(tmp_path):
-    csv_file = tmp_path / "test.csv"
-    with open(csv_file, mode="w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["key", "value"])
-        writer.writerow(["name", "John"])
-        writer.writerow(["age", "30"])
+def test_load_dict_from_csv_success():
+    # Create a temporary CSV file
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv') as tmp:
+        writer = csv.writer(tmp)
+        writer.writerow(['key1', 'value1'])
+        writer.writerow(['key2', 'value2'])
+        tmp_path = tmp.name
 
-    result = GenericParser.load_dict_from_csv(str(csv_file))
-    assert result == {"name": "John", "age": "30"}
+    try:
+        result = GenericParser.load_dict_from_csv(tmp_path)
+        assert isinstance(result, dict), "Result must be a dictionary"
+        assert result.get('key1') == 'value1'
+        assert result.get('key2') == 'value2'
+    finally:
+        os.remove(tmp_path)
 
 def test_load_dict_from_csv_file_not_found():
-    result = GenericParser.load_dict_from_csv("non_existent_file.csv")
-    assert result == {}
+    result = GenericParser.load_dict_from_csv('does_not_exist_999.csv')
+    assert isinstance(result, dict), "Result must be a dictionary even on FileNotFoundError"
+    assert result == {}, "Result must be an empty dictionary when file is not found"

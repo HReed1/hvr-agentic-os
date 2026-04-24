@@ -37,17 +37,24 @@ This retrospective serves as the official compilation map for structural patches
 - `google/adk/flows/llm_flows/functions.py` needs native try/except wrappers routing explicit `ToolNotFoundError` payloads natively backward to the LLM model context window instead of yielding to standard output.
 
 ## 6. Execution Loop Interceptor Hooks (`LoopAgent._run_async_impl`)
-**The Issue:** `LoopAgent` implicitly trusts all LLM tool invocation streams perpetually without structural evaluation logic until token burnout or manual tool limits trigger.
-**The Temporary Monkeypatch:** We completely replaced `_original_loop_run` to natively inject `_intercept_tool` middleware. This custom layer structurally catches system state tools (`mark_system_complete`, `approve_staging_qa`), parses `[QA REJECTED]` string anomalies, and violently throws `ZeroTrustEscalationEvent` if systemic bounds (`_consecutive_discovery >= 15`) are violated.
+**The Issue:** `LoopAgent` implicitly trusts all LLM tool invocation streams perpetually without structural evaluation logic until token burnout or manual tool limits trigger. Additionally, loop exit strings arbitrarily close all parent generators recursively, crashing overarching swarms.
+**The Temporary Monkeypatch:** We replaced `_original_loop_run` to organically inject `_intercept_tool` middleware. This custom layer:
+- Catches system state tools (`escalate_to_director`) to manually throw `ZeroTrustEscalationEvent`.
+- Monitors `[QA REJECTED]` string anomalies, hard-bounding consecutive failures to `< 2` to prevent "Ping-Pong token burns. 
+- Intercepts `[EXECUTION COMPLETE]` to structurally ensure ONLY nested localized LLMs (e.g. `executor_loop`) kill their threads, completely protecting the outer master tree from cascading termination.
 **The Fix:**
-- ADK's `LoopAgent` must abstract a native `middleware` or `pre_tool_execution` pipeline architecture that allows developers to gracefully veto execution graphs and inject synthetic escalation events dynamically.
+- ADK's `LoopAgent` must abstract a native `middleware` or `pre_tool_execution` pipeline architecture that allows developers to gracefully veto execution graphs and inject synthetic escalation bounds natively without recursive generator breakage.
+
 
 ## 7. Data Loss Prevention & API Throttling (`LlmAgent._run_async_impl`)
-**The Issue:** `google-adk` naturally allows unfiltered LLM payloads, is susceptible strictly to `RESOURCE_EXHAUSTED` (429) API quotas without generic backoff, and lacks dynamic context-window truncation.
-**The Temporary Monkeypatch:** We heavily patched the LLM async loop, explicitly overriding `ctx.messages` dynamically to slide the context window down to the latest 7 messages under `CONTEXT_SAFE_MODE`. We intercept and pass all `part.text` through our `redact_genomic_phi` DLP algorithm and embed a sweeping exponential backoff loop natively catching `429` and `503` payloads.
+**The Issue:** `google-adk` naturally allows unfiltered LLM payloads, is susceptible strictly to `RESOURCE_EXHAUSTED` (429) API quotas without generic backoff, and lacks dynamic context-window truncation causing major scale tokens to blow up.
+**The Temporary Monkeypatch:** We heavily patched the LLM async loop:
+- **DLP Proxy**: Extracted and parsed every single `part.text` natively against the `redact_genomic_phi` regex proxy *before* hitting the Vertex AI network endpoint.
+- **Context Healing**: Slide the context window down dynamically to the latest 7 messages statically under `CONTEXT_SAFE_MODE`. If it natively observes `[AUDIT PASSED]`, it purges the cache down to the latest 2 messages to drop monolithic JSON payload histories in long-haul swarms.
+- **Throttle Loops**: Bound exponential back-offs targeting `429` / `503` payloads exactly inside the LlmAgent matrix.
 **The Fix:**
 - Expose global `data_scrubbing_middleware=Callable` directly on the root agent structure.
-- Abstract configurable `api_retry_strategy` mappings inside the execution config parameter.
+- Abstract configurable `api_retry_strategy` and `dynamic_context_window` parameters.
 
 ## 8. Evaluation Array Length Mapping (`LocalEvalService._evaluate_single_inference_result`)
 **The Issue:** TDAID deterministic evaluation vectors expect specific event trace counts. When an LLM executes a perfectly correct operational flow but requires *more* tools than explicitly hardcoded in the TDAID bounds, ADK throws a fatal `OutOfBounds` exception while cross-mapping array boundaries inside `tool_trajectory_avg_score`.
@@ -60,3 +67,15 @@ This retrospective serves as the official compilation map for structural patches
 **The Temporary Monkeypatch:** Monkeypatching the internal `mcp` SDK `ClientSession.__init__` explicitly enforcing `read_timeout_seconds = 600`.
 **The Fix:** 
 - Propagate a native `mcp_timeout_seconds` variable throughout the ADK MCP architecture mapping schemas.
+
+## 10. Zombie MCP Ports (`Aclosing` Wrapper Enforcement)
+**The Issue:** Long-running evaluation traces natively crash without gracefully closing async generators. When this occurs, child MCP execution processes are not terminated cleanly, stacking local system port bindings heavily until `500 Server Bound` exceptions permanently deadlock ADK.
+**The Temporary Monkeypatch:** Overriding standard `LoopAgent` and `LocalEvalService` iteration mechanisms utilizing the `contextlib.Aclosing` context manager (`async with Aclosing(...)`), enforcing explicit finalization parameters natively across async pipelines to systematically tear down tooling ports on loop exit.
+**The Fix:**
+- Core iterables within ADK must implement `Aclosing` standard wrappers natively within Python's asynchronous boundaries.
+
+## 11. Native CI/CD Telemetry Subversion (`agent_app/.adk/eval_history/`)
+**The Issue:** Native Swarms executing in deterministic CI/CD environments do not automatically propagate local memory statistics or execution bounds natively out to Github Actions or standardized output reporting systems, instead locking trace payloads deep within the internal SQLite file (`session.db`).
+**The Temporary Monkeypatch:** The Meta-Evaluator agent uses `agent_app/tools.py` (`write_eval_report`) to explicitly bypass SQLite by reading physical disk artifacts from `agent_app/.adk/eval_history/`. By parsing the dynamic `.evalset_result.json` array natively, the Agent injects `Total Inferences` traces autonomously.
+**The Fix:**
+- Implement global `telemetry_export=True` configuration params automatically emitting structured `.jsonl` system telemetry directly alongside evaluation traces.
