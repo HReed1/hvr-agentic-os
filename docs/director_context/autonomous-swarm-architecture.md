@@ -5,65 +5,60 @@ This document maps the exact execution graph of the `autonomous_swarm` following
 ## Execution Graph
 
 ```mermaid
-graph TD
-    subgraph zt_transport["Zero-Trust Transport Layer"]
-        direction TB
-        dlp["bin/dlp-firewall (Go Binary)"]
-        dlp --- mcp_exec["mcp_servers/executor_mcp.py"]
-        dlp --- mcp_audit["mcp_servers/auditor_mcp.py"]
-        dlp --- mcp_ast["mcp_servers/ast_validation_mcp.py"]
-        dlp --- mcp_trace["mcp_servers/adk_trace_mcp.py"]
-    end
-
-    subgraph zt_inference["Zero-Trust Inference Layer (zero_trust/interceptors.py)"]
-        direction TB
-        phi["redact_genomic_phi() on every LlmAgent I/O"]
-        loop_int["patched_loop_run: escalation signals + loop termination"]
-    end
-
+graph LR
     subgraph swarm["Autonomous Swarm (SequentialAgent)"]
+        direction LR
+        director["Director<br><i>LlmAgent</i>"]
         
-        director["<b>Director Agent</b> [LlmAgent]<br><b>Tools:</b> list_docs, read_doc, mark_system_complete<br><b>Model:</b> gemini-3.1-pro"]
-        
-        subgraph executor_loop["LoopAgent: Max 15 iterations"]
-            direction LR
-            executor["<b>Executor Agent</b> [LlmAgent]<br><b>Tools:</b> escalate_to_director, Executor MCP<br><b>Callback:</b> zero_trust/callbacks.py"]
-            qa["<b>QA Engineer</b> [sub_agent]<br><b>Tools:</b> execute_tdaid_test, execute_playwright_test<br><b>Callback:</b> zero_trust/callbacks.py"]
-            
-            executor -->|transfer_to_qa_engineer| qa
-            qa -->|"[QA REJECTED] / [QA PASSED]"| executor
+        subgraph executor_loop["LoopAgent: Max 15"]
+            direction TB
+            executor["Executor<br><i>LlmAgent</i><br>callbacks.py ✓"]
+            qa["QA Engineer<br><i>sub_agent</i><br>callbacks.py ✓"]
+            executor -->|transfer_to_qa| qa
+            qa -->|"QA REJECTED / PASSED"| executor
         end
         
-        auditor["<b>Auditor Agent</b> [LlmAgent]<br><b>Tools:</b> Auditor MCP, AST Validation MCP, get_user_choice<br><b>Perms:</b> promote_staging_area, McCabe Score"]
+        auditor["Auditor<br><i>LlmAgent</i>"]
+        reporter["Reporter<br><i>LlmAgent</i>"]
         
-        reporter["<b>Reporting Director</b> [LlmAgent]<br><b>Tools:</b> write_retrospective, ADK Trace MCP"]
-        
-        director -->|Issues Directive| executor
-        executor -->|"[EXECUTION COMPLETE]"| auditor
-        
-        auditor -->|"[AUDIT FAILED]"| director
-        auditor -->|"[AUDIT PASSED]"| director
-        
-        director -->|mark_system_complete| reporter
+        director -->|directive| executor
+        executor -->|"EXECUTION COMPLETE"| auditor
+        auditor -->|"AUDIT FAILED"| director
+        auditor -->|"AUDIT PASSED"| director
+        director -->|mark_complete| reporter
     end
-
-    subgraph solo["Solo Agent (LoopAgent: Max 25)"]
-        solo_agent["<b>Solo Agent</b> [LlmAgent]<br><b>Tools:</b> ALL MCP servers (Executor + Auditor + AST)<br><b>Callback:</b> None (prompt-enforced only)<br><b>Parallelism:</b> fires independent tools in single inference"]
-    end
-
-    swarm -.->|"All MCP calls routed through"| zt_transport
-    solo -.->|"All MCP calls routed through"| zt_transport
-    swarm -.->|"All inferences filtered by"| zt_inference
-    solo -.->|"All inferences filtered by"| zt_inference
-
-    %% subgraph legend["Legend: ADK Classes"]
-    %%     direction TB
-    %%     L1["[SequentialAgent] = Outer Routing Spine"]
-    %%     L2["[LoopAgent] = Iterative Evaluation Boundary"]
-    %%     L3["[LlmAgent] = Core Stateful Intelligence Node"]
-    %%     L4["[sub_agent] = Restricted Isolated Tasker"]
-    %% end
 ```
+
+```mermaid
+graph LR
+    subgraph solo["Solo Agent (LoopAgent: Max 25)"]
+        solo_agent["Solo Agent<br><i>LlmAgent</i><br>ALL tools · No callbacks<br>Parallel tool execution"]
+    end
+```
+
+```mermaid
+graph TD
+    subgraph enforcement["Zero-Trust Enforcement Layers"]
+        direction LR
+        subgraph transport["Transport Layer"]
+            dlp["bin/dlp-firewall"]
+            dlp --- e["executor_mcp.py"]
+            dlp --- a["auditor_mcp.py"]
+            dlp --- t["ast_validation_mcp.py"]
+            dlp --- r["adk_trace_mcp.py"]
+        end
+        subgraph inference["Inference Layer"]
+            phi["redact_genomic_phi()"]
+            loop["patched_loop_run()"]
+        end
+        subgraph behavioral["Behavioral Layer (Swarm only)"]
+            cb["before_tool_callback"]
+            bl["sandbox_blacklist"]
+            ag["executor_airgap"]
+        end
+    end
+```
+
 
 ## Directory Structure
 

@@ -10,19 +10,16 @@ This framework orchestrates a hierarchy of specialized AI agents — Director, E
 
 ```mermaid
 graph LR
-    subgraph Swarm
-        D[Director] --> E[Executor]
-        E <--> QA[QA Engineer]
-        E --> A[Auditor]
-        A -->|"[AUDIT PASSED]"| D
-        A -->|"[AUDIT FAILED]"| D
-    end
-    subgraph Enforcement
-        DLP[DLP Firewall] --- MCP[MCP Servers]
-        ZT[zero_trust/interceptors.py] --- PHI[PHI Redaction]
-        CB[zero_trust/callbacks.py] --- BL[Sandbox Blacklist]
-    end
-    Swarm -.-> Enforcement
+    D[Director] --> E[Executor]
+    E <-->|TDAID| QA[QA Engineer]
+    E -->|"EXECUTION COMPLETE"| A[Auditor]
+    A -->|"AUDIT PASSED ✓"| D
+    A -->|"AUDIT FAILED ✗"| D
+    D --> R[Reporter]
+
+    DLP[DLP Firewall] -.-> E
+    DLP -.-> QA
+    DLP -.-> A
 ```
 
 **Key Design Principles:**
@@ -187,4 +184,4 @@ Both paradigms achieve 100% pass rates. The Solo agent is faster due to tool par
 
 ## License
 
-TBD
+MIT — see [LICENSE.md](LICENSE.md).
