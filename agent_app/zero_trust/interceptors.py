@@ -10,7 +10,7 @@ from datetime import timedelta
 from google.adk.utils.context_utils import Aclosing
 from utils.dlp_proxy import redact_genomic_phi
 
-from .config import CONTEXT_SAFE_MODE, BASE_DIR
+from ..config import CONTEXT_SAFE_MODE, BASE_DIR
 
 # --- Globals for Zero Trust ---
 from google.adk.events.event import Event

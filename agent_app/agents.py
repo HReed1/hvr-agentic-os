@@ -7,7 +7,7 @@ from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
 from mcp import StdioServerParameters
 from google.adk.tools.get_user_choice_tool import get_user_choice
 
-from .plugins.zero_trust import zero_trust_callback
+from .zero_trust import zero_trust_callback
 
 from .config import (
     BASE_DIR, 
@@ -19,7 +19,7 @@ from .config import (
     ADK_TRACE_MCP_PATH,
     DIAGNOSTICS_MCP_PATH
 )
-import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
+import agent_app.zero_trust  # noqa: F401 — Binds monkeypatches and DLP proxies
 from .tools import (
     list_docs, read_doc, mark_system_complete, escalate_to_director,
     write_retrospective, run_pipeline_diagnostics,

@@ -9,7 +9,7 @@ try:
         import vertexai
         from vertexai.preview import rag
         
-        project_id = os.environ.get("VERTEX_PROJECT_ID", "general-477613")
+        project_id = os.environ.get("VERTEX_PROJECT_ID", "")
         location = os.environ.get("VERTEX_LOCATION", "us-west1")
         vertexai.init(project=project_id, location=location)
 

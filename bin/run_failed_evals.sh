@@ -55,7 +55,7 @@ for name in $FAILED_TESTS; do
     fi
     
     # 2.5 Merge telemetry
-    ACTIVE_TEST_ID="$TEST_NAME" python utils/inject_telemetry.py
+    ACTIVE_TEST_ID="$TEST_NAME" python scripts/inject_telemetry.py
     
     # 3. Memory Bridge
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true
@@ -119,7 +119,7 @@ done
 
 echo "================================================="
 echo "[AGGREGATING] Compiling global evaluation scorecard..."
-python utils/generate_global_eval_report.py
+python scripts/generate_global_eval_report.py
 
 git add docs/evals/GLOBAL_EVAL_SCORECARD.md || true
 

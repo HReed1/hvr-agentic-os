@@ -26,7 +26,7 @@ for test_file in tests/adk_evals/*.test.json; do
     fi
     
     # 2.5 Ensure organic post-evaluation trace data is merged natively into the static md structure
-    ACTIVE_TEST_ID="$TEST_NAME" python utils/inject_telemetry.py
+    ACTIVE_TEST_ID="$TEST_NAME" python scripts/inject_telemetry.py
     
     
     # 3. The Memory Bridge (Ref: Evaluator Wrapup Workflow Step 2)
@@ -99,7 +99,7 @@ done
 
 echo "================================================="
 echo "[AGGREGATING] Compiling global evaluation scorecard..."
-python utils/generate_global_eval_report.py
+python scripts/generate_global_eval_report.py
 
 # Ensure the scorecard is tracked so it doesn't get wiped by future cleanups
 git add docs/evals/GLOBAL_EVAL_SCORECARD.md || true

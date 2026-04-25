@@ -11,3 +11,11 @@ venv/
 .primed
 .lock_mutex
 head_to_head.txt
+src/
+
+# Legacy evaluation artifacts — research data, not needed for public repo
+docs/evals/retrospectives/legacy/
+llms*.txt
+
+# Pytest cache
+.pytest_cache/

@@ -32,7 +32,7 @@ for MODE in "swarm"; do
     fi
     
     # 3. Telemetry Injection
-    ACTIVE_TEST_ID="$TEST_NAME" ADK_SWARM_MODE=$MODE python utils/inject_telemetry.py
+    ACTIVE_TEST_ID="$TEST_NAME" ADK_SWARM_MODE=$MODE python scripts/inject_telemetry.py
     
     # 4. The Memory Bridge
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true

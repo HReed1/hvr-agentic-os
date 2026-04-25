@@ -31,7 +31,7 @@ for MODE in "swarm"; do
     fi
     
     # 3. Telemetry Injection
-    ACTIVE_TEST_ID="$TEST_NAME" ADK_SWARM_MODE=$MODE python utils/inject_telemetry.py
+    ACTIVE_TEST_ID="$TEST_NAME" ADK_SWARM_MODE=$MODE python scripts/inject_telemetry.py
     
     # 4. The Memory Bridge
     rsync -av .staging/.agents/memory/ .agents/memory/ > /dev/null 2>&1 || true
@@ -102,7 +102,7 @@ done
 
 echo "================================================="
 echo "[AGGREGATING] Compiling Head-to-Head Comparison Scorecard..."
-python utils/generate_comparison_report.py
+python scripts/generate_comparison_report.py
 
 # Track the final scorecard
 git add docs/comparisons/HEAD_TO_HEAD_SCORECARD.md || true
