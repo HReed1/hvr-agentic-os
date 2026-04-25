@@ -191,6 +191,12 @@ async def patched_loop_run(self, ctx):
                             if getattr(self, 'name', '') in ('solo_loop',):
                                 return
 
+                    fc_resp = getattr(part, 'function_response', None) or getattr(part, 'functionResponse', None)
+                    if fc_resp and getattr(fc_resp, 'name', '') == 'write_retrospective':
+                        yield event
+                        if getattr(self, 'name', '') in ('solo_loop', 'reporting_director'):
+                            return
+
             yield event
 
     if getattr(self, 'max_iterations', 1) > 1:

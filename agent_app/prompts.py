@@ -17,12 +17,14 @@ def load_anti_patterns():
                     pass
     return payload
 
-# Era 5: Boot-Read Elimination - Pre-load static rules into agent context
+# Era 5: Boot-Read Elimination - Pre-load static rules and skills into agent context
 def load_rules():
-    """Pre-loads all .agents/rules/*.md files at import time.
+    """Pre-loads all .agents/rules/*.md and .agents/skills/*/SKILL.md files at import time.
     Saves 3-4 tool-call inferences per run by eliminating list_docs -> read_doc chains."""
-    rules_dir = os.path.join(BASE_DIR, ".agents", "rules")
     payload = ""
+    
+    # Load Rules
+    rules_dir = os.path.join(BASE_DIR, ".agents", "rules")
     if os.path.exists(rules_dir):
         for f in sorted(os.listdir(rules_dir)):
             if f.endswith(".md"):
@@ -32,6 +34,20 @@ def load_rules():
                         payload += file.read()
                 except Exception:
                     pass
+                    
+    # Load Skills
+    skills_dir = os.path.join(BASE_DIR, ".agents", "skills")
+    if os.path.exists(skills_dir):
+        for skill_folder in sorted(os.listdir(skills_dir)):
+            skill_path = os.path.join(skills_dir, skill_folder, "SKILL.md")
+            if os.path.exists(skill_path):
+                try:
+                    with open(skill_path, "r") as file:
+                        payload += f"\n\n--- Skill: {skill_folder} ---\n"
+                        payload += file.read()
+                except Exception:
+                    pass
+                    
     return payload
 
 def load_handoff_ledger():
@@ -99,7 +115,7 @@ TEST RUNNER ROUTING — CRITICAL: You MUST strictly adhere to the testing guardr
   - **Architectural Deployments**: Use `execute_coverage_report` to generate coverage tracebacks. When executing backend tests tied to deep architectural refactors, you MUST verify that line coverage for the mutated file is ≥80%. If coverage is insufficient, output `[QA REJECTED]` and explicitly instruct the Executor to write missing test cases to satisfy the coverage bounds.
 CRITICAL: You CANNOT conclude your validation until you have successfully executed a test runner tool and read its exact return output in a subsequent turn. Hallucinating a test pass without executing the test tool is a FATAL Zero-Trust violation!
 If the tool returns Exit 0 / PASS, your absolute next step MUST be to cleanly output `[QA PASSED]` exclusively and conclude your task. The ADK framework will structurally roll the successful execution graph status back up the tree.
-If the test breaks, output `[QA REJECTED]`. When receiving an opaque testing or networking error (e.g. `ERR_CONNECTION_REFUSED` or timeout), you MUST execute `audit_network_sockets` and/or `tail_background_process` to definitively determine if it is an infrastructure paradox. ADDITIONALLY, you MUST cross-reference your KNOWN SYSTEMIC ANTI-PATTERNS context block using the exception signature to locate literal code fixes before bouncing the failure back to the Executor. You MUST analyze the test failure and provide 1-2 sentences of semantic reasoning explaining WHY the codebase failed. Provide targeted structural hints or pathing advice to the Executor BEFORE dumping the exact traceback. Do not just throw a traceback over the wall; actively help the Executor escape the loop.
+If the test breaks, output `[QA REJECTED]`. You MUST analyze the test failure and provide 1-2 sentences of semantic reasoning explaining WHY the codebase failed. Provide targeted structural hints or pathing advice to the Executor. Do not just throw a traceback over the wall; actively help the Executor escape the loop.
 PHI & ESCALATION TIMEOUT: If you encounter `<REDACTED_PHI>`, it means sensitive health information was blocked. Immediately invoke `escalate_to_director` instead of bouncing it back to the Executor. Similarly, if the same test fails twice in a row with no material progress, you MUST invoke `escalate_to_director`.
 If encountering a paradoxical loop, you may invoke `escalate_to_director`.
 CRITICAL TDAID PROTOCOL: Under Spec-Driven TDD, you will purposefully write the failing test first (Red Baseline) and execute it. Once the test fails EXACTLY as expected for the Red Baseline Phase, you MUST NEVER output `[QA PASSED]`. You MUST output `[QA REJECTED]` and explicitly transfer the traceback down to the Executor so they can proceed to immediately implement the functional logic to turn it Green. The `[QA PASSED]` conclusion is STRICTLY reserved for Exit 0 passing tests on returning loops from the Executor!""" + f"\n\n### KNOWN SYSTEMIC ANTI-PATTERNS\n{ANTI_PATTERN_KNOWLEDGE_GRAPH}"

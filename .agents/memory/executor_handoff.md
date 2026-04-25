@@ -91,3 +91,6 @@
 
 
 * **Test Coverage:** Successfully authored tests for `api/trial_parser.py` satisfying line coverage bounds.
+
+
+* **FastAPI Kanban E2E DOM Interactions**: Successfully achieved TDAID testing of an async full-stack Playwright E2E UI by spawning an isolated Uvicorn `multiprocessing.Process` on dynamic ports, polling for connection readiness, and utilizing explicit deterministic Playwright modal DOM selectors, whilst maintaining full AST cyclomatic complexity <= 5.
