@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --accent: #38bdf8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            padding: 1.5rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .board-container {
+            display: flex;
+            padding: 2rem;
+            gap: 1.5rem;
+            flex-grow: 1;
+            overflow-x: auto;
+        }
+        .column {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            min-width: 300px;
+            width: 300px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+        .column-header {
+            padding: 1rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-list {
+            padding: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 50px;
+        }
+        .task-card {
+            background: rgba(51, 65, 85, 0.5);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+        .add-btn {
+            background: none;
+            border: 1px dashed var(--border);
+            color: var(--text);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 1rem 1rem;
+            transition: background 0.2s;
+        }
+        .add-btn:hover { background: rgba(255,255,255,0.05); }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 400px;
+            border: 1px solid var(--border);
+        }
+        .modal input, .modal textarea {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .modal button {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="board-name">Loading Board...</h1>
+        <button onclick="openModal('col-modal')" class="add-btn" style="margin:0">+ New Column</button>
+    </header>
+
+    <div class="board-container" id="board"></div>
+
+    <!-- Modals -->
+    <div id="col-modal" class="modal-overlay" onclick="closeModal(event, 'col-modal')">
+            <button id="create-col-btn" onclick="createColumn()">Create Column</button>
+        </div>
+    </div>
+
+    <div id="task-modal" class="modal-overlay" onclick="closeModal(event, 'task-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3>New Task</h3>
+            <input type="text" id="task-title" placeholder="Title">
+            <textarea id="task-desc" placeholder="Description"></textarea>
+            <input type="text" id="task-tags" placeholder="Tags (comma separated)">
+            <button id="create-task-btn" onclick="createTask()">Create Task</button>
+        </div>
+            <textarea id="task-desc" placeholder="Description"></textarea>
+            <input type="text" id="task-tags" placeholder="Tags (comma separated)">
+            <button onclick="createTask()">Create</button>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="modal-overlay" onclick="closeModal(event, 'detail-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3 id="det-title"></h3>
+            <p id="det-desc"></p>
+            <div id="det-tags" style="font-size: 0.8rem; opacity: 0.7;"></div>
+            <button onclick="document.getElementById('detail-modal').style.display='none'" style="margin-top:1rem">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let currentBoardId = 1;
+        let currentColId = null;
+
+        async function fetchBoard() {
+            const res = await fetch(`/api/kanban/boards/${currentBoardId}`);
+            const board = await res.json();
+            document.getElementById('board-name').innerText = board.name;
+            renderBoard(board);
+        }
+
+        function renderBoard(board) {
+            const container = document.getElementById('board');
+            container.innerHTML = '';
+            board.columns.forEach(col => {
+                const colEl = document.createElement('div');
+                colEl.className = 'column';
+                colEl.innerHTML = `
+                    <div class="column-header">${col.name}</div>
+                    <div class="task-list" ondrop="drop(event, ${col.id})" ondragover="allowDrop(event)">
+                        ${col.tasks.map(t => `
+                            <div class="task-card" draggable="true" ondragstart="drag(event, ${t.id})" onclick="viewTask(${t.id})">
+                                ${t.title}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="add-btn" onclick="openTaskModal(${col.id})">+ Add Task</button>
+                `;
+                container.appendChild(colEl);
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(e, id) { if(e.target.id === id) document.getElementById(id).style.display = 'none'; }
+
+        async function createColumn() {
+            const name = document.getElementById('col-input').value;
+            await fetch(`/api/kanban/boards/${currentBoardId}/columns?name=${encodeURIComponent(name)}`, {method:'POST'});
+            document.getElementById('col-modal').style.display = 'none';
+            fetchBoard();
+        }
+
+        function openTaskModal(colId) {
+            currentColId = colId;
+            openModal('task-modal');
+        }
+
+        async function createTask() {
+            const title = document.getElementById('task-title').value;
+            const desc = document.getElementById('task-desc').value;
+            const tags = document.getElementById('task-tags').value;
+            await fetch(`/api/kanban/columns/${currentColId}/tasks?title=${encodeURIComponent(title)}&description=${encodeURIComponent(desc)}&tags=${encodeURIComponent(tags)}`, {method:'POST'});
+            document.getElementById('task-modal').style.display = 'none';
+            fetchBoard();
+        }
+
+        async function viewTask(id) {
+            const res = await fetch(`/api/kanban/tasks/${id}`);
+            const task = await res.json();
+            document.getElementById('det-title').innerText = task.title;
+            document.getElementById('det-desc').innerText = task.description || 'No description';
+            document.getElementById('det-tags').innerText = 'Tags: ' + (task.tags || 'None');
+            openModal('detail-modal');
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev, id) { ev.dataTransfer.setData("taskId", id); }
+        async function drop(ev, colId) {
+            ev.preventDefault();
+            const taskId = ev.dataTransfer.getData("taskId");
+            await fetch(`/api/kanban/tasks/${taskId}?column_id=${colId}`, {method:'PATCH'});
+            fetchBoard();
+        }
+
+        fetchBoard();
+    </script>
+</body>
+</html>

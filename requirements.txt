@@ -38,3 +38,5 @@ python-hcl2
 asyncpg
 greenlet
 playwright
+pytest-playwright
+aiosqlite

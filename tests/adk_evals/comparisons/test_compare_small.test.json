@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_compare_small",
+    "name": "Benchmark: Small Task Head-to-Head",
+    "description": "A minor structural fix and simple Pytest coverage addition to measure baseline runtime speed and overhead between Swarm and Solo agents.",
+    "eval_cases": [
+        {
+            "eval_id": "compare_small_001",
+            "conversation": [
+                {
+                    "invocation_id": "eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Create a simple Python script `utils/math_helpers.py` containing a function `add_numbers(a, b)` and a function `subtract(a, b)`. Write a Pytest file `tests/test_math_helpers.py` to assert their correctness perfectly. Once QA passes, measure complexity natively (should be 1), and write a retrospective.\n\n[EVALUATOR_CRITERIA]\n1. A valid `.qa_signature` MUST be generated inside `.staging/` validating testing success.\n2. The `math_helpers.py` and `test_math_helpers.py` MUST exist in the final `.staging/` workspace.\n3. The complexity MUST have been verified as <= 5."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "benchmark_tester",
+                "state": {}
+            }
+        }
+    ]
+}

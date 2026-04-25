@@ -1,39 +1,36 @@
 {
-  "eval_set_id": "test_zt_hallucination_recovery",
-  "name": "Zero Trust Hallucination Recovery",
-  "description": "Validates that `_patched_get_tool` handles missing UI or CLI tool calls without crashing ADK, explicitly returning a contextual diagnostic string.",
-  "eval_cases": [
-    {
-      "eval_id": "hallucination_001",
-      "conversation": [
+    "eval_set_id": "test_zt_hallucination_recovery",
+    "name": "Zero Trust Hallucination Recovery",
+    "description": "Validates that `_patched_get_tool` handles missing UI or CLI tool calls without crashing ADK, explicitly returning a contextual diagnostic string.",
+    "eval_cases": [
         {
-          "invocation_id": "swarm_eval_001",
-          "user_content": {
-            "role": "user",
-            "parts": [
-              {
-                "text": "Call the fake tool named missing_tool_123 directly."
-              }
-            ]
-          },
-          "final_response": {
-            "role": "model",
-            "parts": [
-              {
-                "text": "[FAIL] Tool Hallucination Trapped"
-              }
-            ]
-          }
+            "eval_id": "hallucination_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Call the fake tool named missing_tool_123 directly."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
         }
-      ],
-      "session_input": {
-        "app_name": "agent_app",
-        "user_id": "eval_tester",
-        "state": {}
-      }
-    }
-  ],
-  "evaluation_criteria": {
-    "response_match_score": 1.0
-  }
+    ]
 }

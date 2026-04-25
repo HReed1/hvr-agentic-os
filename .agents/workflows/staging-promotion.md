@@ -8,19 +8,18 @@ description: The official protocol for validating, auditing, and promoting `.sta
 
 ## Workflow Execution Steps
 
-1. **Pre-Flight Testing (QA Engineer)**: Execute the full validation suite against `.staging/` code:
-   - **Backend mutations**: Run `pytest tests/` via `execute_tdaid_test`. Then call `mark_qa_passed` to write `.staging/.qa_signature`.
-   - **Frontend mutations**: Run the full `/ui-qa-audit` workflow (TypeScript → Vitest → ESLint → visual screenshot). Then call `mark_qa_passed` to write `.staging/.qa_signature`.
-   - **CRITICAL**: `mark_qa_passed` is not optional. Without `.staging/.qa_signature`, `promote_staging_area` is hard-blocked by the HMAC crypto gate regardless of what the QA Engineer reports verbally.
+1. **Pre-Flight Testing (QA Engineer)**: Initiate Spec-Driven TDD and execute the full validation suite against `.staging/` code:
+   - **Backend mutations**: Run `pytest tests/` via `execute_tdaid_test`. 
+   - **Frontend mutations**: Run the full `/ui-qa-audit` workflow (TypeScript → Vitest → ESLint → visual screenshot). 
+   - **CRITICAL**: Failing tests must be reported back to the Executor's iterative looping trace. Passing tests (`[QA PASSED]`) natively unlock the Executor to conclude its loop and subsequently pass the root line downward to the Auditor.
 
-2. **Handoff (QA Engineer)**: Report `[QA PASSED]` alongside a semantic summary of the changes (files modified, test results, ESLint status) to the Architect.
+## Phase 3: The Native Pipeline Transition
 
-3. **Staging Vetting (Architect)**: If tests passed and the QA report looks architecturally sound, the Architect verifies `.staging/.qa_signature` exists and yields the root execution line to the Auditor. (The Architect is explicitly forbidden from deploying code. The tool name is `mark_qa_passed` — there is no `approve_staging_qa` tool.)
+3. **Staging Vetting (QA Engineer)**: If tests passed and the QA report looks structurally sound, the QA Engineer cleanly concludes (`[QA PASSED]`), returning the native execution state exclusively back to the Executor. The Executor issues `[EXECUTION COMPLETE]` to yield the sequence over to the Auditor.
 
 4. **Holistic Audit (Auditor)**: The Lead Auditor reads the `.staging/` airspace AST structures. They run explicit FinOps anti-pattern queries and Zero-Trust credential sweeps. The Auditor independently verifies `.staging/.qa_signature` exists and the HMAC token is valid before calling `promote_staging_area`.
 
-5. **Success Path (Auditor)**: If no blast-radius violations or architectural decay are identified, the Auditor leverages its exclusive access to `promote_staging_area` to natively merge the changes back into the root workspace. Following the deployment, the Auditor formally outputs `[AUDIT PASSED]`. **CRITICAL TDAID CONSTRAINT**: The promotion action permanently purges the `.staging/` sandbox.
+5. **Success Path (Auditor)**: If no blast-radius violations or architectural decay are identified, the Auditor leverages its exclusive access to `promote_staging_area` to natively merge the changes back into the root workspace. Following the deployment, the Auditor formally outputs `[AUDIT PASSED]`. **CRITICAL TDAID CONSTRAINT**: The promotion action leaves the `.staging/` sandbox intact, explicitly allowing the external system Bash wrappers (evaluators) to harvest tracing telemetry via the Memory Bridge before natively executing the Amnesia Sweep.
 
-6. **Denial Path (Auditor)**: If errors are surfaced in tests or audits (or if `.staging/.qa_signature` is missing/invalid), the Auditor immediately executes `teardown_staging_area` and provides strict technical feedback (`[AUDIT FAILED]`). The CLI Director reads the rejection and drafts a patch matrix for the Architect to iterate the Executor on.
-
-7. **Systemic Resolution (CLI Director)**: Investigate hallucination loops. If Agent constraints, system prompts, skills, or directives require adjustment, the CLI Director MUST seek explicit Human User approval via the chat interface first.
+6. **Denial Path (Auditor) & In-Situ Patching**: If errors are surfaced in audits (e.g., complexity constraints) or if `.staging/.qa_signature` is missing, the Auditor provides strict technical feedback (`[AUDIT FAILED]`). **CRITICAL**: The Auditor does NOT execute `teardown_staging_area`. The `.staging/` airspace is explicitly left intact.
+7. **The Macro-Loop (CLI Director)**: The CLI Director actively traps the `[AUDIT FAILED]` trace and recursively loops an updated directive back into the Development Sequence. This permits the Executor to structurally patch its logic natively *in-situ* without constantly losing previous functional momentum. (Systemic Hallucination or Paradox escalations are still routed to the Human).

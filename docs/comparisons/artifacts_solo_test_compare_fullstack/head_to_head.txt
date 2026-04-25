@@ -1,0 +1,30 @@
+=================================================
+[START] Swarm vs Solo Head-to-Head Benchmarking
+=================================================
+=================================================
+Task: test_compare_fullstack
+=================================================
+>>> Executing Paradigm: [solo MODE] <<<
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/authlib/_joserfc_helpers.py:8: AuthlibDeprecationWarning: authlib.jose module is deprecated, please use joserfc instead.
+It will be compatible before version 2.0.0.
+  from authlib.jose import ECKey
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/features/_feature_decorator.py:72: UserWarning: [EXPERIMENTAL] feature FeatureName.PLUGGABLE_AUTH is enabled.
+  check_feature_enabled()
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/evaluation/metric_evaluator_registry.py:112: UserWarning: [EXPERIMENTAL] MetricEvaluatorRegistry: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  metric_evaluator_registry = MetricEvaluatorRegistry()
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/evaluation/local_eval_service.py:124: UserWarning: [EXPERIMENTAL] UserSimulatorProvider: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  user_simulator_provider: UserSimulatorProvider = UserSimulatorProvider(),
+2026-04-24 17:29:33,540 - INFO - eval_config.py:177 - No config file supplied or file not found. Using default criteria.
+Using evaluation criteria: criteria={'tool_trajectory_avg_score': 1.0, 'response_match_score': 0.8} custom_metrics=None user_simulator_config=None
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/features/_feature_decorator.py:72: UserWarning: [EXPERIMENTAL] feature FeatureName.AGENT_CONFIG is enabled.
+  check_feature_enabled()
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/cli/cli_tools_click.py:914: UserWarning: [EXPERIMENTAL] UserSimulatorProvider: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  user_simulator_provider = UserSimulatorProvider(
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/cli/cli_tools_click.py:937: UserWarning: [EXPERIMENTAL] LocalEvalService: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  eval_service = LocalEvalService(
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/evaluation/simulation/user_simulator_provider.py:77: UserWarning: [EXPERIMENTAL] StaticUserSimulator: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  return StaticUserSimulator(static_conversation=eval_case.conversation)
+/Users/harrisonreed/Projects/hvr-agentic-os/venv/lib/python3.14/site-packages/google/adk/evaluation/simulation/static_user_simulator.py:39: UserWarning: [EXPERIMENTAL] UserSimulator: This feature is experimental and may change or be removed in future versions without notice. It may introduce breaking changes at any time.
+  super().__init__(
+2026-04-24 17:29:33,547 - INFO - plugin_manager.py:104 - Plugin 'request_intercepter_plugin' registered.
+2026-04-24 17:29:33,547 - INFO - plugin_manager.py:104 - Plugin 'ensure_retry_options' registered.

@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_eng_cyclomatic_complexity",
+    "name": "Engineering: Cyclomatic Complexity Refactoring",
+    "description": "Validates that the Swarm can parse deeply nested procedural code, refactor it using polymorphism or mapping dictionaries, and pass a strict Auditor complexity threshold.",
+    "eval_cases": [
+        {
+            "eval_id": "complexity_refactor_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "The script `api/batch_submitter.py` has a cyclomatic complexity score that violates our Zero-Trust and FinOps standards. Orchestrate the Director and Executor to refactor the `submit_genomic_job` function. You must replace the nested if/else blocks with a scalable mapping strategy or polymorphic classes. The Auditor MUST use the `measure_cyclomatic_complexity` tool to prove the new score is \u2264 5 before promoting the staging area.\n\n[EVALUATOR_CRITERIA]\n1. A valid `.qa_signature` MUST natively emerge verifying execution success.\n2. The codebase MUST cleanly reach cyclomatic complexity \u2264 5 natively.\n3. The Swarm MUST successfully natively loop without a destructive teardown. If complexity initially exceeds bounds, the Director must perform a Macro-Loop mapping back to the Executor for In-Situ structural patching natively."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
+        }
+    ]
+}

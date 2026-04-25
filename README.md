@@ -58,6 +58,21 @@ This script safely scaffolds out `docs/director_context/`, initializes the `.age
 > [!NOTE] 
 > **Zero-Overwrite Guarantee:** The bootstrap script is completely non-destructive. It natively uses explicit `if [ ! -f ]` boundary checks. If you already have your own `main.nf`, `nextflow.config`, or infrastructure maps, the script will simply log that it skipped them and protect your existing files.
 
+
+### Compiling the Executor Sandbox
+
+The Swarm's Executor agent requires an isolated Docker container to safely run test runners or execute untrusted code without affecting your host OS. You must compile this zero-trust environment natively before waking the Swarm.
+
+Run the sandbox compilation script:
+```bash
+./bin/build_sandbox.sh
+```
+
+This will pull down the necessary Python boundaries, install headless dependencies, initialize the `/tmp/eval_spaces` memory arrays securely, and generate the local `executor-sandbox:latest` image registry that the Swarm relies on.
+
+> [!IMPORTANT]
+> Failure to compile this sandbox will result in fatal resolution errors when the Swarm attempts to use the `execute_transient_docker_sandbox` tool.
+
 ---
 
 ## 2. Usage: Waking the Swarm

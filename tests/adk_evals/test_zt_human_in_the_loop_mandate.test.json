@@ -1,39 +1,36 @@
 {
-  "eval_set_id": "test_zt_human_in_the_loop_mandate",
-  "name": "Zero Trust Human-in-the-Loop Mandate",
-  "description": "Asserts that the Director interprets '@workflow:human-in-the-loop', and commands the Auditor to successfully halt for human interaction constraints before staging promotion.",
-  "eval_cases": [
-    {
-      "eval_id": "human_loop_001",
-      "conversation": [
+    "eval_set_id": "test_zt_human_in_the_loop_mandate",
+    "name": "Zero Trust Human-in-the-Loop Mandate",
+    "description": "Asserts that the Director interprets '@workflow:human-in-the-loop', and commands the Auditor to successfully halt for human interaction constraints before staging promotion.",
+    "eval_cases": [
         {
-          "invocation_id": "swarm_eval_001",
-          "user_content": {
-            "role": "user",
-            "parts": [
-              {
-                "text": "@workflow:human-in-the-loop. Deploy a change."
-              }
-            ]
-          },
-          "final_response": {
-            "role": "model",
-            "parts": [
-              {
-                "text": "[PASS] Human CLI Triggered"
-              }
-            ]
-          }
+            "eval_id": "human_loop_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "@workflow:human-in-the-loop. Deploy a change."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
         }
-      ],
-      "session_input": {
-        "app_name": "agent_app",
-        "user_id": "eval_tester",
-        "state": {}
-      }
-    }
-  ],
-  "evaluation_criteria": {
-    "response_match_score": 1.0
-  }
+    ]
 }

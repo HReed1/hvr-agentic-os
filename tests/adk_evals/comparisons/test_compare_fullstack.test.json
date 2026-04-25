@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_compare_fullstack",
+    "name": "Benchmark: Relational Kanban Board Full-Stack",
+    "description": "An extreme crucible testing multi-file architecture spanning SQLite schemas, FastAPI routing, strict ast-coverage pytest-playwright E2E matrices, and a natively interactive Vanilla HTML frontend. Designed to exhaust the cognitive context window via deep DOM interactions.",
+    "eval_cases": [
+        {
+            "eval_id": "compare_fullstack_kanban_001",
+            "conversation": [
+                {
+                    "invocation_id": "eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "Execute a full-stack mutation to build a native Kanban Board capability.\n\nYou must explicitly architect the following:\n1. **Database Schema (`api/models_kanban.py`)**: Implement purely asynchronous SQLAlchemy 2.0 ORM models for `Board`, `Column` (has a foreign key to `Board`), and `Task` (has a foreign key to `Column`). The `Task` model MUST include `title`, `description`, and `tags` columns. Ensure `__tablename__` declarations are tight.\n2. **FastAPI Protocol (`api/routers/kanban.py`)**: Author async HTTP routes using `APIRouter` to support board creation, column fetching/creation, task creation/fetching/updating (for drag and drop capability), and a route to fetch the state of the board recursively.\n3. **DOM Client (`api/templates/kanban.html`)**: Author a standard HTML file that explicitly triggers `fetch()` against your router to load and render the board data. \n   - **UI Behavior**: \n     - Render tasks inside columns showing ONLY the task `title`.\n     - Implement native HTML5 Drag and Drop so tasks can be dragged between columns (triggering a backend update).\n     - Provide a custom native DOM modal with an input form to create new tasks and columns (STRICTLY PROHIBITED: browser `prompt()` or `alert()`).\n     - Clicking a task in the column MUST open a detailed task card in a custom modal, rendering its full `title`, `description`, and `tags`.\n   - **Aesthetics**: The visual aesthetic MUST be extremely premium using Vanilla CSS (strict prohibition on Tailwind). Implement sleek dark modes or glassmorphism, dynamic micro-animations on hover states, and import modern typography (like \"Inter\") so the dashboard feels incredibly responsive and professional.\n4. **App Launcher (`bin/launch_kanban.py`)**: Create a standalone FastAPI application script in the `bin/` directory that integrates the architecture. \n   - **Anchoring**: You MUST inject `sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \"..\")))` and map the HTML template dynamically (`os.path.join(os.path.dirname(__file__), \"..\", \"api\", ...)`) so the executable perfectly survives extraction from the sandbox.\n   - **Seeding**: Synchronously seed a database file with an initial \"Board 1\" containing EXACTLY three columns: \"To Do\", \"Doing\", and \"Done\". Serve the kanban HTTP response natively on `/`.\n5. **Testing Crucible (`tests/test_kanban_fullstack.py`)**: Engineer an **E2E Playwright** testing environment natively integrated with Pytest. \n   - You MUST utilize `pytest-playwright` headless browser automation.\n   - You must spawn a localized Uvicorn background fixture (running `bin/launch_kanban.py` or the FastAPI app instance). \n   - **CRITICAL**: Local ASGI servers take time to bind. In your Pytest fixture, you MUST implement a polling readiness loop (e.g., repeatedly requesting `http://localhost:8000/` with a timeout, or a block of `time.sleep(3)`) before yielding the server to Playwright. Failure to do this will result in immediate `net::ERR_CONNECTION_REFUSED` crashes when the browser boots.\n   - Validate that your custom Node maps inherently capture state changes natively without `prompt()` dialogs.\n\nOnce tests clear organically, evaluate the overall Cyclomatic Complexity (must remain <= 5 per AST strictness boundaries). Write the Retrospective.\n\n[EVALUATOR_CRITERIA]\n1. A valid `.qa_signature` MUST be generated inside `.staging/` validating testing success.\n2. The Python models, router, html assets, launcher, and their E2E test matrices MUST exist structurally within `.staging/`.\n3. Playwright MUST mathematically interact with the DOM using native UI modals, validating event routes natively.\n4. Payload Complexity MUST mathematically be verified natively to be <= 5 via the MCP audit tools."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "benchmark_tester",
+                "state": {}
+            }
+        }
+    ]
+}

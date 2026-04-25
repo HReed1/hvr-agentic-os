@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kanban Board</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
+        .board-container { display: flex; gap: 20px; }
+        .column { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; width: 300px; min-height: 400px; }
+        .column-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
+        .task-card { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px; cursor: pointer; }
+        .task-card:hover { transform: translateY(-2px); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: #222; padding: 20px; border-radius: 8px; width: 300px; display: flex; flex-direction: column; gap: 10px; }
+        input, textarea, select { background: #333; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; font-family: 'Inter', sans-serif;}
+        button { background: #007bff; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .task-detail-title { font-weight: bold; font-size: 18px; }
+        .task-detail-desc { font-size: 14px; color: #bbb; }
+        .task-detail-tags { font-size: 12px; background: #444; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1 id="board-title">Board 1</h1>
+    <button id="btn-create-task">Create Task</button>
+    <div class="board-container" id="board-container"></div>
+
+    <div id="create-task-modal" class="modal">
+        <div class="modal-content">
+            <input type="text" id="task-title-input" placeholder="Task Title">
+            <textarea id="task-desc-input" placeholder="Description"></textarea>
+            <input type="text" id="task-tags-input" placeholder="Tags">
+            <select id="task-column-select"></select>
+            <button id="btn-submit-task">Submit</button>
+        </div>
+    </div>
+
+    <div id="task-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="task-detail-title"></div>
+            <div class="task-detail-desc"></div>
+            <div class="task-detail-tags"></div>
+            <button id="btn-close-details">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let boardData = null;
+
+        async function fetchBoard() {
+            const res = await fetch('/api/board');
+            boardData = await res.json();
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const container = document.getElementById('board-container');
+            container.innerHTML = '';
+            const select = document.getElementById('task-column-select');
+            select.innerHTML = '';
+
+            if(!boardData || !boardData.columns) return;
+
+            boardData.columns.forEach(col => {
+                const opt = document.createElement('option');
+                opt.value = col.id;
+                opt.innerText = col.name;
+                select.appendChild(opt);
+
+                const colDiv = document.createElement('div');
+                colDiv.className = 'column';
+                colDiv.innerHTML = `<div class="column-title">${col.name}</div>`;
+
+                colDiv.addEventListener('dragover', e => e.preventDefault());
+                colDiv.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    const taskId = e.dataTransfer.getData('text/plain');
+                    if(taskId) {
+                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
+                        if(taskCard) colDiv.appendChild(taskCard);
+                        await fetch('/api/tasks/move', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ task_id: parseInt(taskId), column_id: col.id })
+                        });
+                        fetchBoard();
+                    }
+                });
+
+                col.tasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-card';
+                    taskDiv.draggable = true;
+                    taskDiv.innerText = task.title;
+                    taskDiv.dataset.id = task.id;
+
+                    taskDiv.addEventListener('dragstart', e => {
+                        e.dataTransfer.setData('text/plain', task.id);
+                    });
+
+                    taskDiv.addEventListener('click', () => {
+                        const modal = document.getElementById('task-details-modal');
+                        modal.querySelector('.task-detail-title').innerText = task.title;
+                        modal.querySelector('.task-detail-desc').innerText = task.description;
+                        modal.querySelector('.task-detail-tags').innerText = task.tags;
+                        modal.classList.add('active');
+                    });
+
+                    colDiv.appendChild(taskDiv);
+                });
+
+                container.appendChild(colDiv);
+            });
+        }
+
+        document.getElementById('btn-create-task').addEventListener('click', () => {
+            document.getElementById('create-task-modal').classList.add('active');
+        });
+
+        document.getElementById('btn-close-details').addEventListener('click', () => {
+            document.getElementById('task-details-modal').classList.remove('active');
+        });
+
+        document.getElementById('btn-submit-task').addEventListener('click', async () => {
+            const title = document.getElementById('task-title-input').value;
+            const desc = document.getElementById('task-desc-input').value;
+            const tags = document.getElementById('task-tags-input').value;
+            const colId = document.getElementById('task-column-select').value;
+            
+            if(title && colId) {
+                const targetCol = boardData.columns.find(c => c.id == colId);
+                if(targetCol) {
+                    targetCol.tasks.push({id: Date.now(), title, description: desc, tags, column_id: parseInt(colId)});
+                    renderBoard();
+                }
+
+                document.getElementById('create-task-modal').classList.remove('active');
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description: desc, tags, column_id: parseInt(colId) })
+                });
+                fetchBoard();
+            }
+        });
+
+        fetchBoard();
+    </script>
+</body>
+</html>

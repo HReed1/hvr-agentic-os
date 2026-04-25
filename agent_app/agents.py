@@ -14,37 +14,35 @@ from .config import (
     PRIMARY_PRO_MODEL, 
     PRIMARY_FLASH_MODEL,
     EXECUTOR_MCP_PATH,
+    AUDITOR_MCP_PATH,
     AST_VALIDATION_MCP_PATH,
-    AUDITOR_MCP_PATH
+    ADK_TRACE_MCP_PATH,
+    DIAGNOSTICS_MCP_PATH
 )
 import agent_app.zero_trust  # Binds monkeypatches and DLP proxies
 from .tools import (
     list_docs, read_doc, mark_system_complete, escalate_to_director,
-    approve_staging_qa, mark_qa_passed, write_retrospective, run_pipeline_diagnostics,
-    research_read_file, research_list_directory, write_eval_report, list_recent_retrospectives,
-    move_swarm_retrospective
+    write_retrospective, run_pipeline_diagnostics,
+    research_read_file, research_list_directory, write_eval_report
 )
 from .prompts import (
-    director_instruction, architect_instruction, executor_instruction,
+    director_instruction, executor_instruction,
     qa_instruction, auditor_instruction, reporter_instruction,
-    cicd_director_instruction, cicd_architect_instruction,
-    cicd_executor_instruction, cicd_qa_instruction, cicd_auditor_instruction,
     codebase_research_instruction, best_practices_research_instruction,
-    synthesis_instruction
+    synthesis_instruction, solo_instruction,
+    executor_instruction_provider, qa_instruction_provider,
+    solo_instruction_provider,
+    director_static_instruction, executor_static_instruction,
+    qa_static_instruction, auditor_static_instruction,
+    reporter_static_instruction, solo_static_instruction
 )
-from .rag import rag_tool
 
 # --- Swarm Agent Definitions ---
 
-director_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='director',
-    instruction=director_instruction,
-    tools=[list_docs, read_doc, mark_system_complete]
-)
+director_agent = None  # Forward declaration placeholder for recursive loops if needed
 
-architect_tools = [
-    list_docs, read_doc, approve_staging_qa, escalate_to_director,
+qa_tools = [
+    escalate_to_director,
     McpToolset(
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
@@ -52,15 +50,32 @@ architect_tools = [
                 args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
             )
         )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {DIAGNOSTICS_MCP_PATH}"]
+            )
+        )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"{sys.executable} {EXECUTOR_MCP_PATH}"]
+            )
+        )
     )
 ]
 
-architect_agent = LlmAgent(
+qa_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
-    name='architect',
-    instruction=architect_instruction,
+    name='qa_engineer',
+    static_instruction=qa_static_instruction,
+    instruction=qa_instruction_provider,
     before_tool_callback=zero_trust_callback,
-    tools=architect_tools
+    tools=qa_tools
 )
 
 executor_tools = [
@@ -74,68 +89,15 @@ executor_tools = [
         )
     )
 ]
-if rag_tool:
-    executor_tools.append(rag_tool)
 
 executor_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
+    model=PRIMARY_PRO_MODEL,
     name='executor',
-    instruction=executor_instruction,
+    static_instruction=executor_static_instruction,
+    instruction=executor_instruction_provider,
     before_tool_callback=zero_trust_callback,
-    tools=executor_tools
-)
-
-qa_tools = [
-    mark_qa_passed, escalate_to_director,
-    McpToolset(
-        connection_params=StdioConnectionParams(
-            server_params=StdioServerParameters(
-                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
-            )
-        )
-    )
-]
-if rag_tool:
-    qa_tools.append(rag_tool)
-
-qa_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='qa_engineer',
-    instruction=qa_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=qa_tools
-)
-
-cicd_director_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_director',
-    instruction=cicd_director_instruction,
-    tools=[run_pipeline_diagnostics, list_docs, read_doc, mark_system_complete]
-)
-
-cicd_architect_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_architect',
-    instruction=cicd_architect_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=architect_tools
-)
-
-cicd_executor_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='cicd_executor',
-    instruction=cicd_executor_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=executor_tools
-)
-
-cicd_qa_agent = LlmAgent(
-    model=PRIMARY_FLASH_MODEL,
-    name='cicd_qa_engineer',
-    instruction=cicd_qa_instruction,
-    before_tool_callback=zero_trust_callback,
-    tools=qa_tools
+    tools=executor_tools,
+    sub_agents=[qa_agent]
 )
 
 auditor_tools = [
@@ -143,7 +105,7 @@ auditor_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
+                args=["-target", f"{sys.executable} {AUDITOR_MCP_PATH}"]
             )
         )
     ),
@@ -151,7 +113,7 @@ auditor_tools = [
         connection_params=StdioConnectionParams(
             server_params=StdioServerParameters(
                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
-                args=["-target", f"{sys.executable} {AUDITOR_MCP_PATH}"]
+                args=["-target", f"{sys.executable} {AST_VALIDATION_MCP_PATH}"]
             )
         )
     ),
@@ -161,22 +123,27 @@ auditor_tools = [
 auditor_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='auditor',
-    instruction=auditor_instruction,
+    static_instruction=auditor_static_instruction,
+    instruction='',
     tools=auditor_tools
 )
 
 reporter_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='reporting_director',
-    instruction=reporter_instruction,
-    tools=[write_retrospective]
-)
-
-cicd_auditor_agent = LlmAgent(
-    model=PRIMARY_PRO_MODEL,
-    name='cicd_auditor',
-    instruction=cicd_auditor_instruction,
-    tools=auditor_tools
+    static_instruction=reporter_static_instruction,
+    instruction='',
+    tools=[
+        write_retrospective,
+        McpToolset(
+            connection_params=StdioConnectionParams(
+                server_params=StdioServerParameters(
+                    command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                    args=["-target", f"{sys.executable} {ADK_TRACE_MCP_PATH}"]
+                )
+            )
+        )
+    ]
 )
 
 codebase_research_agent = LlmAgent(
@@ -206,78 +173,123 @@ research_discovery_loop = SequentialAgent(
 )
 
 # --- ADK Orchestration Patterns ---
-development_loop = LoopAgent(
-    name="developer_qa_loop",
-    max_iterations=10,
-    sub_agents=[executor_agent, qa_agent]
+executor_loop = LoopAgent(
+    name="executor_loop",
+    max_iterations=15,
+    sub_agents=[executor_agent]
 )
 
-architectural_loop = LoopAgent(
-    name="architectural_loop",
-    max_iterations=10,
-    sub_agents=[architect_agent, development_loop]
+development_workflow = SequentialAgent(
+    name="development_workflow",
+    sub_agents=[executor_loop, auditor_agent]
 )
 
-cicd_development_loop = LoopAgent(
-    name="cicd_development_loop",
-    max_iterations=10,
-    sub_agents=[cicd_executor_agent, cicd_qa_agent]
-)
-
-cicd_architectural_loop = LoopAgent(
-    name="cicd_architectural_loop",
-    max_iterations=10,
-    sub_agents=[cicd_architect_agent, cicd_development_loop]
-)
-
-cicd_director_loop = LoopAgent(
-    name="cicd_director_loop",
-    max_iterations=10,
-    sub_agents=[cicd_director_agent, cicd_architectural_loop, cicd_auditor_agent]
-)
-
-cicd_reporter_instruction = """You are the CI/CD Reporting Director. You evaluate the execution trace of the CI/CD loop.
-Your sole job is to synthesize the testing remediation history into a formal markdown Retrospective Document.
-Use the `write_retrospective` tool to save your document. You must evaluate if it was a SUCCESS based on whether the Director outputted [SYSTEM COMPLETE]. 
-Once the file is written, output `[REPORT COMPLETE]`."""
-
-cicd_reporter_agent = LlmAgent(
+director_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
-    name='cicd_reporting_director',
-    instruction=cicd_reporter_instruction,
-    tools=[write_retrospective]
-)
-
-cicd_swarm = SequentialAgent(
-    name="cicd_swarm",
-    sub_agents=[cicd_director_loop, cicd_reporter_agent]
+    name='director',
+    static_instruction=director_static_instruction,
+    instruction='',
+    tools=[list_docs, read_doc, mark_system_complete],
+    sub_agents=[development_workflow]
 )
 
 director_loop = LoopAgent(
     name="director_loop",
-    max_iterations=10,
-    sub_agents=[director_agent, architectural_loop, auditor_agent]
+    max_iterations=5,
+    sub_agents=[director_agent]
 )
 
 autonomous_swarm = SequentialAgent(
     name="autonomous_swarm",
-    sub_agents=[director_loop, reporter_agent]
+    sub_agents=[director_loop]
 )
 
-evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
-You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
-CRITICAL PAYLOAD STRUCTURE: At the very end of the markdown content string you write to the file, you MUST explicitly output `**Result: [PASS]**` or `**Result: [FAIL]**`. 
-You MUST also use the `list_recent_retrospectives` tool to identify the retrospective generated by the Swarm during this evaluation run, and use the `move_swarm_retrospective` tool to route it into `docs/evals/retrospectives/`.
-After the file is written and the retrospective is moved, you MUST output exactly ONE word on its own line: either [PASS] or [FAIL]. Do not output anything else in your final response."""
+evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
+CRITICAL MANDATE: You MUST first read and adhere to the [Evaluator Governance Rule](file:///.agents/rules/evaluator-governance.md) and the [Evaluator Wrapup Workflow](file:///.agents/workflows/evaluator-wrapup.md) before performing your audit.
+CRITICAL RULE 1: You MUST invoke the `get_latest_adk_session` tool to retrieve the execution trace data. Since you are running in the same process as the swarm, the full history is already available in your session database. You cannot physically evaluate the system state without reading this history.
+CRITICAL RULE 2: You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
+You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. 
+BOUNDARY ENFORCEMENT: Your duty ends at reporting. YOU ARE FORBIDDEN from attempting physical workspace resets or git commands. Once `write_eval_report` returns successfully, cleanly conclude your execution by exclusively outputting the text `[EVALUATION COMPLETE]` to hand control to the system automation."""
+
+evaluator_tools = [
+     write_eval_report,
+     McpToolset(
+         connection_params=StdioConnectionParams(
+             server_params=StdioServerParameters(
+                 command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                 args=["-target", f"{sys.executable} {ADK_TRACE_MCP_PATH}"]
+             )
+         )
+     )
+]
 
 evaluator_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
     name='meta_evaluator',
     instruction=evaluator_instruction,
-    tools=[write_eval_report, list_recent_retrospectives, move_swarm_retrospective]
+    tools=evaluator_tools
 )
 
-evaluation_swarm = SequentialAgent(
-    name="evaluation_wrapper",
-    sub_agents=[autonomous_swarm, evaluator_agent]
+evaluator_loop = LoopAgent(
+    name="evaluator_loop",
+    max_iterations=1,
+    sub_agents=[evaluator_agent]
 )
+
+
+# --- Solo Testing Framework ---
+
+solo_tools = [
+    write_retrospective,
+    get_user_choice,
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {EXECUTOR_MCP_PATH}"]
+            )
+        )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {AUDITOR_MCP_PATH}"]
+            )
+        )
+    ),
+    McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command=os.path.join(BASE_DIR, "bin", "dlp-firewall"),
+                args=["-target", f"env ADK_SWARM_MODE=solo {sys.executable} {AST_VALIDATION_MCP_PATH}"]
+            )
+        )
+    )
+]
+
+solo_agent = LlmAgent(
+    model=PRIMARY_PRO_MODEL,
+    name='solo_agent',
+    static_instruction=solo_static_instruction,
+    instruction=solo_instruction_provider,
+    tools=solo_tools
+)
+
+solo_loop = LoopAgent(
+    name="solo_loop",
+    max_iterations=25,
+    sub_agents=[solo_agent]
+)
+
+swarm_mode = os.environ.get("ADK_SWARM_MODE", "").lower()
+if swarm_mode == "solo":
+    evaluation_swarm = SequentialAgent(
+        name="evaluation_wrapper",
+        sub_agents=[solo_loop, evaluator_loop]
+    )
+else:
+    evaluation_swarm = SequentialAgent(
+        name="evaluation_wrapper",
+        sub_agents=[autonomous_swarm, reporter_agent, evaluator_loop]
+    )

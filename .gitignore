@@ -1,4 +1,13 @@
 agent_app/.adk/
 .env
 __pycache__/
+agent_app/__pycache__/*
 venv/
+*.pyc
+.staging/
+.agents/memory/staging_key.txt
+*.DS_Store
+*.qa_signature
+.primed
+.lock_mutex
+head_to_head.txt

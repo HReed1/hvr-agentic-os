@@ -33,6 +33,28 @@ def sanitize_filename(name):
     s = str(name).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
 
+def _extract_zip_contents(z: zipfile.ZipFile, doc_dir: str) -> str:
+    html_content = None
+    for file_info in z.infolist():
+        if file_info.filename.endswith('.html'):
+            html_content = z.read(file_info).decode('utf-8')
+        elif file_info.filename.startswith('images/'):
+            z.extract(file_info, path=doc_dir)
+    return html_content
+
+def _convert_html_to_markdown(html_content: str) -> str:
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    for element in soup(["style", "script"]):
+        element.decompose()
+        
+    for a in soup.find_all('a'):
+        if not a.get('href') or a.get('href').startswith('#'):
+            a.unwrap()
+            
+    markdown_text = md(str(soup), heading_style="ATX", escape_asterisks=False, bullets="-")
+    return re.sub(r'\n{3,}', '\n\n', markdown_text).strip()
+
 def export_gdoc_to_markdown(service, file_id, file_name, output_base_dir):
     """
     Downloads a Google Doc as a Zip (HTML + localized images),
@@ -41,13 +63,10 @@ def export_gdoc_to_markdown(service, file_id, file_name, output_base_dir):
     safe_name = sanitize_filename(file_name)
     doc_dir = os.path.join(output_base_dir, safe_name)
     os.makedirs(doc_dir, exist_ok=True)
-    images_dir = os.path.join(doc_dir, 'images')
     
     print(f"\n[*] Exporting '{file_name}' ({file_id})...")
     
-    # 1. Request the Zip archive of the document Web-Page view
     request = service.files().export_media(fileId=file_id, mimeType='application/zip')
-    
     fh = io.BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
     done = False
@@ -57,35 +76,15 @@ def export_gdoc_to_markdown(service, file_id, file_name, output_base_dir):
     print(f"[-] Successfully downloaded stream. Extracting assets...")
     fh.seek(0)
     
-    html_content = None
-    
-    # 2. Extract contents directly to the designated document folder
     with zipfile.ZipFile(fh, 'r') as z:
-        for file_info in z.infolist():
-            if file_info.filename.endswith('.html'):
-                html_content = z.read(file_info).decode('utf-8')
-            elif file_info.filename.startswith('images/'):
-                # Write the image to the local images directory
-                z.extract(file_info, path=doc_dir)
+        html_content = _extract_zip_contents(z, doc_dir)
 
     if not html_content:
         print(f"[!] Warning: No HTML content found in export pipeline for {file_name}.")
         return
 
-    # 3. Clean and convert to Markdown
     print(f"[-] Compiling layout and mappings to Markdown format...")
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # Prevent table of contents links from looking ugly by removing their anchors
-    for a in soup.find_all('a'):
-        if not a.get('href') or a.get('href').startswith('#'):
-            a.unwrap()
-            
-    # Markdownify will natively map '<img src="images/XXX">' to '![...](images/XXX)'
-    markdown_text = md(str(soup), heading_style="ATX", escape_asterisks=False, bullets="-")
-    
-    # Strip excessive newlines inserted by Google Docs blocks
-    markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text).strip()
+    markdown_text = _convert_html_to_markdown(html_content)
     
     output_md_path = os.path.join(doc_dir, f"{safe_name}.md")
     with open(output_md_path, 'w') as f:
@@ -99,7 +98,6 @@ def process_folder(folder_id, output_dir):
     service = get_drive_service()
     
     try:
-        # List all Google Docs inside the target folder
         query = f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.document' and trashed=false"
         results = service.files().list(q=query, spaces='drive', fields='nextPageToken, files(id, name)').execute()
         items = results.get('files', [])
@@ -109,9 +107,9 @@ def process_folder(folder_id, output_dir):
             return
 
         print(f"Found {len(items)} Google Docs for Research extraction pipeline.")
-        
         for item in items:
             export_gdoc_to_markdown(service, item['id'], item['name'], output_dir)
+            
     except HttpError as e:
         if e.status_code == 403 and "insufficient authentication scopes" in str(e).lower():
             print("\n[!] FATAL: Your Application Default Credentials lack Google Drive access scopes.")
@@ -133,32 +131,16 @@ def process_offline_zip(zip_path, output_dir):
     os.makedirs(doc_dir, exist_ok=True)
     
     print(f"\n[*] Processing offline extract '{base_name}'...")
-    html_content = None
     
     with zipfile.ZipFile(zip_path, 'r') as z:
-        for file_info in z.infolist():
-            if file_info.filename.endswith('.html'):
-                html_content = z.read(file_info).decode('utf-8')
-            elif file_info.filename.startswith('images/'):
-                z.extract(file_info, path=doc_dir)
+        html_content = _extract_zip_contents(z, doc_dir)
 
     if not html_content:
         print(f"[!] Warning: No HTML content found inside offline zip {base_name}.")
         return
 
     print(f"[-] Compiling layout and mappings to Markdown format...")
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # Strip any massive CSS blocks Google embeds in the <head>
-    for element in soup(["style", "script"]):
-        element.decompose()
-        
-    for a in soup.find_all('a'):
-        if not a.get('href') or a.get('href').startswith('#'):
-            a.unwrap()
-            
-    markdown_text = md(str(soup), heading_style="ATX", escape_asterisks=False, bullets="-")
-    markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text).strip()
+    markdown_text = _convert_html_to_markdown(html_content)
     
     output_md_path = os.path.join(doc_dir, f"{safe_name}.md")
     with open(output_md_path, 'w') as f:

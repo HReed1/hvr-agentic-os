@@ -30,6 +30,23 @@ TEST_RUNNER_PATTERNS = [
 EXECUTOR_AGENT_NAMES = {'executor', 'cicd_executor'}
 
 
+def _enforce_sandbox_blacklist(command: str):
+    for pattern in BLACKLIST_PATTERNS:
+        if pattern.search(command):
+            logger.error(f"BLOCKED: Destructive command intercepted: {command}")
+            raise PermissionError(f"Zero-Trust Block: Command matches destructive signature: {pattern.pattern}")
+
+def _enforce_executor_airgap(command: str, agent_name: str):
+    if agent_name in EXECUTOR_AGENT_NAMES:
+        for pattern in TEST_RUNNER_PATTERNS:
+            if pattern.search(command):
+                logger.error(f"BLOCKED: Executor attempted test execution via sandbox: {command}")
+                raise PermissionError(
+                    f"Zero-Trust Block: The executor is air-gapped from test execution. "
+                    f"Command '{command}' matches test-runner signature: {pattern.pattern}. "
+                    f"Output [TASK COMPLETE] and let the QA Engineer handle testing."
+                )
+
 def zero_trust_callback(tool=None, args=None, tool_context=None, **kwargs):
     """
     Validates tool execution against Zero-Trust policies natively.
@@ -39,32 +56,17 @@ def zero_trust_callback(tool=None, args=None, tool_context=None, **kwargs):
     tool_args = args or {}
     logger.info(f"Zero-Trust Policy Check: Intercepting tool {tool_name} with args: {tool_args}")
 
-    # Resolve calling agent name from ADK tool_context
+    # Resolve calling agent name
     agent_name = None
     if tool_context is not None:
         agent_name = getattr(tool_context, 'agent_name', None) or getattr(
             getattr(tool_context, 'agent', None), 'name', None
         )
 
-    # Catch destructive or unauthorized bash operations executed inside the Docker Sandbox
+    # Filter operations natively via decoupled sub-handlers
     if tool_name == "execute_transient_docker_sandbox":
         command = tool_args.get("command", "")
-        for pattern in BLACKLIST_PATTERNS:
-            if pattern.search(command):
-                logger.error(f"BLOCKED: Destructive command intercepted: {command}")
-                raise PermissionError(f"Zero-Trust Block: Command matches destructive signature: {pattern.pattern}")
+        _enforce_sandbox_blacklist(command)
+        _enforce_executor_airgap(command, agent_name)
 
-        # Air-gap: Executor agents are physically forbidden from running test suites
-        # through the docker sandbox. Tests must flow through the QA Engineer.
-        if agent_name in EXECUTOR_AGENT_NAMES:
-            for pattern in TEST_RUNNER_PATTERNS:
-                if pattern.search(command):
-                    logger.error(f"BLOCKED: Executor attempted test execution via sandbox: {command}")
-                    raise PermissionError(
-                        f"Zero-Trust Block: The executor is air-gapped from test execution. "
-                        f"Command '{command}' matches test-runner signature: {pattern.pattern}. "
-                        f"Output [TASK COMPLETE] and let the QA Engineer handle testing."
-                    )
-
-    # Allow execution natively
     return None

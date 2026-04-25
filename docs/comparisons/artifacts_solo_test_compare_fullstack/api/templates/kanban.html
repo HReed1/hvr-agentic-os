@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        h1 { margin-bottom: 20px; text-align: center; font-weight: 600; }
+        .board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            align-items: flex-start;
+        }
+        .column {
+            background-color: #1e293b;
+            border-radius: 8px;
+            width: 300px;
+            min-width: 300px;
+            padding: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        .column-header {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .task-list {
+            min-height: 50px;
+            background-color: #0f172a;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .task {
+            background-color: #334155;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+        }
+        .task:active {
+            cursor: grabbing;
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        .btn:hover { background-color: #2563eb; }
+        .btn-small { padding: 4px 8px; font-size: 0.8rem; }
+        
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal {
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal h2 { margin-top: 0; font-size: 1.5rem; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #f8fafc;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background-color: #64748b; }
+        .btn-cancel:hover { background-color: #475569; }
+        
+        .tags-display {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Kanban Board</h1>
+    <div style="margin-bottom: 20px; padding: 0 20px;">
+        <button class="btn" id="btnAddColumn">Add Column</button>
+    </div>
+    
+    <div class="board" id="board"></div>
+
+    <div class="modal-overlay" id="modalColumn">
+        <div class="modal">
+            <h2>New Column</h2>
+            <div class="form-group">
+                <label>Column Name</label>
+                <input type="text" id="colNameInput" class="form-control" data-testid="col-name-input">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal('modalColumn')">Cancel</button>
+                <button class="btn" id="saveColumnBtn" data-testid="save-col-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalTask">
+        <div class="modal">
+            <h2>New Task</h2>
+            <input type="hidden" id="taskColumnId">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="taskTitleInput" class="form-control" data-testid="task-title-input">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDescInput" class="form-control" data-testid="task-desc-input"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags</label>
+                <input type="text" id="taskTagsInput" class="form-control" data-testid="task-tags-input">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal('modalTask')">Cancel</button>
+                <button class="btn" id="saveTaskBtn" data-testid="save-task-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalTaskDetail">
+        <div class="modal">
+            <h2 id="detailTitle" data-testid="detail-title"></h2>
+            <div class="form-group">
+                <strong>Description:</strong>
+                <p id="detailDesc" data-testid="detail-desc"></p>
+            </div>
+            <div class="form-group">
+                <strong>Tags:</strong>
+                <p id="detailTags" class="tags-display" data-testid="detail-tags"></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal('modalTaskDetail')" data-testid="close-detail-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_ID = 1;
+        
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        document.getElementById('btnAddColumn').addEventListener('click', () => {
+            document.getElementById('colNameInput').value = '';
+            openModal('modalColumn');
+        });
+        
+        document.getElementById('saveColumnBtn').addEventListener('click', async () => {
+            const name = document.getElementById('colNameInput').value;
+            if (!name) return;
+            await fetch('/api/kanban/columns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, board_id: BOARD_ID })
+            });
+            closeModal('modalColumn');
+            await renderBoard();
+        });
+
+        document.getElementById('saveTaskBtn').addEventListener('click', async () => {
+            const title = document.getElementById('taskTitleInput').value;
+            const description = document.getElementById('taskDescInput').value;
+            const tags = document.getElementById('taskTagsInput').value;
+            const column_id = parseInt(document.getElementById('taskColumnId').value);
+            
+            if (!title) return;
+            
+            await fetch('/api/kanban/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description, tags, column_id })
+            });
+            
+            closeModal('modalTask');
+            await renderBoard();
+        });
+
+        async function renderBoard() {
+            const res = await fetch(`/api/kanban/boards/${BOARD_ID}`);
+            const data = await res.json();
+            const boardContainer = document.getElementById('board');
+            boardContainer.innerHTML = '';
+            
+            if (data.error) return;
+            
+            data.columns.forEach(col => {
+                const colEl = document.createElement('div');
+                colEl.className = 'column';
+                colEl.innerHTML = `
+                    <div class="column-header">
+                        <span>${escapeHtml(col.name)}</span>
+                        <button class="btn btn-small" data-colid="${col.id}">+</button>
+                    </div>
+                    <div class="task-list" data-colid="${col.id}" data-testid="task-list-${col.id}"></div>
+                `;
+                
+                const taskListEl = colEl.querySelector('.task-list');
+                
+                taskListEl.addEventListener('dragover', e => {
+                    e.preventDefault();
+                });
+                taskListEl.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    const taskId = e.dataTransfer.getData('text/plain');
+                    const targetColId = col.id;
+                    
+                    const taskEl = document.getElementById(`task-${taskId}`);
+                    if (taskEl && taskEl.parentElement !== taskListEl) {
+                        taskListEl.appendChild(taskEl);
+                        await fetch(`/api/kanban/tasks/${taskId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ column_id: targetColId })
+                        });
+                    }
+                });
+
+                col.tasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task';
+                    taskEl.draggable = true;
+                    taskEl.id = `task-${task.id}`;
+                    taskEl.setAttribute('data-testid', `task-${task.id}`);
+                    taskEl.textContent = task.title;
+                    
+                    taskEl.addEventListener('dragstart', e => {
+                        e.dataTransfer.setData('text/plain', task.id);
+                    });
+                    
+                    taskEl.addEventListener('click', () => {
+                        document.getElementById('detailTitle').textContent = task.title;
+                        document.getElementById('detailDesc').textContent = task.description || 'No description';
+                        document.getElementById('detailTags').textContent = task.tags || 'No tags';
+                        openModal('modalTaskDetail');
+                    });
+                    
+                    taskListEl.appendChild(taskEl);
+                });
+                
+                colEl.querySelector('button').addEventListener('click', () => {
+                    document.getElementById('taskTitleInput').value = '';
+                    document.getElementById('taskDescInput').value = '';
+                    document.getElementById('taskTagsInput').value = '';
+                    document.getElementById('taskColumnId').value = col.id;
+                    openModal('modalTask');
+                });
+                
+                boardContainer.appendChild(colEl);
+            });
+        }
+        
+        function escapeHtml(unsafe) {
+            return String(unsafe)
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        window.onload = renderBoard;
+    </script>
+</body>
+</html>

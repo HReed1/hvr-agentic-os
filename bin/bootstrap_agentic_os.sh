@@ -58,6 +58,10 @@ else
     echo "Skipped: tests/test_baseline.py already exists."
 fi
 
+# 7. Project Workspaces
+mkdir -p src api core etl infrastructure
+echo "Created src/, api/, core/, etl/, and infrastructure/ canonical output directories."
+
 echo "================================================="
 echo "[SUCCESS] Zero-Trust Operating System Bootstrapped."
 echo "You may now configure your .env file and wake up the Swarm."

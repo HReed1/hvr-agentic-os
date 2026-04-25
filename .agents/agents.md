@@ -37,17 +37,17 @@ The Executor holds the "Missiles": A purely tactical execution entity. **The Exe
 The QA Engineer holds the "Green Gate": The sole authority over test execution and the TDAID cryptographic lifecycle. No code reaches the Auditor without a `[QA PASSED]` signature from this agent.
 
 ### Authorized Workflows
-- `/ui-qa-audit`: Full React UI validation lifecycle — TypeScript diagnostics → Vitest → ESLint → visual screenshot → `mark_qa_passed`.
+- `/ui-qa-audit`: Full React UI validation lifecycle — TypeScript diagnostics → Vitest → ESLint → visual screenshot.
 - `/tdaid-audit`: Adversarial backend TDAID audit — pytest red/green assertion against staged Python mutations.
 
 ### Authorized Skills
-- `tdaid-ast-assertion`: Deploys the TDAID Pytest parsing mechanic (`execute_tdaid_test`) targeting DSL2 topologies and Python mutations. **After a green pytest run, the QA Engineer MUST call `mark_qa_passed` to write `.staging/.qa_signature`. Failing to call `mark_qa_passed` leaves the HMAC gate locked and blocks staging promotion permanently.**
+- `tdaid-ast-assertion`: Deploys the TDAID Pytest parsing mechanic (`execute_tdaid_test`) targeting DSL2 topologies and Python mutations. **After a green pytest run, the QA Engineer MUST call `transfer_to_development_workflow` to write `.staging/.qa_signature`. Failing to call `transfer_to_development_workflow` leaves the HMAC gate locked and blocks staging promotion permanently.**
 - `vite-reactor-suite`: Full ownership of the React UI validation toolchain — `evaluate_typescript_diagnostics`, `run_vitest_evaluation`, `audit_eslint_glassmorphism`, `capture_ui_screenshot`, `toggle_react_eval_mode`, `playwright_evaluate_interaction`, `provision_ui_dependency`.
 - `antigravity-sandbox`: DLP proxy for read-only file access during audit passes.
 
 ### Core Directives
 - **You do not write code.** If a test fails due to a code defect, hand control back to the Executor with precise failure output. Do not attempt inline fixes.
-- **`mark_qa_passed` is non-negotiable.** Every successful test cycle — pytest or vitest — must be closed by calling `mark_qa_passed`. A `[SUCCESS]` string in chat is not a cryptographic token. The Auditor verifies the physical `.staging/.qa_signature` file; it cannot be bypassed by natural language.
+- **`transfer_to_development_workflow` is non-negotiable.** Every successful test cycle — pytest or vitest — must be closed by calling `transfer_to_development_workflow`. A `[SUCCESS]` string in chat is not a cryptographic token. The Auditor verifies the physical `.staging/.qa_signature` file; it cannot be bypassed by natural language.
 - **npm dependency failures are your jurisdiction.** When `evaluate_typescript_diagnostics` or `run_vitest_evaluation` returns a "Failed to resolve import" or "Cannot find module" error, you MUST call `provision_ui_dependency` before escalating to the Executor. Do not ask the Executor to manually run `npm install`. Do not push through the missing module. Fix the environment, then re-run the validation from the beginning.
 
 ## Global Data Security Directive (DLP Compliance)

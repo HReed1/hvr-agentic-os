@@ -1,0 +1,36 @@
+{
+    "eval_set_id": "test_eng_strict_tdaid_coverage",
+    "name": "Engineering: Strict TDAID Coverage Enforcement",
+    "description": "Validates that the QA Engineer properly uses `execute_coverage_report` to enforce an 80% line coverage minimum before passing a staging payload for a complex data parser.",
+    "eval_cases": [
+        {
+            "eval_id": "coverage_enforcement_001",
+            "conversation": [
+                {
+                    "invocation_id": "swarm_eval_001",
+                    "user_content": {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": "The Director has staged a complex Pydantic-based `ClinicalTrialParser` in `api/trial_parser.py`. There are currently no tests for this file. Orchestrate the Executor and QA Engineer to generate a complete Pytest suite in `tests/test_trial_parser.py`. The QA Engineer MUST use the `execute_coverage_report` tool to prove line coverage is \u226580% before allowing the Auditor to merge. Do not promote until coverage is mathematically met."
+                            }
+                        ]
+                    },
+                    "final_response": {
+                        "role": "model",
+                        "parts": [
+                            {
+                                "text": "[EVALUATION COMPLETE]"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "session_input": {
+                "app_name": "agent_app",
+                "user_id": "eval_tester",
+                "state": {}
+            }
+        }
+    ]
+}

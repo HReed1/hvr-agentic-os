@@ -37,7 +37,8 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         try:
             with open(latest_file, 'r') as f:
                 data = json.load(f)
-                return _format_events(data[-max_events:])
+                events = data.get('events', []) if isinstance(data, dict) else data
+                return _format_events(events[-max_events:])
         except Exception as e:
             return f"Error reading JSON export: {str(e)}"
 
@@ -47,12 +48,21 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
         cursor = conn.cursor()
 
         if not session_id:
-            cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1;")
+            # Query for an explicit evaltrace_ first (which handles Meta-Evaluator use cases
+            # without relying on ADK_SWARM_MODE env vars surviving the DLP-firewall boundaries).
+            cursor.execute("SELECT id FROM sessions WHERE id LIKE 'evaltrace_%' ORDER BY create_time DESC LIMIT 1;")
             row = cursor.fetchone()
+            
+            if not row:
+                # Fallback to standard sessions if no evaltraces exist
+                cursor.execute("SELECT id FROM sessions ORDER BY create_time DESC LIMIT 1;")
+                row = cursor.fetchone()
+                
             if not row:
                 return "No sessions found in database."
             session_id = row['id']
-
+            
+        # Optional safeguard for trace reader: double check if the session is empty
         cursor.execute("SELECT event_data FROM events WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
         rows = cursor.fetchall()
 
@@ -76,20 +86,33 @@ def get_latest_adk_session(max_events: int = 50, session_id: Optional[str] = Non
 
 def _format_events(events) -> str:
     lines = []
-    for event in events:
+    for idx, event in enumerate(events, 1):
         if not isinstance(event, dict):
-            lines.append(f"**[System]**: [Raw Data]\n{str(event)[:200]}\n")
+            lines.append(f"**(Node #{idx}) [System]**: [Raw Data]\n{str(event)[:200]}\n")
             continue
             
         author = event.get('author') or 'System'
-        content = event.get('content')
+        content = event.get('content') or {}
+        actions = event.get('actions') or {}
+        
         if not isinstance(content, dict):
             content = {}
             
-        role = content.get('role') or 'unknown'
-        parts = content.get('parts')
+        role = content.get('role', 'unknown')
+        parts = content.get('parts', [])
         if not isinstance(parts, list):
             parts = []
+            
+        action_str = ""
+        if isinstance(actions, dict) and actions:
+            action_parts = []
+            for k, v in actions.items():
+                if v: # Highlight truthy graph transformations like escalate=True
+                    action_parts.append(f"{k}={v}")
+            if action_parts:
+                action_str = f" [ACTIONS: {', '.join(action_parts)}]"
+
+        header = f"**(Node #{idx}) [{author}] ({role}){action_str}**"
         
         for part in parts:
             if not isinstance(part, dict):
@@ -97,25 +120,24 @@ def _format_events(events) -> str:
                 
             if 'text' in part and isinstance(part['text'], str):
                 text = part['text'].strip()
-                # Truncate overly long text (base64, giant logs)
                 if len(text) > 2000:
                     text = text[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-                lines.append(f"**[{author}] ({role})**:\n{text}\n")
+                lines.append(f"{header}:\n{text}\n")
             elif 'function_call' in part or 'functionCall' in part:
                 fc = part.get('function_call') or part.get('functionCall') or {}
                 name = fc.get('name', 'unknown_tool')
                 args = json.dumps(fc.get('args', {}), indent=2)
-                lines.append(f"**[{author}] ({role})** called tool `{name}`:\n```json\n{args}\n```\n")
+                lines.append(f"{header} called tool `{name}`:\n```json\n{args}\n```\n")
             elif 'function_response' in part or 'functionResponse' in part:
                 fr = part.get('function_response') or part.get('functionResponse') or {}
                 name = fr.get('name', 'unknown_tool')
-                resp = fr.get('response', {})
-                resp_str = json.dumps(resp, indent=2)
+                resp_str = json.dumps(fr.get('response', {}), indent=2)
                 if len(resp_str) > 2000:
                     resp_str = resp_str[:2000] + "\n...[TRUNCATED_FOR_LENGTH]"
-                lines.append(f"**[{author}] ({role})** response from `{name}`:\n```json\n{resp_str}\n```\n")
+                lines.append(f"{header} response from `{name}`:\n```json\n{resp_str}\n```\n")
             else:
-                lines.append(f"**[{author}] ({role})**: [Unknown Content Type]\n{json.dumps(part)[:200]}\n")
+                lines.append(f"{header}: [Unknown Content Type]\n{json.dumps(part)[:200]}\n")
+                
     return "\n".join(lines)
 
 import subprocess
@@ -192,6 +214,70 @@ def generate_global_scorecard() -> str:
         return f"Successfully ran script, but scorecard artifact was missing.\nSTDOUT:\n{result.stdout}"
     except Exception as e:
         return f"Error executing global eval report generator: {str(e)}"
+
+@mcp.tool()
+def import_eval_traces() -> str:
+    """
+    Parses evaluating JSON matrices natively from .adk/eval_history and imports 
+    them structurally into the standard SQLite ADK Database without EVAL masks.
+    This seamlessly bridges headless telemetry arrays directly into the React GUI.
+    """
+    script_path = os.path.join(project_root, "bin", "adk-trace-importer.py")
+    if not os.path.exists(script_path):
+        return f"Error: Trace importer script not found at {script_path}"
+        
+    try:
+        result = subprocess.run(
+            [sys.executable, script_path],
+            capture_output=True,
+            text=True,
+            cwd=project_root
+        )
+        
+        if result.returncode == 0:
+            return f"Successfully unlocked headless JSON traces into the session UI.\n\nSTDOUT:\n{result.stdout}"
+        else:
+            return f"Failed to unlock evaluation traces. Error:\nSTDERR: {result.stderr}\nSTDOUT: {result.stdout}"
+            
+    except Exception as e:
+        return f"Error executing trace importer: {str(e)}"
+
+@mcp.tool()
+def read_eval_json_trace(file_path: Optional[str] = None, max_events: int = 50) -> str:
+    """
+    Parses an ADK evaluation JSON trace natively without requiring SQLite extraction.
+    If file_path is omitted, it automatically resolves to the latest .json file inside agent_app/.adk/eval_history/.
+    Returns a formatted markdown timeline of the Swarm's step-by-step execution.
+    """
+    if not file_path:
+        import glob
+        eval_dir = os.path.join(project_root, "agent_app", ".adk", "eval_history")
+        json_files = glob.glob(os.path.join(eval_dir, "*.json"))
+        if not json_files:
+            return f"Error: No evaluation files found in {eval_dir}"
+        file_path = max(json_files, key=os.path.getctime)
+        
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        events = []
+        for case in data.get("eval_case_results", []):
+            for inv in case.get("eval_metric_result_per_invocation", []):
+                events.extend(inv.get("actual_invocation", {}).get("intermediate_data", {}).get("invocation_events", []))
+                
+        if not events:
+            return f"Error: No trace events found inside the evaluation JSON at {file_path}"
+            
+        recent_events = events[-max_events:] if len(events) > max_events else events
+        
+        output = [f"### Evaluator JSON Trace ({os.path.basename(file_path)})"]
+        output.append(f"Total events in evaluation: {len(events)}. Showing last {len(recent_events)}.\n")
+        output.append(_format_events(recent_events))
+        
+        return "\n".join(output)
+    except Exception as e:
+        return f"Error reading evaluation trace JSON: {str(e)}"
 
 if __name__ == "__main__":
     mcp.run()

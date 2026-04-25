@@ -9,7 +9,7 @@ description: An explicit Human-in-the-Loop workflow requiring the Director to ma
 ## Workflow Execution Steps
 
 1. **Director Orchestration**: The Director natively interprets that the user's objective requires a "Human in the Loop". The Director MUST explicitly encode this requirement into its standard directive explicitly so the downstream Auditor understands it must fetch authorization at the end of the line. (e.g., `"[@auditor]: You must fetch human approval before deploying this payload."`)
-2. **Standard Staging**: The Executor and QA Engineer author and validate the structural files exactly as instructed inside the `.staging/` airspace, securely triggering the `approve_staging_qa` tool.
+2. **Standard Staging**: The Executor and QA Engineer author and validate the structural files exactly as instructed inside the `.staging/` airspace, securely natively resolving tests.
 3. **Auditor Interception**: The Auditor assesses the `.staging/` airspace natively using the `AUDITOR_MCP_PATH` tools to establish its baseline safety constraints.
 4. **Tool Escalation**: Upon verifying the changes are safe, because the Director explicitly broadcasted a Human-In-The-Loop requirement, the Auditor MUST natively execute the `get_user_choice` tool. This physically halts execution and prompts the CLI user with custom deterministic query strings (e.g., `["Approve Deployment", "Reject changes", "Teardown staging"]`).
 5. **Disposition**:

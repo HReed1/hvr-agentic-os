@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanban</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    
+    :root {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface-hover: #334155;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #3b82f6;
+        --radius: 8px;
+    }
+    
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        overflow-x: auto;
+    }
+    
+    header {
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--surface);
+    }
+    
+    h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-weight: 500;
+        transition: opacity 0.2s;
+    }
+    button:hover {
+        opacity: 0.9;
+    }
+    
+    .board {
+        display: flex;
+        padding: 40px;
+        gap: 24px;
+        align-items: flex-start;
+    }
+    
+    .column {
+        background: var(--surface);
+        border-radius: var(--radius);
+        width: 320px;
+        min-width: 320px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+    }
+    
+    .task-list {
+        min-height: 50px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .task {
+        background: var(--bg);
+        padding: 12px;
+        border-radius: var(--radius);
+        cursor: grab;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .task:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+    
+    .task:active {
+        cursor: grabbing;
+    }
+    
+    /* Modals */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .modal {
+        background: var(--surface);
+        padding: 32px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+    }
+    
+    .modal h2 { margin: 0; }
+    .modal input, .modal textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--surface-hover);
+        background: var(--bg);
+        color: var(--text);
+        box-sizing: border-box;
+    }
+    
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--surface-hover);
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Kanban</h1>
+    <button onclick="openModal('addColumnModal')">+ Add Column</button>
+</header>
+
+<div class="board" id="board">
+    <!-- Columns render here -->
+</div>
+
+<!-- Add Column Modal -->
+<div class="modal-overlay" id="addColumnModal">
+    <div class="modal">
+        <h2>New Column</h2>
+        <input type="text" id="newColumnName" placeholder="Column Name">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('addColumnModal')">Cancel</button>
+            <button onclick="createColumn()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="addTaskModal">
+    <div class="modal">
+        <h2>New Task</h2>
+        <input type="hidden" id="taskColumnId">
+        <input type="text" id="newTaskTitle" placeholder="Task Title">
+        <textarea id="newTaskDesc" placeholder="Description"></textarea>
+        <input type="text" id="newTaskTags" placeholder="Tags (comma separated)">
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('addTaskModal')">Cancel</button>
+            <button id="create-task-btn" onclick="createTask()">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Task Modal -->
+<div class="modal-overlay" id="viewTaskModal">
+    <div class="modal">
+        <h2 id="viewTaskTitle">Task</h2>
+        <p id="viewTaskDesc"></p>
+        <p><small id="viewTaskTags" style="color: var(--primary)"></small></p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal('viewTaskModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentBoardId = 1;
+
+    async function loadBoard() {
+        const res = await fetch(`/api/boards/${currentBoardId}`);
+        if (!res.ok) {
+            console.error("Board not found");
+            return;
+        }
+        const board = await res.json();
+        renderBoard(board);
+    }
+
+    function renderBoard(board) {
+        const boardDiv = document.getElementById('board');
+        boardDiv.innerHTML = '';
+        board.columns.forEach(col => {
+            const colDiv = document.createElement('div');
+            colDiv.className = 'column';
+            colDiv.innerHTML = `
+                <div class="column-header">
+                    <span>${col.name}</span>
+                    <button class="add-task-btn" onclick="openAddTaskModal(${col.id})">+</button>
+                </div>
+                <div class="task-list" ondragover="allowDrop(event)" ondrop="drop(event, ${col.id})">
+                    ${col.tasks.map(t => `
+                        <div class="task" draggable="true" ondragstart="drag(event, ${t.id})" onclick="viewTask(${t.id})">
+                            ${t.title}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            boardDiv.appendChild(colDiv);
+        });
+    }
+
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function openAddTaskModal(colId) {
+        document.getElementById('taskColumnId').value = colId;
+        document.getElementById('newTaskTitle').value = '';
+        document.getElementById('newTaskDesc').value = '';
+        document.getElementById('newTaskTags').value = '';
+        openModal('addTaskModal');
+    }
+
+    async function createColumn() {
+        const name = document.getElementById('newColumnName').value;
+        if (!name) return;
+        await fetch('/api/columns', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name, board_id: currentBoardId})
+        });
+        closeModal('addColumnModal');
+        loadBoard();
+    }
+
+    async function createTask() {
+        const title = document.getElementById('newTaskTitle').value;
+        const description = document.getElementById('newTaskDesc').value;
+        const tags = document.getElementById('newTaskTags').value;
+        const column_id = parseInt(document.getElementById('taskColumnId').value);
+        if (!title) return;
+        
+        await fetch('/api/tasks', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, description, tags, column_id})
+        });
+        closeModal('addTaskModal');
+        loadBoard();
+    }
+
+    async function viewTask(taskId) {
+        const res = await fetch(`/api/tasks/${taskId}`);
+        const task = await res.json();
+        document.getElementById('viewTaskTitle').innerText = task.title;
+        document.getElementById('viewTaskDesc').innerText = task.description;
+        document.getElementById('viewTaskTags').innerText = task.tags;
+        openModal('viewTaskModal');
+    }
+
+    let draggedTaskId = null;
+
+    function drag(ev, taskId) {
+        draggedTaskId = taskId;
+        ev.dataTransfer.setData("text", taskId);
+    }
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    async function drop(ev, colId) {
+        ev.preventDefault();
+        const taskId = draggedTaskId;
+        if (!taskId) return;
+        await fetch(`/api/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({column_id: colId})
+        });
+        loadBoard();
+    }
+
+    // Init
+    loadBoard();
+</script>
+</body>
+</html>
