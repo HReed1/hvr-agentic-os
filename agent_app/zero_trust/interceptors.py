@@ -12,6 +12,9 @@ from utils.dlp_proxy import redact_genomic_phi
 
 from ..config import CONTEXT_SAFE_MODE, BASE_DIR
 
+import logging
+logger = logging.getLogger("zero_trust.interceptors")
+
 # --- Globals for Zero Trust ---
 from google.adk.events.event import Event
 from google.adk.events.event_actions import EventActions
@@ -79,17 +82,6 @@ def _verify_staging_signature() -> bool:
     expected = hmac.new(dynamic_secret, b"QA_PASSED", hashlib.sha256).hexdigest()
     return hmac.compare_digest(stored, expected)
 
-async def patched_loop_run(self, ctx):
-    consecutive_discovery_tools = getattr(ctx, '_consecutive_discovery', 0)
-    consecutive_qa_rejections = getattr(ctx, '_consecutive_qa_rejections', 0)
-    last_rejection_signature = getattr(ctx, '_last_rejection_signature', None)
-    
-    async with Aclosing(_original_loop_run(self, ctx)) as agen:
-        async for event in agen:
-            content = getattr(event, 'content', None)
-            if content:
-                for part in getattr(content, 'parts', []):
-                    fc = getattr(part, 'function_call', None) or getattr(part, 'functionCall', None)
 def _handle_mark_complete(self, ctx, event):
     if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
         return True, None
@@ -98,7 +90,22 @@ def _handle_mark_complete(self, ctx, event):
 
 
 def _handle_escalate(self, ctx, event):
-    esc = ZeroTrustEscalationEvent("[ESCALATING TO DIRECTOR]\n\nEscalation explicitly triggered via state transition tool.")
+    # Extract the reason from the function call arguments so the Director sees WHY
+    reason = "No reason provided."
+    content = getattr(event, 'content', None)
+    if content:
+        for part in getattr(content, 'parts', []):
+            fc = getattr(part, 'function_call', None) or getattr(part, 'functionCall', None)
+            if fc and getattr(fc, 'name', '') == 'escalate_to_director':
+                args = getattr(fc, 'args', {}) or {}
+                reason = args.get('reason', reason)
+                break
+    esc = ZeroTrustEscalationEvent(
+        f"[ESCALATING TO DIRECTOR]\n\n"
+        f"The Executor has explicitly escalated because it cannot proceed.\n"
+        f"Executor's reason: {reason}\n\n"
+        f"You MUST analyze this reason, correct the issue, and re-delegate via transfer_to_agent(\"development_workflow\")."
+    )
     return True, esc
 
 def _handle_excessive_discovery(self, ctx, func_name):
@@ -164,79 +171,119 @@ def _intercept_tool(self, ctx, part, event):
     return False, None
 
 async def patched_loop_run(self, ctx):
-    async with Aclosing(_original_loop_run(self, ctx)) as agen:
-        async for event in agen:
-            content = getattr(event, 'content', None)
-            if content:
-                for part in getattr(content, 'parts', []):
-                    stop, esc = _intercept_tool(self, ctx, part, event)
-                    if stop:
-                        if esc: yield esc
-                        return
-                        
-                    text = getattr(part, 'text', None)
-                    if text and isinstance(text, str):
-                        if '[QA REJECTED]' in text and getattr(event, 'author', '') == 'qa_engineer' and getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
-                            stop, esc = _process_qa_rejection(self, ctx, text, event)
-                            if stop:
-                                yield esc
-                                return
-                        elif '[EXECUTION COMPLETE]' in text:
-                            yield event
-                            if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
-                                return
-                        elif '[QA PASSED]' in text:
-                            yield event
-                            if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
-                                return
-                        elif '[AUDIT PASSED]' in text:
-                            yield event
-                            if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
-                                return
-                        elif '[DEPLOYMENT SUCCESS]' in text:
-                            yield event
-                            if getattr(self, 'name', '') in ('solo_loop',):
-                                return
-
-                    fc_resp = getattr(part, 'function_response', None) or getattr(part, 'functionResponse', None)
-                    if fc_resp and getattr(fc_resp, 'name', '') == 'write_retrospective':
-                        yield event
-                        if getattr(self, 'name', '') in ('solo_loop', 'reporter'):
+    loop_name = getattr(self, 'name', 'unknown_loop')
+    logger.info(f"[LOOP ENTER] '{loop_name}' starting (max_iterations={getattr(self, 'max_iterations', '?')})")
+    try:
+        async with Aclosing(_original_loop_run(self, ctx)) as agen:
+            event_count = 0
+            async for event in agen:
+                event_count += 1
+                author = getattr(event, 'author', '?')
+                has_text = bool(getattr(getattr(event, 'content', None), 'parts', None))
+                logger.debug(f"[LOOP EVENT] '{loop_name}' event #{event_count} from '{author}' (has_content={has_text})")
+                content = getattr(event, 'content', None)
+                handled = False
+                if content:
+                    for part in getattr(content, 'parts', []):
+                        stop, esc = _intercept_tool(self, ctx, part, event)
+                        if stop:
+                            if esc: yield esc
                             return
+                        
+                        text = getattr(part, 'text', None)
+                        if text and isinstance(text, str):
+                            if '[QA REJECTED]' in text and getattr(event, 'author', '') == 'qa_engineer' and getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                                stop, esc = _process_qa_rejection(self, ctx, text, event)
+                                if stop:
+                                    yield esc
+                                    return
+                            elif '[EXECUTION COMPLETE]' in text:
+                                yield event
+                                handled = True
+                                if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                                    return
+                            elif '[QA PASSED]' in text:
+                                yield event
+                                handled = True
+                                if getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                                    return
+                            elif '[AUDIT PASSED]' in text:
+                                yield event
+                                handled = True
+                                if getattr(self, 'name', '') in ('director_loop', 'cicd_director_loop'):
+                                    return
+                            elif '[DEPLOYMENT SUCCESS]' in text:
+                                yield event
+                                handled = True
+                                if getattr(self, 'name', '') in ('solo_loop',):
+                                    return
 
-            yield event
+                        fc_resp = getattr(part, 'function_response', None) or getattr(part, 'functionResponse', None)
+                        if fc_resp and getattr(fc_resp, 'name', '') == 'write_retrospective':
+                            yield event
+                            handled = True
+                            if getattr(self, 'name', '') in ('solo_loop', 'reporter'):
+                                return
+
+                if not handled:
+                    yield event
+
+        logger.info(f"[LOOP EXIT] '{loop_name}' finished after {event_count} events (normal exit)")
+    except Exception as e:
+        logger.error(f"[LOOP CRASH] '{loop_name}' threw {type(e).__name__}: {e}", exc_info=True)
+        raise
 
     if getattr(self, 'max_iterations', 1) > 1 and getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+        logger.warning(f"[LOOP EXHAUSTED] '{loop_name}' hit max_iterations limit")
         yield ZeroTrustEscalationEvent(f"[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: The '{getattr(self, 'name', 'unknown')}' loop hit its physical limit...")
 
 LoopAgent._run_async_impl = patched_loop_run
 
-
 # SequentialAgent Escalation Intercept
 # Ensures that when a sub-agent (e.g., executor_loop) yields an escalation event,
-# the SequentialAgent stops processing remaining siblings (e.g., auditor) and
-# propagates the escalation upward to the Director.
+# the development_workflow SequentialAgent stops processing remaining siblings
+# (e.g., auditor) and propagates the escalation upward to the Director.
+# SCOPED: Only applies to 'development_workflow'. The top-level 'autonomous_swarm'
+# must NOT be intercepted, or escalations will kill the entire session.
 _original_sequential_run = SequentialAgent._run_async_impl
 
+ESCALATION_SCOPED_AGENTS = {'development_workflow'}
+
 async def patched_sequential_run(self, ctx):
-    async with Aclosing(_original_sequential_run(self, ctx)) as agen:
-        async for event in agen:
-            # Check if this event carries an escalation signal
-            actions = getattr(event, 'actions', None)
-            if actions and getattr(actions, 'escalate', False):
-                yield event
-                return  # Stop processing remaining sub-agents in the sequence
+    agent_name = getattr(self, 'name', '')
+    should_intercept = agent_name in ESCALATION_SCOPED_AGENTS
+    sub_agent_names = [getattr(a, 'name', '?') for a in getattr(self, 'sub_agents', [])]
+    logger.info(f"[SEQ ENTER] '{agent_name}' starting (sub_agents={sub_agent_names}, intercept={should_intercept})")
 
-            # Also check for text-based escalation signals as a fallback
-            content = getattr(event, 'content', None)
-            if content:
-                for part in getattr(content, 'parts', []):
-                    text = getattr(part, 'text', None)
-                    if text and isinstance(text, str) and '[ESCALATING TO DIRECTOR]' in text:
+    try:
+        event_count = 0
+        async with Aclosing(_original_sequential_run(self, ctx)) as agen:
+            async for event in agen:
+                event_count += 1
+                author = getattr(event, 'author', '?')
+                logger.debug(f"[SEQ EVENT] '{agent_name}' event #{event_count} from '{author}'")
+                if should_intercept:
+                    # Check if this event carries an escalation signal
+                    actions = getattr(event, 'actions', None)
+                    if actions and getattr(actions, 'escalate', False):
                         yield event
-                        return  # Stop the sequence — escalation must reach Director
+                        return  # Stop processing remaining sub-agents in the sequence
 
-            yield event
+                    # Also check for text-based escalation signals as a fallback
+                    content = getattr(event, 'content', None)
+                    if content:
+                        for part in getattr(content, 'parts', []):
+                            text = getattr(part, 'text', None)
+                            if text and isinstance(text, str) and '[ESCALATING TO DIRECTOR]' in text:
+                                yield event
+                                return  # Stop the sequence — escalation must reach Director
+
+                yield event
+
+        logger.info(f"[SEQ EXIT] '{agent_name}' finished after {event_count} events")
+    except Exception as e:
+        logger.error(f"[SEQ CRASH] '{agent_name}' threw {type(e).__name__}: {e}", exc_info=True)
+        raise
 
 SequentialAgent._run_async_impl = patched_sequential_run
 
@@ -245,6 +292,8 @@ SequentialAgent._run_async_impl = patched_sequential_run
 _original_llm_run = LlmAgent._run_async_impl
 
 async def patched_llm_run(self, ctx, *args, **kwargs):
+    agent_name = getattr(self, 'name', 'unknown_agent')
+    logger.info(f"[LLM ENTER] '{agent_name}' starting LLM call")
     if hasattr(ctx, 'messages'):
         should_reset_context = False
         if len(ctx.messages) > 2:
@@ -274,27 +323,41 @@ async def patched_llm_run(self, ctx, *args, **kwargs):
             if CONTEXT_SAFE_MODE:
                 await asyncio.sleep(12.5)
             async with Aclosing(_original_llm_run(self, ctx, *args, **kwargs)) as agen:
+                event_count = 0
                 async for event in agen:
+                    event_count += 1
                     content = getattr(event, 'content', None)
                     if content:
                         for part in getattr(content, 'parts', None) or []:
                             if hasattr(part, 'text') and isinstance(part.text, str):
                                 part.text = redact_genomic_phi(part.text)
                     yield event
+                logger.info(f"[LLM EXIT] '{agent_name}' finished after {event_count} events (attempt {attempt+1})")
             break
         except Exception as e:
             error_str = str(e)
             if "Zero-Trust Block" in error_str:
-                print(f"[Zero-Trust Intercepted] Soft-Escalating Fatal Exception: {error_str}", flush=True)
-                yield ZeroTrustEscalationEvent(f"[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: {error_str}")
+                print(f"[Zero-Trust Soft-Block] Returning error to agent for course-correction: {error_str}", flush=True)
+                yield Event(
+                    author="zero_trust_framework",
+                    content=Content(parts=[Part(text=(
+                        f"[ZERO-TRUST SOFT BLOCK] Your command was rejected by the security framework.\n"
+                        f"Reason: {error_str}\n"
+                        f"You MUST NOT retry this command. Adapt your approach and continue your task. "
+                        f"If you cannot complete your objective without this command, invoke `escalate_to_director`."
+                    ))]),
+                )
                 break
             elif "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "503" in error_str or "UNAVAILABLE" in error_str:
                 if attempt < max_retries - 1:
+                    logger.warning(f"[LLM THROTTLE] '{agent_name}' 429/503 hit (attempt {attempt+1}/{max_retries})")
                     print(f"\n[API Throttle] 429/503 Quota hit. Cooldown (Attempt {attempt+1}/{max_retries})...", flush=True)
                     await asyncio.sleep(65)
                 else:
+                    logger.error(f"[LLM EXHAUSTED] '{agent_name}' exhausted all retries")
                     raise
             else:
+                logger.error(f"[LLM CRASH] '{agent_name}' threw {type(e).__name__}: {e}", exc_info=True)
                 raise
 
 LlmAgent._run_async_impl = patched_llm_run
