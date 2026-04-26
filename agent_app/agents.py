@@ -97,7 +97,7 @@ executor_agent = LlmAgent(
     instruction=executor_instruction_provider,
     before_tool_callback=zero_trust_callback,
     tools=executor_tools,
-    sub_agents=[qa_agent]
+    sub_agents=[]
 )
 
 auditor_tools = [
@@ -176,7 +176,7 @@ research_discovery_loop = SequentialAgent(
 executor_loop = LoopAgent(
     name="executor_loop",
     max_iterations=15,
-    sub_agents=[executor_agent]
+    sub_agents=[executor_agent, qa_agent]
 )
 
 development_workflow = SequentialAgent(

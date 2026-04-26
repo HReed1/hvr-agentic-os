@@ -112,12 +112,19 @@ def _handle_excessive_discovery(self, ctx, func_name):
         setattr(ctx, '_consecutive_discovery', 0)
     return False, None
 
-def _process_qa_rejection(self, ctx, text):
+def _process_qa_rejection(self, ctx, text, event):
     sig_start = text.find('[QA REJECTED]')
     rejection_sig = text[sig_start:sig_start + 200].strip()
     
     last_sig = getattr(ctx, '_last_rejection_signature', None)
     consecutive = getattr(ctx, '_consecutive_qa_rejections', 0)
+    last_invocation_id = getattr(ctx, '_last_rejection_invocation_id', None)
+    current_invocation_id = getattr(event, 'invocation_id', getattr(event, 'id', None))
+    
+    if last_invocation_id and current_invocation_id == last_invocation_id:
+        return False, None
+        
+    setattr(ctx, '_last_rejection_invocation_id', current_invocation_id)
     
     if rejection_sig == last_sig:
         consecutive += 1
@@ -169,8 +176,8 @@ async def patched_loop_run(self, ctx):
                         
                     text = getattr(part, 'text', None)
                     if text and isinstance(text, str):
-                        if '[QA REJECTED]' in text:
-                            stop, esc = _process_qa_rejection(self, ctx, text)
+                        if '[QA REJECTED]' in text and getattr(event, 'author', '') == 'qa_engineer' and getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
+                            stop, esc = _process_qa_rejection(self, ctx, text, event)
                             if stop:
                                 yield esc
                                 return
@@ -199,7 +206,7 @@ async def patched_loop_run(self, ctx):
 
             yield event
 
-    if getattr(self, 'max_iterations', 1) > 1:
+    if getattr(self, 'max_iterations', 1) > 1 and getattr(self, 'name', '') in ('executor_loop', 'solo_loop'):
         yield ZeroTrustEscalationEvent(f"[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: The '{getattr(self, 'name', 'unknown')}' loop hit its physical limit...")
 
 LoopAgent._run_async_impl = patched_loop_run
