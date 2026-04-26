@@ -2,7 +2,7 @@ import os
 import sys
 import asyncio
 from datetime import datetime
-from google.adk.agents import LlmAgent, LoopAgent
+from google.adk.agents import LlmAgent, LoopAgent, SequentialAgent
 import google.adk.flows.llm_flows.functions as adk_llm_functions
 from google.adk.tools.function_tool import FunctionTool
 from mcp.client.session import ClientSession
@@ -201,7 +201,7 @@ async def patched_loop_run(self, ctx):
                     fc_resp = getattr(part, 'function_response', None) or getattr(part, 'functionResponse', None)
                     if fc_resp and getattr(fc_resp, 'name', '') == 'write_retrospective':
                         yield event
-                        if getattr(self, 'name', '') in ('solo_loop', 'reporting_director'):
+                        if getattr(self, 'name', '') in ('solo_loop', 'reporter'):
                             return
 
             yield event
@@ -210,6 +210,35 @@ async def patched_loop_run(self, ctx):
         yield ZeroTrustEscalationEvent(f"[ESCALATING TO DIRECTOR]\n\nZERO-TRUST VIOLATION: The '{getattr(self, 'name', 'unknown')}' loop hit its physical limit...")
 
 LoopAgent._run_async_impl = patched_loop_run
+
+
+# SequentialAgent Escalation Intercept
+# Ensures that when a sub-agent (e.g., executor_loop) yields an escalation event,
+# the SequentialAgent stops processing remaining siblings (e.g., auditor) and
+# propagates the escalation upward to the Director.
+_original_sequential_run = SequentialAgent._run_async_impl
+
+async def patched_sequential_run(self, ctx):
+    async with Aclosing(_original_sequential_run(self, ctx)) as agen:
+        async for event in agen:
+            # Check if this event carries an escalation signal
+            actions = getattr(event, 'actions', None)
+            if actions and getattr(actions, 'escalate', False):
+                yield event
+                return  # Stop processing remaining sub-agents in the sequence
+
+            # Also check for text-based escalation signals as a fallback
+            content = getattr(event, 'content', None)
+            if content:
+                for part in getattr(content, 'parts', []):
+                    text = getattr(part, 'text', None)
+                    if text and isinstance(text, str) and '[ESCALATING TO DIRECTOR]' in text:
+                        yield event
+                        return  # Stop the sequence — escalation must reach Director
+
+            yield event
+
+SequentialAgent._run_async_impl = patched_sequential_run
 
 
 # Data Loss Prevention Wrapper
