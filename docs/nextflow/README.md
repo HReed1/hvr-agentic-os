@@ -32,10 +32,12 @@ A module scanner that identifies nf-core modules with stub-related issues (e.g.,
 
 ## Issues Tracked
 
-| Issue | Description | Status | PR |
-|---|---|---|---|
-| [#5409](https://github.com/nf-core/modules/issues/5409) | Fix invalid `touch .gz` stubs → `echo \| gzip >` | ✅ [PR #11312](https://github.com/nf-core/modules/pull/11312) | Merged |
-| [#4570](https://github.com/nf-core/modules/issues/4570) | Add `stub:` blocks to all remaining modules | 🔧 In Progress | Pending |
+| Issue | Description | Status | PR | Local Artifacts |
+|---|---|---|---|---|
+| [#5409](https://github.com/nf-core/modules/issues/5409) | Fix invalid `touch .gz` stubs → `echo \| gzip >` | ✅ [PR #11312](https://github.com/nf-core/modules/pull/11312) | Merged | [📂 issues/5409-fix-stub-gz/](issues/5409-fix-stub-gz/) |
+| [#4570](https://github.com/nf-core/modules/issues/4570) | Add `stub:` blocks to all remaining modules | 🔧 In Progress | Pending | [📂 issues/4570-add-stub-blocks/](issues/4570-add-stub-blocks/) |
+
+> Each issue directory contains the swarm-generated implementation plan, diffs, and validation reports. See [issues/](issues/) for the full index.
 
 ## Directory Structure
 
