@@ -1,5 +1,7 @@
 # HVR Agentic OS
 
+> 📰 **As seen on [HVRInformatics.com](https://hvrinformatics.com/blog)**
+
 A Zero-Trust multi-agent operating system built on [Google's Agent Development Kit (ADK)](https://google.github.io/adk-docs/).
 
 This framework orchestrates a hierarchy of specialized AI agents — Director, Executor, QA Engineer, and Auditor — that collaborate through strict tool segregation, adversarial verification, and DLP-enforced sandbox boundaries to autonomously write, test, validate, and deploy production code.
