@@ -1,0 +1,8 @@
+--- a/modules/nf-core/vt/decomposeblocksub/main.nf
++++ b/modules/nf-core/vt/decomposeblocksub/main.nf
+@@ -51,7 +51,7 @@
+     """
+-    touch ${prefix}.vcf.gz
++    echo '' | gzip > ${prefix}.vcf.gz
+ 
+     cat <<-END_VERSIONS > versions.yml

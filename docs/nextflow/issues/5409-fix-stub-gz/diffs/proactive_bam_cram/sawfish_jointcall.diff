@@ -1,0 +1,15 @@
+--- a/modules/nf-core/sawfish/jointcall/main.nf
++++ b/modules/nf-core/sawfish/jointcall/main.nf
+@@ -65,9 +65,9 @@
+     """
+     mkdir -p ${prefix}/samples/sample0001_test/
+     echo \"\" | gzip > ${prefix}/${prefix}_genotyped.sv.vcf.gz
+-    touch ${prefix}/${prefix}_genotyped.sv.vcf.gz.tbi
+-    touch ${prefix}/contig.alignment.bam
+-    touch ${prefix}/contig.alignment.bam.csi
++    echo '' | gzip > ${prefix}/${prefix}_genotyped.sv.vcf.gz.tbi
++    echo '' | gzip > ${prefix}/contig.alignment.bam
++    echo '' | gzip > ${prefix}/contig.alignment.bam.csi
+     touch ${prefix}/run.stats.json
+     touch ${prefix}/sawfish.log
+     touch ${prefix}/samples/sample0001_test/copynum.bedgraph

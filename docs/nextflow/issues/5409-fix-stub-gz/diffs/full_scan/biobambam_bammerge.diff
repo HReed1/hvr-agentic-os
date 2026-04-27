@@ -1,0 +1,11 @@
+--- a/modules/nf-core/biobambam/bammerge/main.nf
++++ b/modules/nf-core/biobambam/bammerge/main.nf
+@@ -35,7 +35,7 @@
+     prefix = task.ext.prefix ?: "${meta.id}"
+ 
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     """
+ }
+ 

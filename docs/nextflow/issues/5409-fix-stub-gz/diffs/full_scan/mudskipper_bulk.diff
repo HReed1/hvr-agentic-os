@@ -1,0 +1,11 @@
+--- a/modules/nf-core/mudskipper/bulk/main.nf
++++ b/modules/nf-core/mudskipper/bulk/main.nf
+@@ -50,7 +50,7 @@
+     stub:
+     prefix = task.ext.prefix ?: "${meta.id}.transcriptome"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

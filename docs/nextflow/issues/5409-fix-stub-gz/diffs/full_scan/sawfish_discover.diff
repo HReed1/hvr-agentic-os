@@ -1,0 +1,13 @@
+--- a/modules/nf-core/sawfish/discover/main.nf
++++ b/modules/nf-core/sawfish/discover/main.nf
+@@ -77,8 +77,8 @@
+     touch ${prefix}/candidate.sv.bcf
+     touch ${prefix}/candidate.sv.bcf.csi
+     touch ${prefix}/assembly.regions.bed
+-    touch ${prefix}/contig.alignment.bam
+-    touch ${prefix}/contig.alignment.bam.csi
++    echo '' | gzip > ${prefix}/contig.alignment.bam
++    echo '' | gzip > ${prefix}/contig.alignment.bam.csi
+     touch ${prefix}/debug.breakpoint_clusters.bed
+     touch ${prefix}/debug.cluster.refinement.txt
+     touch ${prefix}/discover.settings.json

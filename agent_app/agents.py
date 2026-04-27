@@ -130,7 +130,7 @@ auditor_agent = LlmAgent(
 
 reporter_agent = LlmAgent(
     model=PRIMARY_PRO_MODEL,
-    name='reporting_director',
+    name='reporter',
     static_instruction=reporter_static_instruction,
     instruction='',
     tools=[
@@ -189,7 +189,7 @@ director_agent = LlmAgent(
     name='director',
     static_instruction=director_static_instruction,
     instruction='',
-    tools=[list_docs, read_doc, mark_system_complete],
+    tools=[list_docs, read_doc, mark_system_complete, get_user_choice],
     sub_agents=[development_workflow]
 )
 

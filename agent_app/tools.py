@@ -112,8 +112,8 @@ def write_eval_report(test_id: str, content: str, is_passing: bool) -> str:
 
 # --- Escalation Flow Tools ---
 def escalate_to_director(reason: str) -> str:
-    """Escalates an unresolvable testing paradox, physical constraint, or tooling limitation back up to the Director."""
-    return "[FATAL] State Transition Tool Called: You have safely escalated to the Director."
+    """Escalates an unresolvable testing paradox, physical constraint, or tooling limitation back up to the Director. The reason MUST describe what failed and why you cannot proceed."""
+    return f"[ESCALATION] Executor has escalated to Director.\nReason: {reason}"
 
 
 

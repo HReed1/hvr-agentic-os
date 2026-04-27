@@ -1,0 +1,11 @@
+--- a/modules/nf-core/modkit/repair/main.nf
++++ b/modules/nf-core/modkit/repair/main.nf
+@@ -39,7 +39,7 @@
+     """
+     echo ${args}
+ 
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     touch ${prefix}.log
+     """
+ }

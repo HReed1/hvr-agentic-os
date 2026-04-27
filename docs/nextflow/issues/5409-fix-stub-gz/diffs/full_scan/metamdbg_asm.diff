@@ -1,0 +1,11 @@
+--- a/modules/nf-core/metamdbg/asm/main.nf
++++ b/modules/nf-core/metamdbg/asm/main.nf
+@@ -44,7 +44,7 @@
+     """
+     echo ${args}
+     touch ${prefix}.metaMDBG.log
+-    touch ${prefix}.contigs.fasta.gz
++    echo '' | gzip > ${prefix}.contigs.fasta.gz
+     """
+ }
+ 

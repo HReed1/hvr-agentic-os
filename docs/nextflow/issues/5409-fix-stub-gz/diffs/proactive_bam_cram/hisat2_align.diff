@@ -1,0 +1,11 @@
+--- a/modules/nf-core/hisat2/align/main.nf
++++ b/modules/nf-core/hisat2/align/main.nf
+@@ -86,7 +86,7 @@
+     ${unaligned}
+ 
+     touch ${prefix}.hisat2.summary.log
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     """
+ 
+ }

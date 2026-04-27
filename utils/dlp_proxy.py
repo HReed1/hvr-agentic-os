@@ -21,7 +21,27 @@ def redact_genomic_phi(content: str, redact_uuids: bool = True) -> str:
     content = re.sub(vcf_pattern, '<REDACTED_PHI>', content, flags=re.MULTILINE)
     
     if redact_uuids:
-        # Redact UUIDs structurally
-        content = re.sub(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<REDACTED_PHI>', content)
+        # Whitelist: Preserve ADK session IDs that are explicitly labeled as sessions.
+        # Matches patterns like "session_id: <uuid>", "Session ID: <uuid>", "session/<uuid>",
+        # "session=<uuid>", or "adk-session:<uuid>" to allow cross-session trace referencing.
+        _uuid = r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+        _session_ctx = re.compile(
+            rf'((?:session[_\s]?id\s*[:=]\s*|session/|adk[_-]session\s*[:=]\s*|Session\s+ID\s*[:=]\s*))({_uuid})',
+            re.IGNORECASE
+        )
+        # Extract and protect session-context UUIDs with sentinel tokens
+        session_refs = {}
+        def _protect(m):
+            sentinel = f'__ADK_SESSION_{len(session_refs)}__'
+            session_refs[sentinel] = m.group(0)
+            return sentinel
+        content = _session_ctx.sub(_protect, content)
+        
+        # Redact all remaining UUIDs structurally
+        content = re.sub(_uuid, '<REDACTED_PHI>', content)
+        
+        # Restore protected ADK session references
+        for sentinel, original in session_refs.items():
+            content = content.replace(sentinel, original)
         
     return content

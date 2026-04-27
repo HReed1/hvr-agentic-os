@@ -1,0 +1,21 @@
+--- a/modules/nf-core/hlala/typing/main.nf
++++ b/modules/nf-core/hlala/typing/main.nf
+@@ -64,12 +64,12 @@
+     touch results/R_1.fastq
+     touch results/R_2.fastq
+     touch results/R_U.fastq
+-    touch results/extraction.bam
+-    touch results/extraction.bam.bai
+-    touch results/extraction_mapped.bam
+-    touch results/extraction_unmapped.bam
+-    touch results/remapped_with_a.bam
+-    touch results/remapped_with_a.bam.bai
++    echo '' | gzip > results/extraction.bam
++    echo '' | gzip > results/extraction.bam.bai
++    echo '' | gzip > results/extraction_mapped.bam
++    echo '' | gzip > results/extraction_unmapped.bam
++    echo '' | gzip > results/remapped_with_a.bam
++    echo '' | gzip > results/remapped_with_a.bam.bai
+     touch results/reads_per_level.txt
+ 
+     mkdir results/hla

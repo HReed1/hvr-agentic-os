@@ -1,0 +1,13 @@
+--- a/modules/nf-core/isoseq/refine/main.nf
++++ b/modules/nf-core/isoseq/refine/main.nf
+@@ -43,8 +43,8 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
+-    touch ${prefix}.bam.pbi
++    echo '' | gzip > ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam.pbi
+     touch ${prefix}.consensusreadset.xml
+     touch ${prefix}.filter_summary.report.json
+     touch ${prefix}.report.csv
