@@ -1,0 +1,11 @@
+--- a/modules/nf-core/gem3/gem3mapper/main.nf
++++ b/modules/nf-core/gem3/gem3mapper/main.nf
+@@ -37,7 +37,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":
+         gem-mapper: \$(echo \$(gem-mapper --version 2>&1) | sed 's/v//')

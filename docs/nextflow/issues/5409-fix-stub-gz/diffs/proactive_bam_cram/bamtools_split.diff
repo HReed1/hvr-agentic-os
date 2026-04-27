@@ -1,0 +1,13 @@
+--- a/modules/nf-core/bamtools/split/main.nf
++++ b/modules/nf-core/bamtools/split/main.nf
+@@ -34,8 +34,8 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.split1.bam
+-    touch ${prefix}.unmapped.bam
++    echo '' | gzip > ${prefix}.split1.bam
++    echo '' | gzip > ${prefix}.unmapped.bam
+     """
+ 
+ }

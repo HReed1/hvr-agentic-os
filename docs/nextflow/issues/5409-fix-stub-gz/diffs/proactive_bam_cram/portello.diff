@@ -1,0 +1,19 @@
+--- a/modules/nf-core/portello/main.nf
++++ b/modules/nf-core/portello/main.nf
+@@ -40,13 +40,13 @@
+     stub:
+     def args = task.ext.args ?: ''
+     def prefix = task.ext.prefix ?: "${meta.id}"
+-    def vcf_output = output_vcf ? "echo | gzip -c > ${prefix}.vcf.gz; touch ${prefix}.vcf.gz.tbi" : ''
++    def vcf_output = output_vcf ? "echo | gzip -c > ${prefix}.vcf.gz; echo '' | gzip > ${prefix}.vcf.gz.tbi" : ''
+     """
+     echo ${args}
+ 
+     ${vcf_output}
+-    touch ${prefix}_unassembled.bam
+-    touch ${prefix}_remapped.bam
++    echo '' | gzip > ${prefix}_unassembled.bam
++    echo '' | gzip > ${prefix}_remapped.bam
+     """
+ }
+ 

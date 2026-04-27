@@ -1,0 +1,11 @@
+--- a/modules/nf-core/pbmm2/align/main.nf
++++ b/modules/nf-core/pbmm2/align/main.nf
+@@ -40,7 +40,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

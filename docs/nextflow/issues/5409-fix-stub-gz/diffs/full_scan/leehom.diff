@@ -1,0 +1,11 @@
+--- a/modules/nf-core/leehom/main.nf
++++ b/modules/nf-core/leehom/main.nf
+@@ -82,7 +82,7 @@
+ 
+     """
+     if [[ "${is_bam}" == "true" ]]; then
+-        touch ${prefix}.bam
++        echo '' | gzip > ${prefix}.bam
+     else
+         echo "" | gzip > ${prefix}.fq.gz
+         echo "" | gzip > ${prefix}.fail.fq.gz

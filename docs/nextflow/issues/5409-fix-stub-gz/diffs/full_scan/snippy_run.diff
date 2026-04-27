@@ -1,0 +1,22 @@
+--- a/modules/nf-core/snippy/run/main.nf
++++ b/modules/nf-core/snippy/run/main.nf
+@@ -64,8 +64,8 @@
+     touch ${prefix}/${prefix}.vcf
+     touch ${prefix}/${prefix}.bed
+     touch ${prefix}/${prefix}.gff
+-    touch ${prefix}/${prefix}.bam
+-    touch ${prefix}/${prefix}.bam.bai
++    echo '' | gzip > ${prefix}/${prefix}.bam
++    echo '' | gzip > ${prefix}/${prefix}.bam.bai
+     touch ${prefix}/${prefix}.log
+     touch ${prefix}/${prefix}.aligned.fa
+     touch ${prefix}/${prefix}.consensus.fa
+@@ -73,7 +73,7 @@
+     touch ${prefix}/${prefix}.raw.vcf
+     touch ${prefix}/${prefix}.filt.vcf
+     gzip -c ${prefix}/${prefix}.vcf > ${prefix}/${prefix}.vcf.gz
+-    touch ${prefix}/${prefix}.vcf.gz.csi
++    echo '' | gzip > ${prefix}/${prefix}.vcf.gz.csi
+     touch ${prefix}/${prefix}.txt
+ 
+ 

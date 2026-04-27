@@ -1,0 +1,43 @@
+--- a/modules/nf-core/artic/minion/main.nf
++++ b/modules/nf-core/artic/minion/main.nf
+@@ -54,10 +54,10 @@
+     stub:
+     prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.1.trimmed.rg.sorted.bam
++    echo '' | gzip > ${prefix}.1.trimmed.rg.sorted.bam
+     touch ${prefix}.1.trimmed.rg.sorted.bai
+     touch ${prefix}.1.vcf
+-    touch ${prefix}.2.trimmed.rg.sorted.bam
++    echo '' | gzip > ${prefix}.2.trimmed.rg.sorted.bam
+     touch ${prefix}.2.trimmed.rg.sorted.bai
+     touch ${prefix}.2.vcf
+ 
+@@ -82,20 +82,20 @@
+ 
+     touch ${prefix}.pass.vcf
+     echo "" | gzip > ${prefix}.pass.vcf.gz
+-    touch ${prefix}.pass.vcf.gz.tbi
++    echo '' | gzip > ${prefix}.pass.vcf.gz.tbi
+ 
+     touch ${prefix}.preconsensus.fasta
+     touch ${prefix}.preconsensus.fasta.fai
+ 
+     touch ${prefix}.primers.vcf
+     touch ${prefix}.primersitereport.txt
+-    touch ${prefix}.primertrimmed.rg.sorted.bam
+-    touch ${prefix}.primertrimmed.rg.sorted.bam.bai
++    echo '' | gzip > ${prefix}.primertrimmed.rg.sorted.bam
++    echo '' | gzip > ${prefix}.primertrimmed.rg.sorted.bam.bai
+ 
+-    touch ${prefix}.sorted.bam
+-    touch ${prefix}.sorted.bam.bai
+-    touch ${prefix}.trimmed.rg.sorted.bam
+-    touch ${prefix}.trimmed.rg.sorted.bam.bai
++    echo '' | gzip > ${prefix}.sorted.bam
++    echo '' | gzip > ${prefix}.sorted.bam.bai
++    echo '' | gzip > ${prefix}.trimmed.rg.sorted.bam
++    echo '' | gzip > ${prefix}.trimmed.rg.sorted.bam.bai
+     """
+ }
+ 

@@ -1,0 +1,24 @@
+--- a/modules/nf-core/yara/mapper/main.nf
++++ b/modules/nf-core/yara/mapper/main.nf
+@@ -68,8 +68,8 @@
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     if (meta.single_end) {
+         """
+-        touch ${prefix}.mapped.bam
+-        touch ${prefix}.mapped.bam.bai
++        echo '' | gzip > ${prefix}.mapped.bam
++        echo '' | gzip > ${prefix}.mapped.bam.bai
+ 
+         cat <<-END_VERSIONS > versions.yml
+         "${task.process}":
+@@ -79,8 +79,8 @@
+         """
+     } else {
+         """
+-        touch ${prefix}_1.mapped.bam
+-        touch ${prefix}_2.mapped.bam.bai
++        echo '' | gzip > ${prefix}_1.mapped.bam
++        echo '' | gzip > ${prefix}_2.mapped.bam.bai
+ 
+         cat <<-END_VERSIONS > versions.yml
+         "${task.process}":

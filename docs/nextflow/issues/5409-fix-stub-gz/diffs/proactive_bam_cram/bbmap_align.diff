@@ -1,0 +1,11 @@
+--- a/modules/nf-core/bbmap/align/main.nf
++++ b/modules/nf-core/bbmap/align/main.nf
+@@ -51,7 +51,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     touch ${prefix}.bbmap.log
+     """
+ }

@@ -1,0 +1,13 @@
+--- a/modules/nf-core/pbbam/pbmerge/main.nf
++++ b/modules/nf-core/pbbam/pbmerge/main.nf
+@@ -52,8 +52,8 @@
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     assert false: deprecation_message
+     """
+-    touch ${prefix}.bam
+-    touch ${prefix}.bam.pbi
++    echo '' | gzip > ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam.pbi
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

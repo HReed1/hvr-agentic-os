@@ -1,0 +1,15 @@
+--- a/modules/nf-core/rseqc/splitbam/main.nf
++++ b/modules/nf-core/rseqc/splitbam/main.nf
+@@ -35,9 +35,9 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.in.bam
+-    touch ${prefix}.ex.bam
+-    touch ${prefix}.junk.bam
++    echo '' | gzip > ${prefix}.in.bam
++    echo '' | gzip > ${prefix}.ex.bam
++    echo '' | gzip > ${prefix}.junk.bam
+     """
+ }
+ 

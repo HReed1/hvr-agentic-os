@@ -1,0 +1,11 @@
+--- a/modules/nf-core/whatshap/haplotag/main.nf
++++ b/modules/nf-core/whatshap/haplotag/main.nf
+@@ -47,7 +47,7 @@
+ 
+     def output_tsv = include_tsv_output  ? "echo '' | gzip > ${prefix}.tsv.gz" : ''
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     $output_tsv
+ 
+     echo $args

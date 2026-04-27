@@ -1,0 +1,13 @@
+--- a/modules/nf-core/bamcmp/main.nf
++++ b/modules/nf-core/bamcmp/main.nf
+@@ -63,8 +63,8 @@
+     if ("${prefix}.bam"    == "${prefix2}.bam" )
+         error "Output names for the two bam files are identical, use \"task.ext.prefix\" and \"task.ext.prefix2\" to disambiguate!"
+     """
+-    touch ${prefix}.bam
+-    touch ${prefix2}.bam
++    echo '' | gzip > ${prefix}.bam
++    echo '' | gzip > ${prefix2}.bam
+     """
+ 
+ }

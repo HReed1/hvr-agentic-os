@@ -1,0 +1,11 @@
+--- a/modules/nf-core/nextgenmap/main.nf
++++ b/modules/nf-core/nextgenmap/main.nf
+@@ -59,7 +59,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

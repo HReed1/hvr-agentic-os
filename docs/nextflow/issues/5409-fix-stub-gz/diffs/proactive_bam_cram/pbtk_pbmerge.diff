@@ -1,0 +1,13 @@
+--- a/modules/nf-core/pbtk/pbmerge/main.nf
++++ b/modules/nf-core/pbtk/pbmerge/main.nf
+@@ -37,8 +37,8 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
+-    touch ${prefix}.bam.pbi
++    echo '' | gzip > ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam.pbi
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

@@ -1,0 +1,11 @@
+--- a/modules/nf-core/svtyper/svtyper/main.nf
++++ b/modules/nf-core/svtyper/svtyper/main.nf
+@@ -48,7 +48,7 @@
+     """
+     touch ${prefix}.json
+     touch ${prefix}.vcf
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

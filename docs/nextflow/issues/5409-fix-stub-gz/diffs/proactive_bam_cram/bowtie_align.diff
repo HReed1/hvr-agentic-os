@@ -1,0 +1,11 @@
+--- a/modules/nf-core/bowtie/align/main.nf
++++ b/modules/nf-core/bowtie/align/main.nf
+@@ -59,7 +59,7 @@
+             "echo '' | gzip > ${prefix}.unmapped_1.fastq.gz; echo '' | gzip > ${prefix}.unmapped_2.fastq.gz" :
+                 ''
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     touch ${prefix}.out
+     $unaligned
+     """

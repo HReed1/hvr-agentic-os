@@ -1,0 +1,11 @@
+--- a/modules/nf-core/lofreq/viterbi/main.nf
++++ b/modules/nf-core/lofreq/viterbi/main.nf
+@@ -43,7 +43,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

@@ -1,0 +1,22 @@
+--- a/modules/nf-core/sentieon/staralign/main.nf
++++ b/modules/nf-core/sentieon/staralign/main.nf
+@@ -82,14 +82,14 @@
+     """
+     echo "" | gzip > ${prefix}.unmapped_1.fastq.gz
+     echo "" | gzip > ${prefix}.unmapped_2.fastq.gz
+-    touch ${prefix}Xd.out.bam
++    echo '' | gzip > ${prefix}Xd.out.bam
+     touch ${prefix}.Log.final.out
+     touch ${prefix}.Log.out
+     touch ${prefix}.Log.progress.out
+-    touch ${prefix}.sortedByCoord.out.bam
+-    touch ${prefix}.toTranscriptome.out.bam
+-    touch ${prefix}.Aligned.unsort.out.bam
+-    touch ${prefix}.Aligned.sortedByCoord.out.bam
++    echo '' | gzip > ${prefix}.sortedByCoord.out.bam
++    echo '' | gzip > ${prefix}.toTranscriptome.out.bam
++    echo '' | gzip > ${prefix}.Aligned.unsort.out.bam
++    echo '' | gzip > ${prefix}.Aligned.sortedByCoord.out.bam
+     touch ${prefix}.tab
+     touch ${prefix}.SJ.out.tab
+     touch ${prefix}.ReadsPerGene.out.tab

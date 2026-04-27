@@ -1,0 +1,11 @@
+--- a/modules/nf-core/ivar/trim/main.nf
++++ b/modules/nf-core/ivar/trim/main.nf
+@@ -40,7 +40,7 @@
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+     touch ${prefix}.ivar.log
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+ 
+     cat <<-END_VERSIONS > versions.yml
+     "${task.process}":

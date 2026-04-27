@@ -1,0 +1,13 @@
+--- a/modules/nf-core/snapaligner/align/main.nf
++++ b/modules/nf-core/snapaligner/align/main.nf
+@@ -38,8 +38,8 @@
+ 
+     stub:
+     """
+-    touch test.bam
+-    touch test.bam.bai
++    echo '' | gzip > test.bam
++    echo '' | gzip > test.bam.bai
+     """
+ }
+ 

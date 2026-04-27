@@ -1,0 +1,15 @@
+--- a/modules/nf-core/gatk4/markduplicates/main.nf
++++ b/modules/nf-core/gatk4/markduplicates/main.nf
+@@ -66,9 +66,9 @@
+     prefix = task.ext.prefix ?: "${meta.id}.bam"
+     prefix_no_suffix = task.ext.prefix ? prefix.tokenize('.')[0] : "${meta.id}"
+     """
+-    touch ${prefix_no_suffix}.bam
+-    touch ${prefix_no_suffix}.cram
+-    touch ${prefix_no_suffix}.cram.crai
++    echo '' | gzip > ${prefix_no_suffix}.bam
++    echo '' | gzip > ${prefix_no_suffix}.cram
++    echo '' | gzip > ${prefix_no_suffix}.cram.crai
+     touch ${prefix_no_suffix}.bai
+     touch ${prefix}.metrics
+     """

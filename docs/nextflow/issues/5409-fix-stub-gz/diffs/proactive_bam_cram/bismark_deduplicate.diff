@@ -1,0 +1,11 @@
+--- a/modules/nf-core/bismark/deduplicate/main.nf
++++ b/modules/nf-core/bismark/deduplicate/main.nf
+@@ -31,7 +31,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.deduplicated.bam
++    echo '' | gzip > ${prefix}.deduplicated.bam
+     touch ${prefix}.deduplication_report.txt
+     """
+ }

@@ -1,0 +1,11 @@
+--- a/modules/nf-core/fgbio/copyumifromreadname/main.nf
++++ b/modules/nf-core/fgbio/copyumifromreadname/main.nf
+@@ -47,7 +47,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}_umi_extracted"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     touch ${prefix}.bai
+     """
+ }

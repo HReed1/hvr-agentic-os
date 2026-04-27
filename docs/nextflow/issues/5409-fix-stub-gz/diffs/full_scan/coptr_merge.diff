@@ -1,0 +1,11 @@
+--- a/modules/nf-core/coptr/merge/main.nf
++++ b/modules/nf-core/coptr/merge/main.nf
+@@ -32,7 +32,7 @@
+     stub:
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     """
+-    touch ${prefix}.bam
++    echo '' | gzip > ${prefix}.bam
+     """
+ }
+ 

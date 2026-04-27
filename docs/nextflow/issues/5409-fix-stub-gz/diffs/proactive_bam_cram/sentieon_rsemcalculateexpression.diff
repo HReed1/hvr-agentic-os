@@ -1,0 +1,17 @@
+--- a/modules/nf-core/sentieon/rsemcalculateexpression/main.nf
++++ b/modules/nf-core/sentieon/rsemcalculateexpression/main.nf
+@@ -98,11 +98,11 @@
+ 
+     # Only create STAR BAM output when not in alignment mode
+     if [ "${is_bam}" == "false" ]; then
+-        touch ${prefix}.STAR.genome.bam
++        echo '' | gzip > ${prefix}.STAR.genome.bam
+     fi
+ 
+-    touch ${prefix}.genome.bam
+-    touch ${prefix}.transcript.bam
++    echo '' | gzip > ${prefix}.genome.bam
++    echo '' | gzip > ${prefix}.transcript.bam
+     """
+ }
+ 
