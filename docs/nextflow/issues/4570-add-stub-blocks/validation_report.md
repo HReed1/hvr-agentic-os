@@ -6,6 +6,22 @@
 
 ---
 
+## Scope Reconciliation: 44 → 40
+
+The [#4570 checklist](https://github.com/nf-core/modules/issues/4570#issuecomment-3998972222) (posted March 2026 by @vagkaratzas) identified **44 modules** missing stub blocks. Our contribution covers **40 of those 44**. The following 4 modules were excluded because other community contributors added stubs to them on `upstream/master` before our branches were finalized:
+
+| Module | Reason for Exclusion |
+|---|---|
+| `bioawk` | Stub already merged upstream |
+| `clonalframeml` | Stub already merged upstream |
+| `deepvariant` | Stub already merged upstream |
+| `plasmidfinder` | Stub already merged upstream |
+
+> [!NOTE]
+> The original monolithic PR #11323 claimed "41 modules" in its body — this was an intermediate count taken before all upstream merges were reconciled. After rebasing all 10 branches onto the latest `upstream/master`, the true delta is **40 unique modules**.
+
+---
+
 ## 1. Stub Block Verification
 
 ### Anti-Pattern Check: `touch *.gz`

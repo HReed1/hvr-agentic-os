@@ -12,6 +12,9 @@
 
 Issue #4570 mandates that every nf-core module has a `stub:` block. The community has driven this down from 1,095 modules to **44 remaining**. The latest comment on the issue provides the definitive checklist.
 
+> [!NOTE]
+> **Scope Update (2026-04-28):** Of the 44 modules in the original checklist, 4 (`bioawk`, `clonalframeml`, `deepvariant`, `plasmidfinder`) received stubs from other community contributors before our branches were finalized. Our actual contribution covers **40 modules** across 10 split PRs. See the [Validation Report](validation_report.md) for the full reconciliation.
+
 Our previous contribution (PR #11312 for Issue #5409) fixed *existing* stubs that produced invalid `.gz` files via `touch`. This new effort is **adding stubs where none exist at all** — a complementary but distinct scope.
 
 > [!IMPORTANT]

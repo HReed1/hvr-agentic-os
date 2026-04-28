@@ -29,7 +29,7 @@ Automated tooling and documentation for contributing to the [nf-core/modules](ht
 
 | Document | Description |
 |---|---|
-| [Implementation Plan](issues/4570-add-stub-blocks/implementation_plan.md) | Research and implementation strategy for adding stubs to 44 remaining modules |
+| [Implementation Plan](issues/4570-add-stub-blocks/implementation_plan.md) | Research and implementation strategy for adding stubs to 40 of 44 remaining modules |
 | [PR Split Strategy](issues/4570-add-stub-blocks/pr_split_strategy.md) | 10-branch split plan per reviewer feedback, including design patterns and anti-patterns |
 | [Validation Report](issues/4570-add-stub-blocks/validation_report.md) | Full test results for all 40 modules across Phase 1 and Phase 2 |
 | [Swarm Architecture](issues/4570-add-stub-blocks/swarm_architecture.md) | Technical case study of how the agentic swarm executed this contribution autonomously |
