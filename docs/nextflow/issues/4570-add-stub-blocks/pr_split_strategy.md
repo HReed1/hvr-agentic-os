@@ -26,29 +26,29 @@ Each branch includes:
 
 ### Phase 1 Branches (from original #11323 work)
 
-| # | Branch | Modules | Count |
-|---|---|---|---|
-| PR1 | `stub/assemblers` | medaka, racon, raven, salsa2, shasta, shovill | 6 |
-| PR2 | `stub/qc-filtering` | fastqscan, filtlong, prinseqplusplus, pycoqc, rasusa | 5 |
-| PR3 | `stub/typing-annotation` | ectyper, emmtyper, kofamscan, mlst, scoary, seqsero2 | 6 |
-| PR4 | `stub/phylogenetics` | fasttree, rapidnj | 2 |
-| PR5 | `stub/utilities` | ffq, mygene, ncbigenomedownload, maltextract, islandpath, shasum, plasmidid | 7 |
+| # | PR | Branch | Modules | Count |
+|---|---|---|---|---|
+| 1 | [#11349](https://github.com/nf-core/modules/pull/11349) | `stub/assemblers` | medaka, racon, raven, salsa2, shasta, shovill | 6 |
+| 2 | [#11350](https://github.com/nf-core/modules/pull/11350) | `stub/qc-filtering` | fastqscan, filtlong, prinseqplusplus, pycoqc, rasusa | 5 |
+| 3 | [#11351](https://github.com/nf-core/modules/pull/11351) | `stub/typing-annotation` | ectyper, emmtyper, kofamscan, mlst, scoary, seqsero2 | 6 |
+| 4 | [#11352](https://github.com/nf-core/modules/pull/11352) | `stub/phylogenetics` | fasttree, rapidnj | 2 |
+| 5 | [#11353](https://github.com/nf-core/modules/pull/11353) | `stub/utilities` | ffq, mygene, ncbigenomedownload, maltextract, islandpath, shasum, plasmidid | 7 |
 
 ### Phase 2 Branches (remaining 14 modules)
 
-| # | Branch | Modules | Count |
-|---|---|---|---|
-| PR6 | `stub/variant-calling` | genrich, whamg | 2 |
-| PR7 | `stub/typing-annotation-2` | optitype, sistr, ssuissero, staphopiasccmec | 4 |
-| PR8 | `stub/qc-filtering-2` | sickle, slimfastq | 2 |
-| PR9 | `stub/pangenomics` | smoothxg, wfmash | 2 |
-| PR10 | `stub/misc-utilities` | pairix, tailfindr, snpdists, zip | 4 |
+| # | PR | Branch | Modules | Count |
+|---|---|---|---|---|
+| 6 | [#11354](https://github.com/nf-core/modules/pull/11354) | `stub/variant-calling` | genrich, whamg | 2 |
+| 7 | [#11355](https://github.com/nf-core/modules/pull/11355) | `stub/typing-annotation-2` | optitype, sistr, ssuissero, staphopiasccmec | 4 |
+| 8 | [#11356](https://github.com/nf-core/modules/pull/11356) | `stub/qc-filtering-2` | sickle, slimfastq | 2 |
+| 9 | [#11357](https://github.com/nf-core/modules/pull/11357) | `stub/pangenomics` | smoothxg, wfmash | 2 |
+| 10 | [#11358](https://github.com/nf-core/modules/pull/11358) | `stub/misc-utilities` | pairix, tailfindr, snpdists, zip | 4 |
 
 **Total: 40 modules across 10 PRs**
 
 > [!NOTE]
-> `deepvariant` was intentionally excluded — it is a deprecated module whose `script:` block
-> contains `assert false` with a deprecation message directing users to `deepvariant/rundeepvariant`.
+> Of the 44 modules in the [original #4570 checklist](https://github.com/nf-core/modules/issues/4570#issuecomment-3998972222), 4 were excluded because stubs were already merged upstream by other contributors:
+> `bioawk`, `clonalframeml`, `deepvariant`, `plasmidfinder`.
 
 ---
 
