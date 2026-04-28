@@ -144,3 +144,15 @@
 ```bash
 echo '' | gzip > filename.gz
 ```
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📋 Implementation Plan](../implementation_plan.md) | Full hackathon plan for issue #5409 |
+| [📊 Module Inventory](module_inventory.md) | Inventory of fixed modules |
+| [📊 Diff Report](diff_report.md) | Per-module diff confidence and scope |
+| [✅ Validation Summary](validation.md) | Validation results for all modules |
+| [📖 Bucket Analysis](../../../reference/BUCKET_ANALYSIS.md) | Scope analysis of swarm-generated diffs |
+| [🔙 Nextflow Docs Index](../../../README.md) | Main documentation index |

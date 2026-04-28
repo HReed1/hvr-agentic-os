@@ -228,9 +228,23 @@ Each batch follows the full gate sequence:
 
 These hard lessons are **mandatory** reading for the swarm:
 
-1. ❌ **Single quotes in gzip:** `echo '' | gzip >` fails the linter. Use `echo "" | gzip >`.
+1. ❌ **Quoted echo in gzip:** `echo "" | gzip >` or `echo '' | gzip >` produces different byte output. Use `echo | gzip >` (no quotes). See [PR #11312 reviewer feedback](https://github.com/nf-core/modules/pull/11312#discussion_r3146198459).
 2. ❌ **Scope creep:** Do NOT fix module bugs, update containers, or refactor while adding stubs.
 3. ❌ **Fixing pre-existing lint failures:** Document them. Don't fix them.
 4. ❌ **Stale checklists:** Verify against live `master` — some modules may already have stubs from other PRs.
 5. ❌ **Cloning into workspace:** Use `/tmp/` for the fork clone.
 6. ❌ **Skipping human gates:** Every external GitHub operation needs explicit per-action approval.
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📋 PR Split Strategy](pr_split_strategy.md) | 10-branch split plan, design patterns, anti-patterns, and submission protocol |
+| [✅ Validation Report](validation_report.md) | Full test results for all 40 modules (Phase 1 + Phase 2) |
+| [🏗️ Swarm Architecture](swarm_architecture.md) | Technical case study of how the agentic swarm executed this contribution |
+| [📂 Issue #5409 Plan](../5409-fix-stub-gz/implementation_plan.md) | Prior art — the stub `.gz` fix that preceded this work |
+| [📖 nf-core Contributing Reference](../../reference/nfcore_contributing_reference.md) | Internalized nf-core conventions and workflow |
+| [🔙 Nextflow Docs Index](../../README.md) | Main documentation index |
+

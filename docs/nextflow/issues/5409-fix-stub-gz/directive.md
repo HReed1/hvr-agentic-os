@@ -97,3 +97,14 @@ After pasting this directive, observe the swarm in the ADK Web UI. You should se
 7. **Reporter** writes the retrospective
 
 The swarm will NOT touch GitHub at any point. All 3 reports will be in `.staging/docs/hackathon/` for your review.
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📋 Implementation Plan](implementation_plan.md) | Full hackathon plan for this issue |
+| [📊 Module Inventory](reports/module_inventory.md) | Inventory of fixed modules |
+| [✅ Validation Summary](reports/validation.md) | Validation results |
+| [🔙 Nextflow Docs Index](../../README.md) | Main documentation index |

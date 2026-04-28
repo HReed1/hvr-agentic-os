@@ -1,0 +1,109 @@
+diff --git a/modules/nf-core/sickle/main.nf b/modules/nf-core/sickle/main.nf
+index 26f3860b52..2e052f16c0 100644
+--- a/modules/nf-core/sickle/main.nf
++++ b/modules/nf-core/sickle/main.nf
+@@ -61,4 +61,15 @@ process SICKLE {
+     END_VERSIONS
+     """
+     }
++
++    stub:
++    prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    touch ${prefix}.sickle.log
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        sickle: \$(sickle --version|awk 'NR==1{print \$3}')
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/sickle/tests/main.nf.test b/modules/nf-core/sickle/tests/main.nf.test
+index 740420a09d..44de7db338 100644
+--- a/modules/nf-core/sickle/tests/main.nf.test
++++ b/modules/nf-core/sickle/tests/main.nf.test
+@@ -73,4 +73,30 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("sickle - stub") {
++
++        options "-stub"
++        config "./nextflow.config"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test', single_end:true], // meta map
++                    [ file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true) ],
++                    "sanger"
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/slimfastq/main.nf b/modules/nf-core/slimfastq/main.nf
+index bbdf159ded..fecada8d31 100644
+--- a/modules/nf-core/slimfastq/main.nf
++++ b/modules/nf-core/slimfastq/main.nf
+@@ -49,4 +49,16 @@ process SLIMFASTQ {
+         END_VERSIONS
+         """
+     }
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    def VERSION = '2.04'
++    """
++    touch ${prefix}.sfq
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        slimfastq: ${VERSION}
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/slimfastq/tests/main.nf.test b/modules/nf-core/slimfastq/tests/main.nf.test
+index b2c47eec77..2b7c55ca0f 100644
+--- a/modules/nf-core/slimfastq/tests/main.nf.test
++++ b/modules/nf-core/slimfastq/tests/main.nf.test
+@@ -100,4 +100,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("slimfastq - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test', single_end:true], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }

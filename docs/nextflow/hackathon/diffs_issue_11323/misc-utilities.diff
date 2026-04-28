@@ -1,0 +1,206 @@
+diff --git a/modules/nf-core/pairix/main.nf b/modules/nf-core/pairix/main.nf
+index f0c20174c4..2d2f0057ae 100644
+--- a/modules/nf-core/pairix/main.nf
++++ b/modules/nf-core/pairix/main.nf
+@@ -29,4 +29,14 @@ process PAIRIX {
+         pairix: \$(echo \$(pairix --help 2>&1) | sed 's/^.*Version: //; s/Usage.*\$//')
+     END_VERSIONS
+     """
++
++    stub:
++    """
++    touch ${pair}.px2
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        pairix: \$(echo \$(pairix --help 2>&1) | sed 's/^.*Version: //; s/Usage.*\$//')
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/pairix/tests/main.nf.test b/modules/nf-core/pairix/tests/main.nf.test
+index 69bf77590d..4366e5b367 100644
+--- a/modules/nf-core/pairix/tests/main.nf.test
++++ b/modules/nf-core/pairix/tests/main.nf.test
+@@ -29,4 +29,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("pairix - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test' ], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/cooler/cload/hg19/hg19.GM12878-MboI.pairs.subsample.blksrt.txt.gz', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/snpdists/main.nf b/modules/nf-core/snpdists/main.nf
+index 8884a38c03..ebfbd3af62 100644
+--- a/modules/nf-core/snpdists/main.nf
++++ b/modules/nf-core/snpdists/main.nf
+@@ -30,4 +30,15 @@ process SNPDISTS {
+         snpdists: \$(snp-dists -v 2>&1 | sed 's/snp-dists //;')
+     END_VERSIONS
+     """
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    touch ${prefix}.tsv
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        snpdists: \$(snp-dists -v 2>&1 | sed 's/snp-dists //;')
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/snpdists/tests/main.nf.test b/modules/nf-core/snpdists/tests/main.nf.test
+index 67efc88658..d338a7d781 100644
+--- a/modules/nf-core/snpdists/tests/main.nf.test
++++ b/modules/nf-core/snpdists/tests/main.nf.test
+@@ -29,4 +29,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("snpdists - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test' ], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/alignment/informative_sites.fas', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/tailfindr/main.nf b/modules/nf-core/tailfindr/main.nf
+index 02e9fdeb4c..022babf69c 100644
+--- a/modules/nf-core/tailfindr/main.nf
++++ b/modules/nf-core/tailfindr/main.nf
+@@ -35,4 +35,16 @@ process TAILFINDR {
+         ont-fast5-api: \$(pip show ont-fast5-api | grep Version | awk '{print \$2}')
+     END_VERSIONS
+     """
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    echo | gzip > ${prefix}.csv.gz
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        tailfindr: \$(Rscript -e "cat(paste(packageVersion('tailfindr'), collapse='.'))")
++        ont-fast5-api: \$(pip show ont-fast5-api | grep Version | awk '{print \$2}')
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/tailfindr/tests/main.nf.test b/modules/nf-core/tailfindr/tests/main.nf.test
+index 55ec9412b2..291bafceda 100644
+--- a/modules/nf-core/tailfindr/tests/main.nf.test
++++ b/modules/nf-core/tailfindr/tests/main.nf.test
+@@ -31,4 +31,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("tailfindr - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id: 'test' ], // meta map
++                    file('https://github.com/nf-core/test-datasets/raw/modules/data/delete_me/tailfindr/test.fast5', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/zip/main.nf b/modules/nf-core/zip/main.nf
+index 2f15d6954f..53466908d8 100644
+--- a/modules/nf-core/zip/main.nf
++++ b/modules/nf-core/zip/main.nf
+@@ -28,4 +28,10 @@ process ZIP {
+         $args \\
+         "${prefix}.zip" ./inputs/*
+     """
++
++    stub:
++    prefix = task.ext.prefix ?: ( meta.id ? "${meta.id}" : 'zipped_files')
++    """
++    touch ${prefix}.zip
++    """
+ }
+diff --git a/modules/nf-core/zip/tests/main.nf.test b/modules/nf-core/zip/tests/main.nf.test
+index 2367a1284f..9ebd7d1418 100644
+--- a/modules/nf-core/zip/tests/main.nf.test
++++ b/modules/nf-core/zip/tests/main.nf.test
+@@ -30,4 +30,27 @@ nextflow_process {
+             )
+         }
+     }
++
++    test("zip - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [ [ id:'test', single_end:false ], // meta map
++                             file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
++                           ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }

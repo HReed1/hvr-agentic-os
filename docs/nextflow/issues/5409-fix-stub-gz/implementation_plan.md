@@ -3,6 +3,11 @@
 > **Target:** [nf-core Hackathon March 2026 — Project #146](https://github.com/orgs/nf-core/projects/146)
 > **First Issue:** [`nf-core/modules#5409`](https://github.com/nf-core/modules/issues/5409) — Fix stub `touch .gz` patterns breaking nf-test snapshots
 
+> [!WARNING]
+> **Post-review correction:** This document originally specified `echo '' | gzip > file.gz`.
+> Per [reviewer feedback on PR #11312](https://github.com/nf-core/modules/pull/11312#discussion_r3146198459),
+> the correct pattern is `echo | gzip > file.gz` (no quotes, no arguments).
+
 ---
 
 ## Phases 1 & 2: ✅ Complete
@@ -592,3 +597,19 @@ After CI passes on the draft PR, the human decides whether to:
 2. **Local tooling availability?** — Do you have `nf-core tools` + Nextflow + Docker installed for local testing? If not, should the swarm prepare all code changes locally and rely on CI after push?
 3. **nf-core Slack announcement?** — Should we post in `#modules` or `#request-review` for visibility? (Human-driven action)
 4. **Staging directory?** — Is `scripts/hackathon/staging/` acceptable for the local clone, or do you prefer a different location?
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📊 Module Inventory](reports/module_inventory.md) | Inventory of fixed modules and their PR mappings |
+| [📊 Diff Report](reports/diff_report.md) | Per-module diff confidence and scope assessment |
+| [✅ Validation Summary](reports/validation.md) | Validation results for all modules in scope |
+| [📝 Director Directive](directive.md) | ADK Web UI prompt used to launch the swarm |
+| [📂 Issue #4570 Plan](../4570-add-stub-blocks/implementation_plan.md) | Follow-on effort — adding stubs where none exist |
+| [📋 Issue #4570 PR Split](../4570-add-stub-blocks/pr_split_strategy.md) | 10-branch split strategy for the #4570 work |
+| [📖 Bucket Analysis](../../reference/BUCKET_ANALYSIS.md) | Scope analysis of the 101 swarm-generated diffs |
+| [📖 nf-core Contributing Reference](../../reference/nfcore_contributing_reference.md) | Internalized nf-core conventions |
+| [🔙 Nextflow Docs Index](../../README.md) | Main documentation index |

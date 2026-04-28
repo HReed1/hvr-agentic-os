@@ -77,7 +77,7 @@ A module consists of these files:
 - **Tag**: `tag "${meta.id}"`
 - **Optional params**: Must go through `$args` (i.e., `ext.args`), NOT hardcoded
 - **Version output**: Must use eval output qualifiers for version channels
-- **Stubs**: Must produce valid files (our target issue — `touch file.gz` is WRONG, need `echo '' | gzip > file.gz`)
+- **Stubs**: Must produce valid files (our target issue — `touch file.gz` is WRONG, need `echo | gzip > file.gz`). See [PR #11312 discussion](https://github.com/nf-core/modules/pull/11312#discussion_r3146198459).
 
 ### 3.2 ext.args System
 - `ext.args` — primary command-line args injection
@@ -255,3 +255,15 @@ Based on this documentation review, the following items in our current implement
 9. **Snapshot updates**:
    - ❌ Plan doesn't cover snapshot management
    - ✅ Must: Update `.nf.test.snap` files when fixing stubs, commit snapshots with changes, ensure `assertAll()` pattern used
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📂 Issue #5409 Plan](../issues/5409-fix-stub-gz/implementation_plan.md) | Stub `.gz` fix — first application of these conventions |
+| [📂 Issue #4570 Plan](../issues/4570-add-stub-blocks/implementation_plan.md) | Add stub blocks — second application |
+| [📋 PR Split Strategy](../issues/4570-add-stub-blocks/pr_split_strategy.md) | Design patterns and anti-patterns learned |
+| [📖 Bucket Analysis](BUCKET_ANALYSIS.md) | Scope analysis for issue #5409 |
+| [🔙 Nextflow Docs Index](../README.md) | Main documentation index |

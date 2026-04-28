@@ -447,3 +447,14 @@ graph TD
 - Human reviews the triage output to confirm issue selection quality
 - Human spot-checks 2–3 generated plans for correctness before execution
 - Human reviews draft PRs before converting from draft to ready-for-review
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📂 Issue #5409 Plan](../issues/5409-fix-stub-gz/implementation_plan.md) | Hackathon plan for the stub `.gz` fix |
+| [📂 Issue #4570 Plan](../issues/4570-add-stub-blocks/implementation_plan.md) | Plan for adding stubs to remaining modules |
+| [📖 nf-core Contributing Reference](../reference/nfcore_contributing_reference.md) | Internalized nf-core conventions |
+| [🔙 Nextflow Docs Index](../README.md) | Main documentation index |

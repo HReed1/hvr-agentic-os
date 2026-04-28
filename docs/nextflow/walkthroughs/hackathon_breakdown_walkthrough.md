@@ -191,3 +191,14 @@ Awaiting your decision:
 1. **Confirm target issue** — Do you want to proceed with `modules#5409` or pick a different candidate?
 2. **PR strategy** — Single batch PR for all 19 modules, or individual PRs per module?
 3. **Local tooling** — Do you have `nf-core tools` and Nextflow installed for running module tests, or should the swarm skip local testing and rely on CI?
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📂 Issue #5409 Plan](../issues/5409-fix-stub-gz/implementation_plan.md) | Hackathon plan for the stub `.gz` fix |
+| [📂 Issue #4570 Plan](../issues/4570-add-stub-blocks/implementation_plan.md) | Plan for adding stubs to remaining modules |
+| [📖 nf-core Contributing Reference](../reference/nfcore_contributing_reference.md) | Internalized nf-core conventions |
+| [🔙 Nextflow Docs Index](../README.md) | Main documentation index |

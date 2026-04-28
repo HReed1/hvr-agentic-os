@@ -155,3 +155,14 @@ Two options:
 
 > [!IMPORTANT]
 > Bug #1 is the most critical — without fixing escalation routing, the Director can never self-heal because it never receives the escalation signal. All other fixes are secondary.
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📂 Issue #5409 Plan](../issues/5409-fix-stub-gz/implementation_plan.md) | Hackathon plan for the stub `.gz` fix |
+| [📂 Issue #4570 Plan](../issues/4570-add-stub-blocks/implementation_plan.md) | Plan for adding stubs to remaining modules |
+| [📖 nf-core Contributing Reference](../reference/nfcore_contributing_reference.md) | Internalized nf-core conventions |
+| [🔙 Nextflow Docs Index](../README.md) | Main documentation index |

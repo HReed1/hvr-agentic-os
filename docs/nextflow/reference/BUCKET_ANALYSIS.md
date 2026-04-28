@@ -60,3 +60,14 @@ These fix `touch *.bam` → `echo '' | gzip > *.bam`, which is **not in the issu
 2. **Issue #2 (New)**: Open a companion issue: *"Module stubs that `touch .bam/.cram` create invalid binary files"*. Reference #5409 as prior art. Include the analysis that BAM/CRAM stubs have the same structural failure mode.
 
 3. **PR #2 (New Issue)**: Submit the 93 `.bam/.cram` diffs against the new issue. May want to batch into smaller PRs (e.g., by tool family: gatk4/*, samtools/*, picard/*, etc.).
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📋 Issue #5409 Plan](../issues/5409-fix-stub-gz/implementation_plan.md) | Hackathon plan for the stub `.gz` fix |
+| [📊 Diff Report](../issues/5409-fix-stub-gz/reports/diff_report.md) | Per-module diff details |
+| [📖 nf-core Contributing Reference](nfcore_contributing_reference.md) | Internalized nf-core conventions |
+| [🔙 Nextflow Docs Index](../README.md) | Main documentation index |

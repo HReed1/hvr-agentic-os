@@ -44,3 +44,15 @@ This architecture successfully allowed the Swarm to migrate the `nf-core` reposi
 2. **Execution Phase:** The Executor runs `stub_generator.py` to programmatically inject the AST patches.
 3. **Green Phase:** The `test_nf_stubs.py` suite runs again. It achieves a 100% pass rate.
 4. **Human Airlock:** The Swarm halts. The local changes wait in the `.staging` and `tmp-repo` environment until the human Director explicitly authorizes the external Git mutations (committing and pushing the Pull Request).
+
+---
+
+## Related Documents
+
+| Document | Description |
+|---|---|
+| [📋 Implementation Plan](implementation_plan.md) | Research and strategy for adding stubs to 44 modules |
+| [📋 PR Split Strategy](pr_split_strategy.md) | 10-branch split plan and submission protocol |
+| [✅ Validation Report](validation_report.md) | Full test results for all 40 modules |
+| [📂 Issue #5409 Plan](../5409-fix-stub-gz/implementation_plan.md) | Prior art — the stub `.gz` fix |
+| [🔙 Nextflow Docs Index](../../README.md) | Main documentation index |

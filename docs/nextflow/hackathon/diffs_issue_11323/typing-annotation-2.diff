@@ -1,0 +1,220 @@
+diff --git a/modules/nf-core/optitype/main.nf b/modules/nf-core/optitype/main.nf
+index 0508e88de9..8d777fe149 100644
+--- a/modules/nf-core/optitype/main.nf
++++ b/modules/nf-core/optitype/main.nf
+@@ -47,4 +47,17 @@ process OPTITYPE {
+         optitype: \$(cat \$(which OptiTypePipeline.py) | grep -e "Version:" | sed -e "s/Version: //g")
+     END_VERSIONS
+     """
++
++    stub:
++    prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    mkdir -p ${prefix}
++    touch ${prefix}/${prefix}_result.tsv
++    touch ${prefix}/${prefix}_coverage_plot.pdf
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        optitype: \$(cat \$(which OptiTypePipeline.py) | grep -e "Version:" | sed -e "s/Version: //g")
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/optitype/tests/main.nf.test b/modules/nf-core/optitype/tests/main.nf.test
+index 3a6206c819..a2ccfe3b20 100644
+--- a/modules/nf-core/optitype/tests/main.nf.test
++++ b/modules/nf-core/optitype/tests/main.nf.test
+@@ -64,4 +64,29 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("optitype - stub") {
++
++        options "-stub"
++        config "./nextflow.config"
++
++        when {
++            process {
++                """
++                input[0] = [ [ id:'test', seq_type:'dna' ], // meta map
++                       file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/example_hla_pe.sorted.bam', checkIfExists: true),
++                       file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/bam/example_hla_pe.sorted.bam.bai', checkIfExists: true)
++                     ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/sistr/main.nf b/modules/nf-core/sistr/main.nf
+index efa2e1e807..36cc017d24 100644
+--- a/modules/nf-core/sistr/main.nf
++++ b/modules/nf-core/sistr/main.nf
+@@ -46,4 +46,18 @@ process SISTR {
+         sistr: \$(echo \$(sistr --version 2>&1) | sed 's/^.*sistr_cmd //; s/ .*\$//' )
+     END_VERSIONS
+     """
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    touch ${prefix}.tab
++    touch ${prefix}-allele.fasta
++    touch ${prefix}-allele.json
++    touch ${prefix}-cgmlst.csv
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        sistr: \$(echo \$(sistr --version 2>&1) | sed 's/^.*sistr_cmd //; s/ .*\$//' )
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/sistr/tests/main.nf.test b/modules/nf-core/sistr/tests/main.nf.test
+index f9a0edadae..e7fd3511a5 100644
+--- a/modules/nf-core/sistr/tests/main.nf.test
++++ b/modules/nf-core/sistr/tests/main.nf.test
+@@ -38,4 +38,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("sistr - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test' ], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/ssuissero/main.nf b/modules/nf-core/ssuissero/main.nf
+index 7abc7a8a88..307b6edb59 100644
+--- a/modules/nf-core/ssuissero/main.nf
++++ b/modules/nf-core/ssuissero/main.nf
+@@ -40,4 +40,16 @@ process SSUISSERO {
+         ssuissero: $VERSION
+     END_VERSIONS
+     """
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    def VERSION = '1.0.1'
++    """
++    touch ${prefix}.tsv
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        ssuissero: $VERSION
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/ssuissero/tests/main.nf.test b/modules/nf-core/ssuissero/tests/main.nf.test
+index e8e68a2057..85fab98463 100644
+--- a/modules/nf-core/ssuissero/tests/main.nf.test
++++ b/modules/nf-core/ssuissero/tests/main.nf.test
+@@ -31,4 +31,28 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("ssuissero - stub") {
++
++        options "-stub"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test' ], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
+diff --git a/modules/nf-core/staphopiasccmec/main.nf b/modules/nf-core/staphopiasccmec/main.nf
+index 35427a3dc6..f1035ae924 100644
+--- a/modules/nf-core/staphopiasccmec/main.nf
++++ b/modules/nf-core/staphopiasccmec/main.nf
+@@ -28,4 +28,15 @@ process STAPHOPIASCCMEC {
+         staphopiasccmec: \$(staphopia-sccmec --version 2>&1 | sed 's/^.*staphopia-sccmec //')
+     END_VERSIONS
+     """
++
++    stub:
++    def prefix = task.ext.prefix ?: "${meta.id}"
++    """
++    touch ${prefix}.tsv
++
++    cat <<-END_VERSIONS > versions.yml
++    "${task.process}":
++        staphopiasccmec: \$(staphopia-sccmec --version 2>&1 | sed 's/^.*staphopia-sccmec //')
++    END_VERSIONS
++    """
+ }
+diff --git a/modules/nf-core/staphopiasccmec/tests/main.nf.test b/modules/nf-core/staphopiasccmec/tests/main.nf.test
+index e500c44623..f95db84a81 100644
+--- a/modules/nf-core/staphopiasccmec/tests/main.nf.test
++++ b/modules/nf-core/staphopiasccmec/tests/main.nf.test
+@@ -54,4 +54,29 @@ nextflow_process {
+         }
+     }
+ 
++
++    test("staphopiasccmec - stub") {
++
++        options "-stub"
++        config "./nextflow.config"
++
++        when {
++            process {
++                """
++                input[0] = [
++                    [ id:'test' ], // meta map
++                    file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
++                ]
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(process.out).match() }
++            )
++        }
++    }
+ }
