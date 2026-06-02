@@ -1,0 +1,129 @@
+{
+  "_meta": {
+    "last_updated": "2026-06-02T18:38:57.363334+00:00"
+  },
+  "entries": [
+    {
+      "source_file": "docs/reference/drift-registry.md",
+      "verified_commit": "c14f57f3292264f0ce47b2a6fe9b2800d816f7e9",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": "scripts/drift_enforcer.py",
+          "reason": "Reference guide contains the canonical enforcer script \u2014 the deployed script must match the reference implementation."
+        },
+        {
+          "type": "describes",
+          "path": "docs/drift_registries/README.md",
+          "reason": "README summarizes the drift registry system \u2014 must reflect the schema and usage patterns documented in the reference."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/reference/session-workflows.md",
+      "verified_commit": "c14f57f3292264f0ce47b2a6fe9b2800d816f7e9",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": ".agents/workflows/session-start.md",
+          "reason": "Session workflows reference is the canonical spec — the session-start workflow must implement the described initialization steps."
+        },
+        {
+          "type": "describes",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session workflows reference is the canonical spec — the session-wrapup workflow must implement the described teardown steps."
+        },
+        {
+          "type": "describes",
+          "path": ".agents/workflows/executor-wrapup.md",
+          "reason": "Session workflows reference describes the wrapup protocol \u2014 the executor wrapup workflow must implement the described steps."
+        },
+        {
+          "type": "describes",
+          "path": ".agents/workflows/architect-wrapup.md",
+          "reason": "Session workflows reference describes the architect teardown \u2014 the architect wrapup workflow must implement the described steps."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/reference/llm-wiki-antigravity.md",
+      "verified_commit": "c14f57f3292264f0ce47b2a6fe9b2800d816f7e9",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": "GEMINI.md",
+          "reason": "Wiki reference guide defines the wiki maintenance protocol \u2014 GEMINI.md Wiki section must faithfully encode the same ingest/query/lint workflows."
+        },
+        {
+          "type": "describes",
+          "path": "scripts/wiki_db_init.py",
+          "reason": "Wiki reference defines the database schema \u2014 the init script must create tables matching the documented structure."
+        },
+        {
+          "type": "describes",
+          "path": "scripts/wiki_db_backfill.py",
+          "reason": "Wiki reference defines the page format and fields \u2014 the backfill script must parse the same YAML frontmatter fields."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/director_context/autonomous-swarm-architecture.md",
+      "verified_commit": "32797f531c6526bdc6d2d33275aad6b961840a67",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": "agent_app/agents.py",
+          "reason": "Architecture doc describes the multi-agent swarm topology \u2014 agent definitions must match the described roles and routing."
+        },
+        {
+          "type": "describes",
+          "path": ".agents/agents.md",
+          "reason": "Architecture doc describes agent profiles \u2014 agents.md must reflect the same roles, authorized workflows, and skill assignments."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/director_context/api-schema-boundaries.md",
+      "verified_commit": "f9be8a6c214e4e97c8c8efd741d66c094ba97c42",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": "api/main.py",
+          "reason": "API schema boundaries doc describes route structure \u2014 the actual API entrypoint must implement the described endpoints."
+        },
+        {
+          "type": "describes",
+          "path": "api/batch_submitter.py",
+          "reason": "API schema doc describes the batch submission interface \u2014 the submitter must match the described payload shapes."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/guides/2026-04-21_full-stack_benchmark_walkthrough.md",
+      "verified_commit": "b686b43a46bcdfef0b2f51791ea1418bf8a34648",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": "bin/run_all_evals.sh",
+          "reason": "Benchmark walkthrough describes how to run evals \u2014 the eval runner script must support the documented CLI flags and execution flow."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/decisions/2026-04-23_tdaid_refactor_directive.md",
+      "verified_commit": "b686b43a46bcdfef0b2f51791ea1418bf8a34648",
+      "dependencies": [
+        {
+          "type": "describes",
+          "path": ".agents/rules/tdaid-testing-guardrails.md",
+          "reason": "TDAID decision doc describes the testing philosophy \u2014 the guardrails rule must enforce the same spec-driven approach."
+        },
+        {
+          "type": "describes",
+          "path": "mcp_servers/ast_validation_mcp.py",
+          "reason": "TDAID decision doc describes AST validation scope \u2014 the MCP server must implement the described validation capabilities."
+        }
+      ]
+    }
+  ]
+}

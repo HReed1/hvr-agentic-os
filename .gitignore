@@ -17,5 +17,8 @@ src/
 docs/evals/retrospectives/legacy/
 llms*.txt
 
+# Session workflow ephemeral log
+.agents/logs/session_drift.log
+
 # Pytest cache
 .pytest_cache/

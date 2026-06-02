@@ -1,0 +1,108 @@
+{
+  "_meta": {
+    "last_updated": "2026-06-02T18:38:57.457646+00:00"
+  },
+  "entries": [
+    {
+      "source_file": "docker/executor-sandbox/Dockerfile",
+      "verified_commit": "5d99aba051dafec9bcb3907b413e82ede3e2b6e0",
+      "dependencies": [
+        {
+          "type": "manifest",
+          "path": "requirements.txt",
+          "reason": "Dockerfile COPYs and pip-installs requirements.txt \u2014 any new dependency or version pin must be reflected in both files."
+        },
+        {
+          "type": "build",
+          "path": "bin/build_sandbox.sh",
+          "reason": "build_sandbox.sh references docker/executor-sandbox/Dockerfile by path \u2014 if the Dockerfile moves or the image tag changes, the build script breaks."
+        },
+        {
+          "type": "config",
+          "path": ".github/workflows/ci.yml",
+          "reason": "CI installs from the same requirements.txt the Dockerfile uses \u2014 Python version and dependency drift between CI and Docker causes false green tests."
+        }
+      ]
+    },
+    {
+      "source_file": "requirements.txt",
+      "verified_commit": "8ee1ea2a26e8a1e8490e20a494ef4bfbb0f6b69a",
+      "dependencies": [
+        {
+          "type": "manifest",
+          "path": "docker/executor-sandbox/Dockerfile",
+          "reason": "Dockerfile pip-installs requirements.txt \u2014 new dependencies must be installable in the slim Python 3.11 base image."
+        },
+        {
+          "type": "config",
+          "path": ".github/workflows/ci.yml",
+          "reason": "CI test job installs requirements.txt \u2014 version conflicts or missing deps cause CI failures that pass locally."
+        },
+        {
+          "type": "config",
+          "path": ".pip-audit-ignore",
+          "reason": "pip-audit-ignore excludes known CVEs from audit \u2014 adding new deps may introduce new CVEs that need explicit exclusion."
+        }
+      ]
+    },
+    {
+      "source_file": ".github/workflows/ci.yml",
+      "verified_commit": "d42d9228a80d3c6b4edb69a5dee977d1b3b449f7",
+      "dependencies": [
+        {
+          "type": "manifest",
+          "path": "requirements.txt",
+          "reason": "CI test job runs pip install -r requirements.txt \u2014 the file must exist and resolve cleanly in the CI Ubuntu runner."
+        },
+        {
+          "type": "config",
+          "path": ".pip-audit-ignore",
+          "reason": "CI dependency-audit job reads .pip-audit-ignore for CVE exclusions \u2014 missing or stale entries cause false audit failures."
+        },
+        {
+          "type": "entrypoint",
+          "path": "tests/test_baseline.py",
+          "reason": "CI runs pytest tests/ \u2014 if baseline test imports break, CI fails. Test file structure must match CI test discovery patterns."
+        }
+      ]
+    },
+    {
+      "source_file": "bin/build_sandbox.sh",
+      "verified_commit": "5d99aba051dafec9bcb3907b413e82ede3e2b6e0",
+      "dependencies": [
+        {
+          "type": "build",
+          "path": "docker/executor-sandbox/Dockerfile",
+          "reason": "build_sandbox.sh invokes docker build with -f docker/executor-sandbox/Dockerfile \u2014 path changes break the build script."
+        }
+      ]
+    },
+    {
+      "source_file": "bin/run_all_evals.sh",
+      "verified_commit": "0c19ff73ddddc784be58459e79bca99cd2184b0a",
+      "dependencies": [
+        {
+          "type": "build",
+          "path": "docker/executor-sandbox/Dockerfile",
+          "reason": "Eval runner launches executor-sandbox:latest container \u2014 the Docker image must be built with current requirements before evals run."
+        },
+        {
+          "type": "config",
+          "path": "tests/adk_evals/test_eng_cyclomatic_complexity.test.json",
+          "reason": "Eval runner discovers .test.json files \u2014 adding/removing/renaming eval definitions changes which evals execute."
+        }
+      ]
+    },
+    {
+      "source_file": "utils/build_firewall.sh",
+      "verified_commit": "00723f3d9fea9900338e273e0153ae270413c7c4",
+      "dependencies": [
+        {
+          "type": "build",
+          "path": "bin/dlp-firewall",
+          "reason": "build_firewall.sh compiles the DLP firewall binary \u2014 the output binary path and Go source must stay in sync."
+        }
+      ]
+    }
+  ]
+}

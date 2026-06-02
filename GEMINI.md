@@ -203,3 +203,78 @@ Periodically (or when the user asks), health-check the wiki:
 - **Always append to `log.md`** for every ingest, query, or lint operation
 - **Flag contradictions explicitly** — don't silently overwrite one claim with another
 - **Cite sources** — every claim in a wiki page should trace back to a document in `docs/` or `raw/`
+
+## Drift Registry Protocol
+
+This project uses a drift registry system to track cross-file dependencies.
+Registries live at `docs/drift_registries/*.json`. The enforcer script is at
+`scripts/drift_enforcer.py`.
+
+### When to add a registry entry
+
+Add an entry when ANY of these occur:
+1. A new source file is created that depends on or is depended upon by existing files
+2. A new dependency relationship is discovered during development
+3. An existing file gains a new consumer
+
+### How to add an entry
+
+1. Determine the correct domain registry (agent, infra, docs)
+2. Ask: "If this file changes, what other files could break?"
+3. Add a new object to the `entries` array with `verified_commit: null`
+4. Run `python3 scripts/drift_enforcer.py --stamp` to initialize
+
+### When to run the enforcer
+
+- **End of every session** — before committing, run the enforcer to check for drift
+- **Before merging PRs** — ensure no contracts have silently broken
+- **Periodically** — as a hygiene check
+
+### Stamping rules
+
+> IMPORTANT: Only stamp at session end, never mid-session. Drift detected
+> during development is expected — it means the enforcer is working. Save
+> stamping for the wrapup step to preserve the system as a safety net.
+
+### If drift is detected
+
+1. Review the flagged files and their dependency reasons
+2. If the changes are intentional: update the dependent files, then stamp
+3. If the changes are unexpected: stop and consult the user
+4. Always explain what was reviewed in the session retrospective
+
+## Session Lifecycle
+
+This project uses structured session workflows to prevent cold starts,
+enforce drift checks, and compound knowledge across sessions.
+
+### Starting a session
+
+Run `/session-start` (or read `.agents/workflows/session-start.md`) at the
+beginning of each engineering session. This:
+1. Loads `wiki/overview.md` for project context
+2. Scans the 2 most recent retrospectives for carryover items
+3. Runs the drift enforcer (informational, not blocking)
+4. Asks the user for session focus
+5. Confirms session started with a structured briefing
+
+### Ending a session
+
+Run `/session-wrapup` (or read `.agents/workflows/session-wrapup.md`) at
+the end of each session. This:
+1. Stages and commits session changes
+2. Enforces drift checks and stamps registries (the **only** correct stamping point)
+3. Generates a retrospective in `docs/retrospectives/`
+4. Optionally ingests significant work into `wiki/`
+5. Commits docs, wiki, and stamped registries
+6. Cleans up the ephemeral session drift log
+
+### Rules
+
+- **Never stamp drift registries mid-session.** Stamping happens only in
+  the wrapup workflow.
+- **Always generate a retrospective.** Even short sessions get a retro.
+  Future sessions depend on these for context.
+- **Don't push to remote automatically.** The user decides when to push.
+- **Wiki ingest is optional.** Only ingest for architecturally significant
+  sessions. Routine bug-fix sessions skip the wiki ingest step.
