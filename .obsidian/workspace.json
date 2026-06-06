@@ -1,0 +1,197 @@
+{
+  "main": {
+    "id": "4abee183193bad21",
+    "type": "split",
+    "children": [
+      {
+        "id": "8138979e9b3a9220",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f3c059f6024bcbb2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a4243c48dc844610",
+    "type": "split",
+    "children": [
+      {
+        "id": "7a9f0d54d11245be",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "6e58c2594e1117e0",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "1170d53f49e50e7c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "88abd11966a125cc",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "57a276037316da7f",
+    "type": "split",
+    "children": [
+      {
+        "id": "3b5e3fbd48e0caa2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "875679ca7042add2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "wiki/entities/zero-trust-auditor.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for zero-trust-auditor"
+            }
+          },
+          {
+            "id": "0aeec3d069cc6cc7",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "wiki/entities/zero-trust-auditor.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from zero-trust-auditor"
+            }
+          },
+          {
+            "id": "187330767a23429b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "0075d29c5c99686c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "5548feb2bc77e0dc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "wiki/entities/zero-trust-auditor.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of zero-trust-auditor"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "f3c059f6024bcbb2",
+  "lastOpenFiles": [
+    "wiki/overview.md",
+    "wiki/log.md",
+    "wiki/entities/zero-trust-auditor.md",
+    "wiki/entities/director-agent.md",
+    "wiki/index.md",
+    "wiki/concepts/tdaid-methodology.md",
+    "Untitled.canvas",
+    "docs/retrospectives/2026-04-29_seqera_ai_nfcore_emmtyper_pilot.md",
+    "venv/lib/python3.14/site-packages/cyclonedx/schema/_res/README.md",
+    "wiki/entities/qa-engineer-agent.md",
+    "docs/evals/current/README.md",
+    "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md"
+  ]
+}

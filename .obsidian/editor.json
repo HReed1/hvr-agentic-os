@@ -1,0 +1,11 @@
+{
+  "livePreview": true,
+  "defaultViewMode": "preview",
+  "lineWrap": true,
+  "readableLineLength": true,
+  "tabSize": 2,
+  "vimMode": false,
+  "foldHeading": true,
+  "foldIndent": true,
+  "showFrontmatter": true
+}

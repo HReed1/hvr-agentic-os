@@ -1,0 +1,170 @@
+{
+  "_meta": {
+    "last_updated": "2026-06-02T18:38:57.192839+00:00"
+  },
+  "entries": [
+    {
+      "source_file": "GEMINI.md",
+      "verified_commit": "b686b43a46bcdfef0b2f51791ea1418bf8a34648",
+      "dependencies": [
+        {
+          "type": "rule",
+          "path": ".agents/rules/amnesia-sweep-defense.md",
+          "reason": "GEMINI.md \u00a71 (Amnesia Sweep Defense) is the canonical source \u2014 the rule file must mirror the same constraints verbatim."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/artifacts-state-handoff.md",
+          "reason": "GEMINI.md \u00a73 (Ephemeral Memory Handoff) defines the handoff protocol \u2014 the rule file must enforce the same .staging/ path and format."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/cicd-hygiene.md",
+          "reason": "GEMINI.md \u00a74 (CI/CD Hygiene) defines dependency and testing constraints \u2014 the rule file must not contradict or weaken them."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/empirical-verification.md",
+          "reason": "GEMINI.md \u00a75 (Empirical Verification Pipeline) mandates evidence-first debugging \u2014 the rule file must enforce the same verification sequence."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/session-start.md",
+          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol \u2014 the workflow must implement the described initialization steps."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the workflow must implement the described teardown steps."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/agents.md",
+      "verified_commit": "65117354e83046fedf25ce552a26f6a21421a887",
+      "dependencies": [
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/executor-wrapup.md",
+          "reason": "agents.md defines Executor authorized workflows \u2014 executor-wrapup.md must match the workflow name and scope described there."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/draft-directive.md",
+          "reason": "agents.md defines Architect's /draft-directive workflow \u2014 the workflow file must match the described behavior."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/architect-wrapup.md",
+          "reason": "agents.md defines Architect's /architect-wrapup workflow \u2014 the workflow file must match the described teardown sequence."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/human-in-the-loop.md",
+          "reason": "agents.md QA Engineer references human-in-the-loop gates \u2014 the workflow file must enforce the same approval protocol."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/staging-promotion.md",
+          "reason": "agents.md references staging promotion as a governed step \u2014 the workflow must match Zero-Trust Auditor constraints."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/swarm-handoffs/SKILL.md",
+          "reason": "agents.md defines cross-agent handoff rules \u2014 the swarm-handoffs skill must implement the same text-signal protocol."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/trivy-vuln-sweeper/SKILL.md",
+          "reason": "agents.md authorizes Executor to use trivy-vuln-sweeper \u2014 the skill must match the described vulnerability audit scope."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/playwright-engineer/SKILL.md",
+          "reason": "agents.md QA Engineer references Playwright testing \u2014 the skill must enforce the same deterministic teardown constraints."
+        }
+      ]
+    },
+    {
+      "source_file": "agent_app/prompts.py",
+      "verified_commit": "6018cfa6ebb5910a86f302a4814f14b62ccc0b17",
+      "dependencies": [
+        {
+          "type": "rule",
+          "path": ".agents/rules/evaluation-visibility-mandate.md",
+          "reason": "Agent system prompts encode behavioral constraints \u2014 the evaluation visibility mandate must be reflected in prompt instructions."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/evaluator-governance.md",
+          "reason": "Evaluator governance rules constrain how the Swarm operates during benchmarks \u2014 prompts must not contradict these constraints."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/tdaid-testing-guardrails.md",
+          "reason": "TDAID guardrails define test-driven development constraints \u2014 prompt instructions for the Executor must reference the same protocol."
+        }
+      ]
+    },
+    {
+      "source_file": "agent_app/agents.py",
+      "verified_commit": "38591de62079a27be3a0a192714902039999d1f0",
+      "dependencies": [
+        {
+          "type": "rule",
+          "path": ".agents/rules/staging-promotion-protocol.md",
+          "reason": "Agent routing logic defines which sub-agents can mutate which directories \u2014 staging promotion rules must match these boundaries."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/deployment-constraints.md",
+          "reason": "Agent deployment constraints (which tools are authorized for which roles) must match the agent definition code."
+        }
+      ]
+    },
+    {
+      "source_file": "agent_app/tools.py",
+      "verified_commit": "6018cfa6ebb5910a86f302a4814f14b62ccc0b17",
+      "dependencies": [
+        {
+          "type": "skill",
+          "path": ".agents/skills/seqera-ai-subagent/SKILL.md",
+          "reason": "tools.py may expose Seqera AI tool functions \u2014 the skill definition must match the tool interface signatures."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/rules/amnesia-sweep-defense.md",
+      "verified_commit": "4833625354262037be0cfb526dccf4d02b543a38",
+      "dependencies": [
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/executor-wrapup.md",
+          "reason": "The amnesia sweep defense mandates git-add before git-clean \u2014 the executor wrapup workflow must include this step."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/rules/staging-promotion-protocol.md",
+      "verified_commit": "8fe98ec3c9a9d625e0eadd97f48f080b28eee3fd",
+      "dependencies": [
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/staging-promotion.md",
+          "reason": "The staging promotion rule defines the Zero-Trust audit gate \u2014 the workflow must implement the same HMAC signature verification."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/rules/evaluator-governance.md",
+      "verified_commit": "8c89d0934666b0d0a31715981dd1e214b3ddb4bb",
+      "dependencies": [
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/evaluator-wrapup.md",
+          "reason": "Evaluator governance constraints define how eval results are archived \u2014 the evaluator wrapup workflow must follow the same archival protocol."
+        }
+      ]
+    }
+  ]
+}
