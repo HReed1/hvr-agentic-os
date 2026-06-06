@@ -7,13 +7,55 @@
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
-    {"query": "path:wiki/", "color": {"a": 1, "rgb": 5635925}},
-    {"query": "path:docs/retrospectives/", "color": {"a": 1, "rgb": 14701138}},
-    {"query": "path:docs/architecture/", "color": {"a": 1, "rgb": 3066993}},
-    {"query": "path:docs/security/", "color": {"a": 1, "rgb": 14423100}},
-    {"query": "path:docs/decisions/", "color": {"a": 1, "rgb": 16750848}},
-    {"query": "path:docs/evals/", "color": {"a": 1, "rgb": 6570404}},
-    {"query": "path:.agents/", "color": {"a": 1, "rgb": 9109504}}
+    {
+      "query": "path:wiki/",
+      "color": {
+        "a": 1,
+        "rgb": 5635925
+      }
+    },
+    {
+      "query": "path:docs/retrospectives/",
+      "color": {
+        "a": 1,
+        "rgb": 14701138
+      }
+    },
+    {
+      "query": "path:docs/architecture/",
+      "color": {
+        "a": 1,
+        "rgb": 3066993
+      }
+    },
+    {
+      "query": "path:docs/security/",
+      "color": {
+        "a": 1,
+        "rgb": 14423100
+      }
+    },
+    {
+      "query": "path:docs/decisions/",
+      "color": {
+        "a": 1,
+        "rgb": 16750848
+      }
+    },
+    {
+      "query": "path:docs/evals/",
+      "color": {
+        "a": 1,
+        "rgb": 6570404
+      }
+    },
+    {
+      "query": "path:.agents/",
+      "color": {
+        "a": 1,
+        "rgb": 9109504
+      }
+    }
   ],
   "collapse-display": false,
   "showArrow": true,
@@ -25,6 +67,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 1,
+  "scale": 0.3577342088587235,
   "close": true
 }
