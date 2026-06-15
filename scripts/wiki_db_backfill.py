@@ -6,8 +6,9 @@ Parses YAML frontmatter to extract title, category, tags, sources, and last_inge
 Extracts the first paragraph as the summary. Detects [[wikilinks]] as cross-references.
 
 Usage:
-    python3 scripts/wiki_db_backfill.py --repo hvr-informatics --wiki-dir /path/to/repo/wiki
-    python3 scripts/wiki_db_backfill.py --repo hvr-informatics --wiki-dir /path/to/repo/wiki --dry-run
+    python3 scripts/wiki_db_backfill.py --repo my-project-repo --wiki-dir /path/to/my-project/wiki
+    python3 scripts/wiki_db_backfill.py --repo my-project-repo --wiki-dir /path/to/my-project/wiki --dry-run
+    python3 scripts/wiki_db_backfill.py --repo my-project-repo --wiki-dir /path/to/my-project/wiki --host localhost --port 5432 --user postgres
 """
 
 import argparse
@@ -127,9 +128,12 @@ def sql_array(items: list) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Backfill wiki database from markdown files")
-    parser.add_argument("--repo", required=True, help="Repository name (e.g., hvr-informatics)")
+    parser.add_argument("--repo", required=True, help="Repository name (e.g., my-project-repo)")
     parser.add_argument("--wiki-dir", required=True, help="Path to wiki/ directory")
     parser.add_argument("--database", default="wiki", help="Database name (default: wiki)")
+    parser.add_argument("--host", default="localhost", help="Postgres host")
+    parser.add_argument("--port", default="5432", help="Postgres port")
+    parser.add_argument("--user", default=None, help="Postgres user (default: current user)")
     parser.add_argument("--dry-run", action="store_true", help="Print SQL without executing")
     args = parser.parse_args()
 
@@ -218,8 +222,16 @@ def main():
         return
 
     # Execute
+    psql_cmd = ["psql", "-d", args.database, "-v", "ON_ERROR_STOP=1"]
+    if args.host:
+        psql_cmd.extend(["-h", args.host])
+    if args.port:
+        psql_cmd.extend(["-p", args.port])
+    if args.user:
+        psql_cmd.extend(["-U", args.user])
+
     result = subprocess.run(
-        ["psql", "-d", args.database, "-v", "ON_ERROR_STOP=1"],
+        psql_cmd,
         input=all_sql,
         capture_output=True,
         text=True,

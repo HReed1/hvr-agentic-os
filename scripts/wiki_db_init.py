@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS wiki_pages CASCADE;
 -- Core page registry: every wiki .md file gets a row
 CREATE TABLE wiki_pages (
     id            SERIAL PRIMARY KEY,
-    repo          TEXT NOT NULL,            -- 'hvr-informatics', 'ngs-variant-validator', 'hvr-agentic-os'
+    repo          TEXT NOT NULL,            -- e.g., 'project-repo-1', 'project-repo-2'
     path          TEXT NOT NULL,            -- 'wiki/entities/nexus-api.md'
     title         TEXT NOT NULL,            -- 'Nexus API'
     category      TEXT NOT NULL,            -- 'entity', 'concept', 'synthesis', 'index', 'log', 'overview'

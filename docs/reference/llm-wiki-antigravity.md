@@ -74,28 +74,40 @@ your-project/
 └── .obsidian/             # Obsidian vault configuration
 ```
 
-### Infrastructure repo (centralized scripts)
+### Infrastructure Options: Single-Repo vs. Multi-Repo
 
-The wiki database scripts are **cross-repo infrastructure** — they operate on a shared Postgres database that indexes pages across all your projects. These belong in a central infrastructure repo (e.g., `hvr-agentic-os`), not duplicated per-project:
+Depending on your workflow, you can run the LLM Wiki in one of two configurations:
 
+#### Option A: Single-Repo Setup (Simplest)
+If you only want to manage a wiki for a single repository, keep the database scripts (`wiki_db_init.py`, `wiki_db_backfill.py`) directly inside your project's `scripts/` directory:
+```
+your-project/
+├── scripts/
+│   ├── wiki_db_init.py      # Initialize the local database schema
+│   └── wiki_db_backfill.py  # Index your local wiki pages
+├── wiki/
+└── ...
+```
+
+#### Option B: Multi-Repo Setup (Centralized Infrastructure)
+If you want to index wikis across multiple separate projects in a shared Postgres database, centralize the scripts in a dedicated infrastructure repository (e.g., `your-infra-repo`). This keeps scripts in one place and avoids duplicating them:
 ```
 your-infra-repo/
 ├── scripts/
-│   ├── wiki_db_init.py      # Create/migrate the shared wiki DB schema
-│   └── wiki_db_backfill.py  # Populate DB from any repo's wiki/ directory
+│   ├── wiki_db_init.py      # Initialize the shared database schema
+│   └── wiki_db_backfill.py  # Index any project's wiki directory
 └── docs/
     └── reference/
-        └── llm-wiki-antigravity.md  # This file
+        └── llm-wiki-antigravity.md  # Reference guide
 ```
 
-Usage from the infrastructure repo:
+#### Usage Examples
 ```bash
-# Initialize the shared database (run once)
-python3 scripts/wiki_db_init.py
+# Initialize the database (run once)
+python3 scripts/wiki_db_init.py --database wiki --host localhost --port 5432
 
-# Backfill from any project's wiki
-python3 scripts/wiki_db_backfill.py --repo my-project --wiki-dir ../my-project/wiki
-python3 scripts/wiki_db_backfill.py --repo other-project --wiki-dir ../other-project/wiki
+# Backfill/index a repository's wiki (run to sync)
+python3 scripts/wiki_db_backfill.py --repo my-project-repo --wiki-dir /path/to/my-project/wiki --host localhost --port 5432
 ```
 
 ## Database schema
@@ -282,13 +294,13 @@ To set up the wiki in a new project, tell your Antigravity agent:
 The agent should:
 1. Create `wiki/`, `raw/`, and their subdirectories in the target project
 2. Create `wiki/index.md`, `wiki/log.md`, and `wiki/overview.md`
-3. Run `wiki_db_init.py` from the infrastructure repo to create/verify the shared database schema
-4. Run `wiki_db_backfill.py` from the infrastructure repo to index the new project's wiki pages
+3. Run `wiki_db_init.py` (either locally or from your infra repo) to create/verify the database schema
+4. Run `wiki_db_backfill.py` to index the new project's wiki pages
 5. Deploy `.obsidian/` configuration for graph colors, wikilinks, and attachment paths
 6. Add the Wiki Maintenance Protocol to `GEMINI.md`
 7. Configure the `wiki-db` MCP server in your Antigravity MCP config
 
-> **Note:** The DB scripts (`wiki_db_init.py`, `wiki_db_backfill.py`) live in your infrastructure repo — not in each project. They operate on a shared Postgres database that indexes wiki pages across all your projects via the `repo` column.
+> **Note:** For multi-repo setups, the DB scripts operate on a shared Postgres database, tracking each project via the `repo` column. You can specify a custom database connection using the `--host`, `--port`, `--user`, and `--database` flags on both scripts.
 
 ## Scaling
 
