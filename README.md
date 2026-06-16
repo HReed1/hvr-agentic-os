@@ -8,7 +8,20 @@ This framework orchestrates a hierarchy of specialized AI agents — Director, E
 
 ---
 
-## Architecture
+## Portable Agentic Workflows & LLM Wiki
+
+In addition to the core multi-agent operating system, this repository hosts a collection of highly portable reference guides and utility scripts designed to help developers implement structured memory and session tracking systems in *any* agentic workspace:
+
+* **[LLM Wiki (Antigravity Edition)](docs/reference/llm-wiki-antigravity.md)**: A battle-tested implementation of Andrej Karpathy's LLM Wiki pattern. Rather than relying on simple, stateless RAG, it instructs agents to incrementally compile and synthesize project knowledge into a persistent markdown-based wiki.
+* **[Drift Registry](docs/reference/drift-registry.md)**: A system for encoding institutional memory about cross-file dependencies in codebases maintained by LLM agents. Detects and flags file drift between git commits.
+* **[Session Workflows](docs/reference/session-workflows.md)**: A lightweight, agnostic open-work-close protocol (`session-start` / `session-wrapup`) to structure engineering sessions, enforce drift checks, generate retrospectives, and backfill the wiki database.
+* **Database Utility Scripts (`scripts/`)**: Includes [wiki_db_init.py](scripts/wiki_db_init.py) and [wiki_db_backfill.py](scripts/wiki_db_backfill.py) to initialize and backfill the shared, PostgreSQL-backed wiki database index.
+
+Read more about these concepts and their architectural scaling roadmap on the **[HVR Informatics Blog: Engineering with Ai](https://hvrinformatics.com/blog/series/engineering-with-ai)**.
+
+---
+
+## Multi-Agent Architecture
 
 ```mermaid
 graph LR
@@ -170,6 +183,7 @@ Whenever an agent invokes a sandboxed tool, the callback intercepts the command 
 **Role-Based Air-Gaps:** The framework physically prevents the Executor from running `pytest` — forcing all test execution through the QA Engineer's restricted tool scope.
 
 ---
+
 
 ## Benchmarks (Era 5)
 
