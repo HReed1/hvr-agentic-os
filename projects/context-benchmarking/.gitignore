@@ -1,0 +1,23 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# Python Caches & Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# Node Caches & Dependencies
+node_modules/
+dist/
+.vitest_cache/
+
+# Benchmark Execution Logs & Transcripts
+transcripts/
+*.log
+transcript.jsonl
+results/
+

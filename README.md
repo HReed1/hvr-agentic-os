@@ -8,14 +8,15 @@ This framework orchestrates a hierarchy of specialized AI agents — Director, E
 
 ---
 
-## Portable Agentic Workflows & LLM Wiki
+## Portable Agentic Workflows, MCP Tools & Benchmarks
 
-In addition to the core multi-agent operating system, this repository hosts a collection of highly portable reference guides and utility scripts designed to help developers implement structured memory and session tracking systems in *any* agentic workspace:
+In addition to the core multi-agent operating system, this repository hosts a collection of highly portable reference guides, utility scripts, custom Model Context Protocol (MCP) servers, and benchmarking suites designed to help developers optimize and scale *any* agentic workspace:
 
+* **[AST Context MCP Server](mcp_servers/ast_context_mcp/README.md)**: A standalone, local FastMCP server providing token-efficient, formatting-independent AST parsing, skeleton extraction, and symbol isolation for Python and TypeScript/JavaScript. Cuts agent input tokens by **75.0%** in any agent client (Cursor, Claude Code, Antigravity, etc.).
+* **[Context Benchmarking Harness](projects/context-benchmarking/README.md)**: An automated simulation, testing, and metrics-collection platform proving that AST-guided structural context pruning maintains 100% reasoning correctness while saving substantial token costs.
 * **[LLM Wiki (Antigravity Edition)](docs/reference/llm-wiki-antigravity.md)**: A battle-tested implementation of Andrej Karpathy's LLM Wiki pattern. Rather than relying on simple, stateless RAG, it instructs agents to incrementally compile and synthesize project knowledge into a persistent markdown-based wiki.
 * **[Drift Registry](docs/reference/drift-registry.md)**: A system for encoding institutional memory about cross-file dependencies in codebases maintained by LLM agents. Detects and flags file drift between git commits.
 * **[Session Workflows](docs/reference/session-workflows.md)**: A lightweight, agnostic open-work-close protocol (`session-start` / `session-wrapup`) to structure engineering sessions, enforce drift checks, generate retrospectives, and backfill the wiki database.
-* **Database Utility Scripts (`scripts/`)**: Includes [wiki_db_init.py](scripts/wiki_db_init.py) and [wiki_db_backfill.py](scripts/wiki_db_backfill.py) to initialize and backfill the shared, PostgreSQL-backed wiki database index.
 
 Read more about these concepts and their architectural scaling roadmap on the **[HVR Informatics Blog: Engineering with Ai](https://hvrinformatics.com/blog/series/engineering-with-ai)**.
 
@@ -61,10 +62,13 @@ hvr-agentic-os/
 │       ├── interceptors.py       # Monkeypatches: PHI redaction, loop termination
 │       └── callbacks.py          # before_tool_callback: sandbox blacklist, airgap
 ├── mcp_servers/                  # MCP tool servers (launched via DLP firewall)
+│   ├── ast_context_mcp/          # Standalone public AST context server (Python + TS)
 │   ├── executor_mcp.py           # Workspace mutations (write, replace, search)
 │   ├── auditor_mcp.py            # Staging promotion, complexity measurement
 │   ├── ast_validation_mcp.py     # TDAID test runner, AST parser, webhook fuzzer
 │   └── adk_trace_mcp.py          # Session trace reader, animation generator
+├── projects/                     # Standalone proof-of-concept projects
+│   └── context-benchmarking/     # Automated context engineering benchmark harness
 ├── bin/                          # Orchestration scripts + DLP firewall binary
 ├── scripts/                      # Standalone utility scripts (reports, benchmarks)
 ├── utils/                        # Shared libraries (dlp_proxy, staging_lease)

@@ -1,0 +1,14 @@
+{
+  "name": "context-benchmarking-harness",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "mock_codebase"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  }
+}

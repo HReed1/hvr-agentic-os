@@ -1,0 +1,53 @@
+{
+  "tasks": [
+    {
+      "task_id": "small_task",
+      "name": "Log Message Formatter Refactor",
+      "size": "small",
+      "difficulty": "easy",
+      "description": "Refactor the logging utility function `format_log_message` in `mock_codebase/app/utils.py` to support UTC ISO 8601 timestamps, sanitize newlines/carriage returns to prevent log injection, validate level parameters, and serialize metadata as compact sorted JSON.",
+      "branch_name": "task/small-log-formatter",
+      "files_to_modify": [
+        "mock_codebase/app/utils.py"
+      ],
+      "test_commands": [
+        "pytest mock_codebase/tests/test_utils.py"
+      ],
+      "instructions": "Please open `mock_codebase/app/utils.py`. Locate the `format_log_message` function. Refactor it to:\n1. Validate that the `level` is one of DEBUG, INFO, WARNING, ERROR, CRITICAL (case-insensitive, convert to uppercase), raising ValueError if invalid.\n2. Accept a float timestamp and convert it to UTC ISO 8601 string, or accept a valid ISO string.\n3. Sanitize the `message` by replacing all newlines and carriage returns with a single space.\n4. Serialize `metadata` (if provided and not empty) into a sorted, compact JSON string without extra whitespace.\n5. Construct the output in the format: '[<TIMESTAMP>] <LEVEL>: <SANITIZED_MESSAGE> | <METADATA_JSON>' (omit ' | <METADATA_JSON>' if metadata is empty or None)."
+    },
+    {
+      "task_id": "medium_task",
+      "name": "API Pagination & Client Update",
+      "size": "medium",
+      "difficulty": "medium",
+      "description": "Add pagination (limit/offset) and status filtering to the GET `/api/tasks` route in `routes.py`, enveloping the response. Update the JS `apiClient.js` fetch helper to supply query parameters and parse the new enveloped response structure.",
+      "branch_name": "task/medium-api-pagination",
+      "files_to_modify": [
+        "mock_codebase/app/routes.py",
+        "mock_codebase/app/apiClient.js"
+      ],
+      "test_commands": [
+        "pytest mock_codebase/tests/test_routes.py",
+        "npm --prefix mock_codebase run test tests/apiClient.test.js"
+      ],
+      "instructions": "You must implement API pagination and update the JavaScript client.\n1. In `mock_codebase/app/routes.py`, update GET `/api/tasks` to accept query params: `status: str | None = None`, `limit: int = 10` (validate 1 <= limit <= 100), `offset: int = 0` (validate offset >= 0). Envelope the response in `{\"items\": [...], \"total\": int, \"limit\": int, \"offset\": int}`.\n2. In `mock_codebase/app/apiClient.js`, update `fetchTasks` function to accept `baseUrl` and an optional `options` object with `{ status, limit, offset }`. Build query params and request the enveloped endpoint. Parse the new envelope format and return `{ tasks: data.items, total: data.total }` to ensure compatibility with callers."
+    },
+    {
+      "task_id": "large_task",
+      "name": "Webhook Security Audit & Hardening",
+      "size": "large",
+      "difficulty": "hard",
+      "description": "Secure the endpoints in `webhooks.py` against replay attacks, timing attacks, and raw error leakage. Also update `webhookSigner.js` to correctly calculate SHA256 HMAC signatures for test validation.",
+      "branch_name": "task/large-webhook-security",
+      "files_to_modify": [
+        "mock_codebase/app/webhooks.py",
+        "mock_codebase/app/webhookSigner.js"
+      ],
+      "test_commands": [
+        "pytest mock_codebase/tests/test_webhooks.py",
+        "npm --prefix mock_codebase run test tests/webhookSigner.test.js"
+      ],
+      "instructions": "You must secure the webhook endpoints in `mock_codebase/app/webhooks.py` and implement standard signature generation in `mock_codebase/app/webhookSigner.js`.\n1. For Slack, GitHub, and Stripe webhooks in `webhooks.py`, verify headers using HMAC-SHA256 and `hmac.compare_digest` for timing-safe signature check.\n2. Implement replay protection checking if the event has been processed previously by checking `event_id` in a mock DB representation. If duplicate, return 200 OK without processing further.\n3. Catch all unexpected internal errors, log them, and return a sanitized `{\"message\": \"An internal error occurred.\"}` with a 500 status code.\n4. In `webhookSigner.js`, implement JS helpers `generateSlackSignature`, `generateGithubSignature`, and `generateStripeSignature` using Node's `crypto` module."
+    }
+  ]
+}
