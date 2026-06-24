@@ -4,8 +4,9 @@ import pytest
 from context_benchmarking.tools import (
     grep_search,
     view_file,
-    view_ast_skeleton,
-    view_symbol,
+    get_skeleton,
+    get_symbol_block,
+    get_symbols,
     query_codebase_graph,
     write_to_file,
     replace_file_content,
@@ -61,7 +62,7 @@ def test_view_file():
             view_file(temp_dir)
 
 
-def test_view_ast_skeleton():
+def test_get_skeleton():
     with tempfile.TemporaryDirectory() as temp_dir:
         test_file = os.path.join(temp_dir, "test.py")
         content = """class MyClass:
@@ -76,7 +77,7 @@ def my_function():
         with open(test_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        res = view_ast_skeleton(test_file)
+        res = get_skeleton(test_file)
         assert "class MyClass" in res
         assert "Docstring here." in res
         assert "def my_function" in res
@@ -84,7 +85,7 @@ def my_function():
         assert "x = 1" not in res
 
 
-def test_view_symbol():
+def test_get_symbol_block():
     with tempfile.TemporaryDirectory() as temp_dir:
         test_file = os.path.join(temp_dir, "test.py")
         content = """def my_func():
@@ -97,17 +98,42 @@ class TargetClass:
         with open(test_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        res_func = view_symbol("my_func", test_file)
+        res_func = get_symbol_block(test_file, "my_func")
         assert "def my_func():" in res_func
         assert "return 42" in res_func
         assert "TargetClass" not in res_func
 
-        res_class = view_symbol("TargetClass", test_file)
+        res_class = get_symbol_block(test_file, "TargetClass")
         assert "class TargetClass" in res_class
         assert "def method" in res_class
 
         with pytest.raises(ValueError):
-            view_symbol("NonExistent", test_file)
+            get_symbol_block(test_file, "NonExistent")
+
+
+def test_get_symbols():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_file = os.path.join(temp_dir, "test.py")
+        content = """def my_func():
+    return 42
+
+class TargetClass:
+    def method(self):
+        pass
+"""
+        with open(test_file, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        import json
+        res = get_symbols(test_file)
+        symbols = json.loads(res)
+        assert len(symbols) == 3
+        
+        # Verify symbol properties
+        sym_names = [s["name"] for s in symbols]
+        assert "my_func" in sym_names
+        assert "TargetClass" in sym_names
+        assert "method" in sym_names
 
 
 def test_query_codebase_graph():
@@ -165,3 +191,37 @@ def test_replace_file_content():
         # 4. Target not found anywhere
         with pytest.raises(ValueError):
             replace_file_content(test_file, "non_existent_text", "fail")
+
+
+def test_ts_ast_support():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_file = os.path.join(temp_dir, "test.ts")
+        content = """export function calculateSum(a: number, b: number): number {
+    return a + b;
+}
+
+export class Calculator {
+    multiply(a: number, b: number) {
+        return a * b;
+    }
+}
+"""
+        with open(test_file, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        # 1. View AST Skeleton
+        skel = get_skeleton(test_file)
+        assert "function calculateSum" in skel
+        assert "/* ... */" in skel
+        assert "class Calculator" in skel
+        assert "multiply" in skel
+
+        # 2. View Symbol block for calculateSum
+        block_sum = get_symbol_block(test_file, "calculateSum")
+        assert "export function calculateSum" in block_sum
+        assert "return a + b;" in block_sum
+
+        # 3. View Symbol block for Calculator.multiply
+        block_mult = get_symbol_block(test_file, "Calculator.multiply")
+        assert "multiply(a: number, b: number)" in block_mult
+        assert "return a * b;" in block_mult
