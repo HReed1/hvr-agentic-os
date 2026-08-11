@@ -1,4 +1,6 @@
 #!/bin/bash
+# Bootstrap script for the ADK Multi-Agent Swarm infrastructure.
+# For the AI Engineering scaffold (wiki, drift, sessions), see: bin/bootstrap_ai_engineering.sh
 set -e
 
 echo "================================================="
@@ -16,7 +18,6 @@ else
 fi
 
 # 2. Retrospectives and Evals Paths
-mkdir -p docs/evals/retrospectives
 mkdir -p docs/retrospectives
 echo "Created evaluation and retrospective directories."
 
@@ -28,13 +29,6 @@ if [ ! -f .agents/memory/executor_handoff.md ]; then
     echo "Created .agents/memory/executor_handoff.md"
 else
     echo "Skipped: .agents/memory/executor_handoff.md already exists."
-fi
-
-if [ ! -f .agents/memory/vertex_rag_config.txt ]; then
-    echo "YOUR_GCP_CORPUS_ID_HERE" > .agents/memory/vertex_rag_config.txt
-    echo "Created .agents/memory/vertex_rag_config.txt (Update securely with your Vertex Context ID)"
-else
-    echo "Skipped: .agents/memory/vertex_rag_config.txt already exists."
 fi
 
 # 4. Artifacts Exchange State Route
@@ -58,9 +52,6 @@ else
     echo "Skipped: tests/test_baseline.py already exists."
 fi
 
-# 7. Project Workspaces
-mkdir -p src api core etl infrastructure
-echo "Created src/, api/, core/, etl/, and infrastructure/ canonical output directories."
 
 echo "================================================="
 echo "[SUCCESS] Zero-Trust Operating System Bootstrapped."

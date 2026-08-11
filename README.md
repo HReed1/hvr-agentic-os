@@ -2,49 +2,141 @@
 
 > 📰 **As seen on [HVRInformatics.com](https://hvrinformatics.com/blog)**
 
-A Zero-Trust multi-agent operating system built on [Google's Agent Development Kit (ADK)](https://google.github.io/adk-docs/).
-
-This framework orchestrates a hierarchy of specialized AI agents — Director, Executor, QA Engineer, and Auditor — that collaborate through strict tool segregation, adversarial verification, and DLP-enforced sandbox boundaries to autonomously write, test, validate, and deploy production code.
+A Zero-Trust multi-agent operating system built on [Google's Agent Development Kit (ADK)](https://google.github.io/adk-docs/), and a portable **AI Engineering scaffold** for structuring how LLM agents maintain knowledge, track dependencies, and work across sessions.
 
 ---
 
-## Portable Agentic Workflows, MCP Tools & Benchmarks
+## What's In This Repo
 
-In addition to the core multi-agent operating system, this repository hosts a collection of highly portable reference guides, utility scripts, custom Model Context Protocol (MCP) servers, and benchmarking suites designed to help developers optimize and scale *any* agentic workspace:
+**Two things:**
 
-* **[AST Context MCP Server](mcp_servers/ast_context_mcp/README.md)**: A standalone, local FastMCP server providing token-efficient, formatting-independent AST parsing, skeleton extraction, and symbol isolation for Python and TypeScript/JavaScript. Cuts agent input tokens by **75.0%** in any agent client (Cursor, Claude Code, Antigravity, etc.).
-* **[Context Benchmarking Harness](projects/context-benchmarking/README.md)**: An automated simulation, testing, and metrics-collection platform proving that AST-guided structural context pruning maintains 100% reasoning correctness while saving substantial token costs.
-* **[LLM Wiki (Antigravity Edition)](docs/reference/llm-wiki-antigravity.md)**: A battle-tested implementation of Andrej Karpathy's LLM Wiki pattern. Rather than relying on simple, stateless RAG, it instructs agents to incrementally compile and synthesize project knowledge into a persistent markdown-based wiki.
-* **[Drift Registry](docs/reference/drift-registry.md)**: A system for encoding institutional memory about cross-file dependencies in codebases maintained by LLM agents. Detects and flags file drift between git commits.
-* **[Session Workflows](docs/reference/session-workflows.md)**: A lightweight, agnostic open-work-close protocol (`session-start` / `session-wrapup`) to structure engineering sessions, enforce drift checks, generate retrospectives, and backfill the wiki database.
+1. **A Multi-Agent Swarm** — Four specialized AI agents (Director, Executor, QA Engineer, Auditor) collaborating through strict tool segregation, adversarial verification, and DLP-enforced sandbox boundaries. → [See `agent_app/README.md`](agent_app/README.md)
 
-Read more about these concepts and their architectural scaling roadmap on the **[HVR Informatics Blog: Engineering with Ai](https://hvrinformatics.com/blog/series/engineering-with-ai)**.
+2. **A Portable AI Engineering Scaffold** — Battle-tested patterns for LLM-maintained knowledge bases, cross-file dependency tracking, and structured session workflows. These work with any LLM agent (Antigravity, Cursor, Claude Code, etc.) and can be adopted into any codebase. → Keep reading.
 
 ---
 
-## Multi-Agent Architecture
+## AI Engineering Scaffold
 
-```mermaid
-graph LR
-    D[Director] --> E[Executor]
-    E <-->|TDAID| QA[QA Engineer]
-    E -->|"EXECUTION COMPLETE"| A[Auditor]
-    A -->|"AUDIT PASSED ✓"| D
-    A -->|"AUDIT FAILED ✗"| D
-    D --> R[Reporter]
+The patterns below solve three problems that every LLM-assisted codebase eventually hits:
 
-    DLP[DLP Firewall] -.-> E
-    DLP -.-> QA
-    DLP -.-> A
+| Problem | Solution | Reference Guide |
+|---------|----------|----------------|
+| Knowledge evaporates between sessions | **LLM Wiki** — persistent, agent-maintained knowledge base | [llm-wiki-antigravity.md](docs/reference/llm-wiki-antigravity.md) |
+| File changes silently break contracts | **Drift Registry** — machine-readable dependency tracking | [drift-registry.md](docs/reference/drift-registry.md) |
+| Sessions start cold and end without trace | **Session Workflows** — structured open→work→close lifecycle | [session-workflows.md](docs/reference/session-workflows.md) |
+
+These three systems reinforce each other. The wiki accumulates knowledge, the drift registry protects it from silent breakage, and the session workflows ensure both are maintained at every session boundary.
+
+### How It Works
+
+```
+┌────────────────┐     ┌────────────────┐     ┌────────────────┐
+│  /session-start│     │  Engineering   │     │/session-wrapup │
+│                │     │    Session     │     │                │
+│ • Load wiki    │────▶│               │────▶│ • Commit work  │
+│ • Check drift  │     │ Actual coding, │     │ • Enforce drift│
+│ • Set focus    │     │ debugging, etc │     │ • Write retro  │
+│                │     │               │     │ • Update wiki  │
+└────────────────┘     └────────────────┘     └────────────────┘
 ```
 
-**Key Design Principles:**
-- **Tool Segregation:** The Executor can write code but cannot run tests. The QA Engineer can run tests but cannot write code. The Auditor can promote staging but cannot modify files. No single agent can both create and deploy.
-- **TDAID (Test-Driven AI Development):** The QA Engineer writes and runs tests *before* the Executor implements, enforcing a Red → Green cycle that guarantees adversarial test coverage.
-- **DLP Firewall:** Every MCP tool call passes through a compiled Go binary (`bin/dlp-firewall`) that strips PHI patterns from the transport layer before data reaches any LLM.
-- **Context Caching:** Static agent instructions are cached by Vertex AI, reducing token consumption by ~56% across the evaluation suite (Era 5.1).
+---
 
-For the full execution graph and directory map, see [autonomous-swarm-architecture.md](docs/director_context/autonomous-swarm-architecture.md).
+## Quick Start (AI Engineering Scaffold)
+
+### Prerequisites
+
+- Python 3.11+
+- Git
+- PostgreSQL (optional — for the wiki metadata index)
+- An LLM agent (Antigravity, Cursor, Claude Code, etc.)
+
+### 1. Bootstrap the Scaffold
+
+```bash
+chmod +x bin/bootstrap_ai_engineering.sh
+./bin/bootstrap_ai_engineering.sh
+```
+
+This creates:
+- `wiki/` — Directory structure for the LLM-maintained knowledge base
+- `docs/drift_registries/` — Empty registry templates
+- `docs/retrospectives/` — Session retrospective archive
+- `.agents/` — Agent governance (skills, workflows, rules)
+- `scripts/` — Utility scripts (drift enforcer)
+
+The script is idempotent — run it multiple times safely.
+
+### 2. Feed the Reference Guides to Your LLM
+
+The bootstrap script prints an **LLM Ingest Prompt** at the end. Copy it and paste it into your LLM agent. It instructs the agent to read and implement the three reference guides in order:
+
+1. **[LLM Wiki](docs/reference/llm-wiki-antigravity.md)** — Sets up wiki conventions, page templates, ingest/query/lint workflows, and (optionally) the Postgres metadata index
+2. **[Drift Registry](docs/reference/drift-registry.md)** — Sets up dependency tracking, the enforcer script, and registry schemas
+3. **[Session Workflows](docs/reference/session-workflows.md)** — Sets up `/session-start` and `/session-wrapup` workflows that tie the wiki and drift registry together
+
+After ingestion, your agent will have created the `GEMINI.md` rules (or equivalent agent instructions), workflow files, and governance structure for your project.
+
+### 3. Initialize the Wiki Database (Optional)
+
+If you have PostgreSQL available and want the metadata index:
+
+```bash
+python3 scripts/wiki_db_init.py
+```
+
+This creates the `wiki` database with tables for page metadata, cross-references, and activity logging. The wiki works without the database (it's just markdown files), but the database enables fast SQL queries across all pages.
+
+### 4. Start Your First Session
+
+Tell your LLM agent:
+
+```
+/session-start
+```
+
+The agent will load the wiki overview, check for outstanding work, run the drift enforcer, and ask you for your session focus. When you're done:
+
+```
+/session-wrapup
+```
+
+The agent commits your work, enforces drift checks, generates a retrospective, and optionally ingests significant findings into the wiki.
+
+---
+
+## Adopting the Scaffold in Your Own Repos
+
+The AI Engineering scaffold is designed to be portable. To adopt it in another repository:
+
+1. **Copy the reference guides** — Place the three files from `docs/reference/` into your target repo
+2. **Copy the bootstrap script** — Place `bin/bootstrap_ai_engineering.sh` in your target repo
+3. **Copy the drift enforcer** — Place `scripts/drift_enforcer.py` in your target repo
+4. **Run the bootstrap** — Execute the script, then feed the ingest prompt to your LLM agent
+5. **Start working** — Use `/session-start` and `/session-wrapup` to structure your sessions
+
+The agent handles everything else: creating the wiki, setting up registries, writing governance rules, and maintaining the knowledge base as you work.
+
+---
+
+## Portable Tools
+
+### AST Context MCP Server
+
+A standalone FastMCP server providing token-efficient AST parsing, skeleton extraction, and symbol isolation for Python and TypeScript/JavaScript. Enables agents to inspect large files without flooding the context window.
+
+Four tools: `get_symbols`, `get_skeleton`, `get_symbol_block`, `get_hash`.
+
+Works with any MCP-compatible agent client (Cursor, Claude Code, Antigravity).
+
+→ [Full documentation](mcp_servers/ast_context_mcp/README.md)
+
+### Context Benchmarking Harness
+
+A deterministic simulation framework for evaluating agent context engineering strategies. Uses mock codebases with known-good solutions and a mock LLM pipeline to demonstrate the evaluation methodology.
+
+→ [Full documentation](projects/context-benchmarking/README.md)
 
 ---
 
@@ -52,153 +144,57 @@ For the full execution graph and directory map, see [autonomous-swarm-architectu
 
 ```
 hvr-agentic-os/
-├── agent_app/                    # Core ADK agent definitions
-│   ├── __init__.py               # Entry point — exports root_agent via App()
-│   ├── agents.py                 # Agent topology (Director, Executor, QA, Auditor, Solo)
-│   ├── config.py                 # Model selection, MCP paths, environment flags
-│   ├── prompts.py                # Static + dynamic instruction providers
-│   ├── tools.py                  # Shared FunctionTools (escalate, retrospective, etc.)
-│   └── zero_trust/               # Zero-Trust enforcement layer
-│       ├── interceptors.py       # Monkeypatches: PHI redaction, loop termination
-│       └── callbacks.py          # before_tool_callback: sandbox blacklist, airgap
-├── mcp_servers/                  # MCP tool servers (launched via DLP firewall)
-│   ├── ast_context_mcp/          # Standalone public AST context server (Python + TS)
-│   ├── executor_mcp.py           # Workspace mutations (write, replace, search)
-│   ├── auditor_mcp.py            # Staging promotion, complexity measurement
-│   ├── ast_validation_mcp.py     # TDAID test runner, AST parser, webhook fuzzer
-│   └── adk_trace_mcp.py          # Session trace reader, animation generator
-├── projects/                     # Standalone proof-of-concept projects
-│   └── context-benchmarking/     # Automated context engineering benchmark harness
-├── bin/                          # Orchestration scripts + DLP firewall binary
-├── scripts/                      # Standalone utility scripts (reports, benchmarks)
-├── utils/                        # Shared libraries (dlp_proxy, staging_lease)
-├── .agents/                      # Agent governance (rules, skills, workflows, memory)
-├── tests/adk_evals/              # ADK evaluation test definitions (.test.json)
-├── docs/                         # Retrospectives, eval reports, architecture docs
-└── api/                          # Example target application
+├── agent_app/                    # ADK multi-agent swarm (see agent_app/README.md)
+├── mcp_servers/                  # MCP tool servers
+│   ├── ast_context_mcp/          # Standalone AST context server (portable)
+│   ├── executor_mcp.py           # Workspace mutations (ADK-specific)
+│   ├── auditor_mcp.py            # Staging promotion (ADK-specific)
+│   └── ...
+├── projects/                     # Standalone projects
+│   └── context-benchmarking/     # Context engineering benchmark harness
+├── docs/
+│   ├── reference/                # Portable implementation guides ← START HERE
+│   │   ├── llm-wiki-antigravity.md
+│   │   ├── drift-registry.md
+│   │   └── session-workflows.md
+│   ├── drift_registries/         # Cross-file dependency tracking (JSON)
+│   └── retrospectives/           # Session retrospective archive
+├── wiki/                         # LLM-maintained knowledge base
+│   ├── entities/                 # Systems, tools, services
+│   ├── concepts/                 # Patterns, principles, frameworks
+│   └── synthesis/                # Cross-cutting analyses
+├── scripts/                      # Utility scripts
+│   ├── drift_enforcer.py         # Dependency drift detector
+│   ├── wiki_db_init.py           # Postgres schema creator
+│   └── wiki_db_backfill.py       # Wiki → DB sync
+├── bin/                          # Bootstrap and orchestration scripts
+│   ├── bootstrap_ai_engineering.sh  # AI Engineering scaffold setup
+│   └── bootstrap_agentic_os.sh     # ADK swarm setup
+├── .agents/                      # Agent governance
+│   ├── skills/                   # Specialized capability guides
+│   ├── workflows/                # Session and operational workflows
+│   └── rules/                    # Behavioral constraints
+└── GEMINI.md                     # Agent operational constitution
 ```
 
 ---
 
-## Quick Start
+## Multi-Agent OS
 
-### 1. Install Dependencies
+The ADK multi-agent swarm is a complete zero-trust operating system for autonomous code generation. It's the system that the AI Engineering scaffold was built to support.
 
-```bash
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-```
+**[→ Full documentation in `agent_app/README.md`](agent_app/README.md)**
 
-### 2. Configure Environment
-
-```bash
-cp .env.example .env
-# Edit .env with your API keys:
-#   GEMINI_API_KEY=your-key
-#   (Optional) ANTHROPIC_API_KEY=your-key
-```
-
-### 3. Bootstrap the OS
-
-```bash
-chmod +x bin/bootstrap_agentic_os.sh
-./bin/bootstrap_agentic_os.sh
-```
-
-This scaffolds `docs/director_context/`, initializes `.agents/memory/`, and creates baseline workspace structures. The script is non-destructive — it skips any existing files.
-
-### 4. Wake the Swarm
-
-**Interactive (Web UI):**
-```bash
-adk web --port 8001
-```
-Navigate to `http://localhost:8001`, select `agent_app` from the dropdown, and issue a directive.
-
-**Headless (CLI):**
-```bash
-adk run agent_app --message "Your directive here"
-```
+Includes: agent architecture, quick start, evaluation suite (11 adversarial tests), zero-trust enforcement layers, Era 5 benchmarks, and firewall customization.
 
 ---
 
-## Evaluation Suite
+## Further Reading
 
-The framework includes 11 adversarial evaluations that test the Swarm's Zero-Trust boundaries:
-
-| Evaluation | What It Tests |
-|---|---|
-| Hallucination Recovery | Agent invokes a tool that doesn't exist |
-| HMAC Signature Tampering | Code promotion without valid `.qa_signature` |
-| PHI / DLP Redaction | Genomic identifiers stripped before LLM output |
-| Human-in-the-Loop Mandate | Staging promotion blocked without human approval |
-| QA Timeout Escalation | Consecutive identical failures trigger hard abort |
-| Discovery Loop Breaker | Infinite workspace search loops terminated |
-| Python AST Validation | Structural code analysis before test execution |
-| Cyclomatic Complexity | McCabe score enforcement (max 5) |
-| Strict TDAID Coverage | QA tests must exist before code promotion |
-| Deterministic Playwright | E2E browser tests with artifact persistence |
-| Pipeline Scorecard | Global evaluation report generation |
-
-### Running Evaluations
-
-**Single test:**
-```bash
-adk eval agent_app tests/adk_evals/test_zt_phi_dlp_redaction.test.json
-```
-
-**Full suite:**
-```bash
-./bin/run_all_evals.sh
-```
-
-**Head-to-head (Solo vs Swarm):**
-```bash
-./bin/run_head_to_head.sh
-```
-
----
-
-## Zero-Trust Enforcement Layers
-
-| Layer | File | Mechanism | Scope |
-|-------|------|-----------|-------|
-| **Transport** | `bin/dlp-firewall` | Go binary wrapping MCP stdio streams | All agents |
-| **Inference** | `zero_trust/interceptors.py` | `redact_genomic_phi()` on every I/O | All agents |
-| **Behavioral** | `zero_trust/callbacks.py` | `before_tool_callback` sandbox enforcement | Swarm only |
-
-The Solo agent is subject to Transport and Inference enforcement but bypasses Behavioral enforcement — it follows protocols because its prompt instructs it to, not because it structurally lacks the tools to skip them.
-
----
-
-## Customizing the Firewall
-
-To block additional tool patterns, modify `agent_app/zero_trust/callbacks.py`:
-
-```python
-# Example: Block Kubernetes destructive commands
-BLACKLIST_PATTERNS = [
-    re.compile(r'\bkubectl\s+(delete|drain)\b', re.IGNORECASE),
-]
-```
-
-Whenever an agent invokes a sandboxed tool, the callback intercepts the command string. If a pattern matches, a `PermissionError` halts execution immediately.
-
-**Role-Based Air-Gaps:** The framework physically prevents the Executor from running `pytest` — forcing all test execution through the QA Engineer's restricted tool scope.
-
----
-
-
-## Benchmarks (Era 5)
-
-| Benchmark | Swarm Inferences | Solo Inferences | Swarm Tokens | Solo Tokens |
-|-----------|:---:|:---:|:---:|:---:|
-| Small | 19 | 14 | 219K | 165K |
-| Medium | 21 | 8 | 190K | 107K |
-| Large | 25 | 6 | 232K | 89K |
-| Fullstack | 34 | 16 | 810K | 419K |
-
-Both paradigms achieve 100% pass rates. The Solo agent is faster due to tool parallelism (fires independent operations in a single inference). The Swarm produces higher code quality through adversarial verification pressure. Full analysis: [Tool Parallelism Bottleneck Analysis](docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md).
+- **[Engineering with AI](https://hvrinformatics.com/blog/series/engineering-with-ai)** — Blog series covering the concepts behind the scaffold
+- **[Meta-Retrospective](docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md)** — Complete project timeline
+- **[Era 5 Conclusion](docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md)** — Solo vs Swarm definitive analysis
+- **[Tool Parallelism Analysis](docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md)** — Deepest architectural analysis
 
 ---
 
