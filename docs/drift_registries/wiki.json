@@ -1,0 +1,448 @@
+{
+  "_meta": {
+    "description": "Wiki Drift Registry — tracks wiki page dependencies on source documents and consuming workflows.",
+    "last_updated": null,
+    "schema_version": "1.1.0"
+  },
+  "entries": [
+    {
+      "source_file": "wiki/overview.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
+          "reason": "Meta-retrospective provides the high-level project narrative — overview must reflect the same evolution timeline and key milestones."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
+          "reason": "Context caching results provide the 56.3% token reduction metric cited in the overview."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md",
+          "reason": "Head-to-head results provide the swarm vs solo benchmarks cited in the overview."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md",
+          "reason": "Tool parallelism analysis provides the architectural trade-off context in the overview."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md",
+          "reason": "ADK 2.0 migration details provide the current architectural state described in the overview."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-start.md",
+          "reason": "Session-start loads overview.md for project context — overview must stay current for accurate session briefings."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/index.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": "scripts/wiki_db_backfill.py",
+          "reason": "Backfill script may parse index.md for page catalog — index must list all wiki pages."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/log.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session wrapup appends ingest entries to log.md — log format must match the template."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/agentic-os.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
+          "reason": "Meta-retrospective provides the project evolution narrative — entity page must reflect the same architecture timeline."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md",
+          "reason": "Drift analysis provides governance model details — entity page must reflect the same drift detection architecture."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/director-agent.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_orchestration_stabilization_retrospective.md",
+          "reason": "Orchestration stabilization describes the Director's macro-loop retry logic."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_iterative_macro_looping.md",
+          "reason": "Macro-looping retrospective defines the Director's iterative refinement pattern."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
+          "reason": "Context caching results describe how caching changed the Director's context management."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/dlp-proxy.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-20_zero_trust_stabilization_and_telemetry.md",
+          "reason": "Zero-trust stabilization defines the DLP proxy's redaction boundaries and HIPAA compliance model."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
+          "reason": "Meta-retrospective contextualizes DLP within the broader security architecture."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/drift-registry.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md",
+          "reason": "Drift analysis retrospective is the canonical source for the drift registry architecture."
+        },
+        {
+          "type": "consumed-by",
+          "path": "scripts/drift_enforcer.py",
+          "reason": "Entity page describes the enforcer's behavior — must stay consistent with actual script logic."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/evaluation-framework.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-21_head_to_head_benchmarks.md",
+          "reason": "Benchmark retrospective provides the evaluation methodology and tier definitions."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
+          "reason": "Caching results describe evaluation framework improvements (8 → 11 test coverage)."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md",
+          "reason": "Head-to-head conclusion provides the final benchmark scoring methodology."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/guides/2026-04-21_head_to_head_evaluation_walkthrough.md",
+          "reason": "Evaluation walkthrough provides the detailed evaluation execution protocol."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/executor-agent.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_kernel_graft_and_tdaid_stabilization.md",
+          "reason": "Kernel graft retrospective defines the Executor's TDAID chronological mandate constraints."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md",
+          "reason": "ADK 2.0 migration describes the Executor's updated tool authorization model."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/decisions/2026-04-23_Spec-Driven_TDD_implementation_plan.md",
+          "reason": "Spec-driven TDD plan defines the Executor's TDAID implementation boundaries."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/qa-engineer-agent.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/decisions/2026-04-23_Spec-Driven_TDD_implementation_plan.md",
+          "reason": "Spec-driven TDD plan defines the QA Engineer's red/green gate responsibilities."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_kernel_graft_and_tdaid_stabilization.md",
+          "reason": "Kernel graft retrospective describes the QA Engineer's cryptographic signature protocol."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md",
+          "reason": "ADK 2.0 migration describes the QA Engineer's updated tool access (vite-reactor-suite)."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/seqera-ai-integration.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-29_seqera_ai_nfcore_emmtyper_pilot.md",
+          "reason": "Seqera AI pilot retrospective is the sole source for the integration entity page."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/staging-airlock.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-20_zero_trust_stabilization_and_telemetry.md",
+          "reason": "Zero-trust stabilization defines the staging airlock's isolation boundaries."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_hierarchical_swarm_triumph.md",
+          "reason": "Swarm triumph retrospective describes staging promotion workflow via the airlock."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/telemetry-engine.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-20_zero_trust_stabilization_and_telemetry.md",
+          "reason": "Zero-trust stabilization defines the telemetry engine's SSM bridge and live monitoring architecture."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
+          "reason": "Context caching results describe telemetry metrics collection improvements."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/zero-trust-auditor.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
+          "reason": "Meta-retrospective describes the Zero-Trust Auditor's role in the governance hierarchy."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md",
+          "reason": "Head-to-head conclusion describes the auditor's enforcement during benchmarks."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/zero-trust-interceptors.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era5_evaluation_integrity_restoration.md",
+          "reason": "Evaluation integrity retrospective defines interceptor injection for eval bypass."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_orchestration_stabilization_retrospective.md",
+          "reason": "Orchestration stabilization describes interceptor placement in the agent routing tree."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md",
+          "reason": "ADK 2.0 migration describes interceptor compatibility with the new agent framework."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/anti-pattern-knowledge-graph.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/anti-patterns/asgi_playwright_latency.md",
+          "reason": "ASGI Playwright latency anti-pattern is a key entry in the knowledge graph."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/anti-patterns/pytest_deterministic_teardown.md",
+          "reason": "Pytest deterministic teardown anti-pattern is a key entry in the knowledge graph."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/roadmap/2026-04-22_era4_autonomous_self_healing_roadmap.md",
+          "reason": "Era 4 roadmap describes the anti-pattern graph's role in autonomous self-healing."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/context-caching.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
+          "reason": "Context caching optimization results provide the 56.3% token reduction and 3-part architecture."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era5_evaluation_integrity_restoration.md",
+          "reason": "Era 5 evaluation integrity describes how caching interacts with evaluation integrity."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/empirical-verification.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md",
+          "reason": "Tool parallelism analysis demonstrates empirical verification methodology in practice."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_kernel_graft_and_tdaid_stabilization.md",
+          "reason": "Kernel graft retrospective establishes the three empirical verification mandates."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/ephemeral-memory-handoff.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-20_zero_trust_stabilization_and_telemetry.md",
+          "reason": "Zero-trust stabilization introduces the executor handoff persistence mechanism."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_hierarchical_swarm_triumph.md",
+          "reason": "Swarm triumph describes the handoff's role in surviving amnesia sweeps."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_orchestration_stabilization_retrospective.md",
+          "reason": "Orchestration stabilization describes the handoff path and format requirements."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/hierarchical-routing.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_hierarchical_routing_pivot.md",
+          "reason": "Hierarchical routing pivot is the canonical source for the routing architecture evolution."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md",
+          "reason": "ADK 2.0 migration describes the current state of hierarchical routing."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/solo-vs-swarm-benchmarks.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-21_head_to_head_benchmarks.md",
+          "reason": "Head-to-head benchmarks provide the initial evaluation methodology and results."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md",
+          "reason": "Era 5 head-to-head conclusion provides the final benchmark scoring and analysis."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md",
+          "reason": "Tool parallelism analysis explains the irreducible cost gap between solo and swarm."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/tdaid-methodology.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/decisions/2026-04-23_tdaid_refactor_directive.md",
+          "reason": "TDAID refactor directive defines the canonical Red → Green → Refactor cycle."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/decisions/2026-04-23_Spec-Driven_TDD_implementation_plan.md",
+          "reason": "Spec-driven TDD plan details the TDAID implementation protocol."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-23_kernel_graft_and_tdaid_stabilization.md",
+          "reason": "Kernel graft stabilization retrospective provides the TDAID production validation results."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/token-tax.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_the_swarm_crucible_retrospective.md",
+          "reason": "Swarm crucible retrospective documents the token tax discovery and its catastrophic effects."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_hierarchical_routing_pivot.md",
+          "reason": "Hierarchical routing pivot describes how token tax drove the architectural migration."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/tool-parallelism-bottleneck.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md",
+          "reason": "Tool parallelism bottleneck analysis is the canonical source for the irreducible cost concept."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md",
+          "reason": "Head-to-head conclusion provides the empirical evidence for the bottleneck's impact."
+        }
+      ]
+    }
+  ]
+}

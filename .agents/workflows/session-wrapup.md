@@ -81,7 +81,18 @@ If the session was significant:
    - Created: [[new-page]] (if any)
    - Key insight: One-line summary of what this session added
    ```
-7. Update the wiki database via the `wiki-db` MCP server.
+7. Sync the wiki database by running the backfill script (the `wiki-db` MCP server is read-only and cannot execute writes):
+   ```bash
+   python3 scripts/wiki_db_backfill.py --repo hvr-agentic-os --wiki-dir wiki
+   ```
+   Then log the ingest activity via `psql`:
+   ```bash
+   psql -h localhost -p 5432 -d wiki -c "
+   INSERT INTO wiki_activity (repo, action, target, summary, pages_created, pages_updated)
+   VALUES ('hvr-agentic-os', 'ingest', 'docs/retrospectives/<retro_file>.md',
+           'Session wrapup wiki ingest', 0, <pages_updated>);
+   "
+   ```
 8. Optionally update `wiki/overview.md` if the session changes the
    project's big picture.
 

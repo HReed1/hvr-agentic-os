@@ -5,37 +5,62 @@
   "entries": [
     {
       "source_file": "GEMINI.md",
-      "verified_commit": "b686b43a46bcdfef0b2f51791ea1418bf8a34648",
+      "verified_commit": null,
       "dependencies": [
         {
           "type": "rule",
           "path": ".agents/rules/amnesia-sweep-defense.md",
-          "reason": "GEMINI.md \u00a71 (Amnesia Sweep Defense) is the canonical source \u2014 the rule file must mirror the same constraints verbatim."
+          "reason": "GEMINI.md §1 (Amnesia Sweep Defense) is the canonical source — the rule file must mirror the same constraints verbatim."
         },
         {
           "type": "rule",
           "path": ".agents/rules/artifacts-state-handoff.md",
-          "reason": "GEMINI.md \u00a73 (Ephemeral Memory Handoff) defines the handoff protocol \u2014 the rule file must enforce the same .staging/ path and format."
+          "reason": "GEMINI.md §3 (Ephemeral Memory Handoff) defines the handoff protocol — the rule file must enforce the same .staging/ path and format."
         },
         {
           "type": "rule",
           "path": ".agents/rules/cicd-hygiene.md",
-          "reason": "GEMINI.md \u00a74 (CI/CD Hygiene) defines dependency and testing constraints \u2014 the rule file must not contradict or weaken them."
+          "reason": "GEMINI.md §4 (CI/CD Hygiene) defines dependency and testing constraints — the rule file must not contradict or weaken them."
         },
         {
           "type": "rule",
           "path": ".agents/rules/empirical-verification.md",
-          "reason": "GEMINI.md \u00a75 (Empirical Verification Pipeline) mandates evidence-first debugging \u2014 the rule file must enforce the same verification sequence."
+          "reason": "GEMINI.md §5 (Empirical Verification Pipeline) mandates evidence-first debugging — the rule file must enforce the same verification sequence."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/session-start.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol \u2014 the workflow must implement the described initialization steps."
+          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol — the workflow must implement the described initialization steps."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/session-wrapup.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the workflow must implement the described teardown steps."
+          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol — the workflow must implement the described teardown steps."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/drift-detection-governance.md",
+          "reason": "GEMINI.md Drift Registry Protocol section defines drift tracking mandates — the governance rule must enforce the same entry lifecycle and stamping discipline."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/wiki-db-sync.md",
+          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement — the wiki-db-sync workflow must implement the described backfill + psql pattern."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/drift-check.md",
+          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer — the drift-check workflow must implement the described check + stamp sequence."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/wiki-synthesis/SKILL.md",
+          "reason": "GEMINI.md Wiki Maintenance Protocol references synthesis pages — the wiki-synthesis skill must implement the described cross-cutting analysis workflow."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/drift-registry/SKILL.md",
+          "reason": "GEMINI.md Drift Registry Protocol references registry management — the drift-registry skill must implement the described entry schema and tracking protocol."
         }
       ]
     },
@@ -163,6 +188,65 @@
           "type": "workflow",
           "path": ".agents/workflows/evaluator-wrapup.md",
           "reason": "Evaluator governance constraints define how eval results are archived \u2014 the evaluator wrapup workflow must follow the same archival protocol."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/drift_enforcer.py",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": "docs/drift_registries/wiki.json",
+          "reason": "Drift enforcer globs *.json in the registries directory \u2014 wiki.json must conform to the same schema the enforcer expects."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/drift-check.md",
+          "reason": "Drift-check workflow invokes the enforcer script \u2014 must match the script's CLI flags and output format."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session-wrapup invokes the enforcer for stamping \u2014 must match the script's --stamp flag behavior."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/wiki_db_backfill.py",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/wiki-db-sync.md",
+          "reason": "Wiki-db-sync workflow invokes the backfill script \u2014 must match the script's CLI interface."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session-wrapup wiki ingest step invokes the backfill script \u2014 must match the script's --repo and --wiki-dir flags."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/wiki_db_init.py",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "schema",
+          "path": "scripts/wiki_db_backfill.py",
+          "reason": "Init script creates the DB schema (wiki_pages, wiki_links, wiki_activity tables) \u2014 backfill must INSERT into the same column structure."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/skills/ast-context-engineer/SKILL.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": "mcp_servers/hvr_ast_mcp/server.py",
+          "reason": "AST Context Engineer skill teaches agents to use the AST MCP tools \u2014 must match the server's actual tool names and parameters."
         }
       ]
     }
