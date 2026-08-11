@@ -118,3 +118,8 @@ tags:
   - 3 core modules (`simulator.py`, `analyzer.py`, `tools.py`) are missing — real pipeline cannot execute
   - ~7 of 12 test files would fail on import
 - Roadmap added: implement missing modules → run live inference → validate claims independently
+
+## [2026-08-11] ingest | README Restructuring & AI Engineering Bootstrap
+- Source: `docs/retrospectives/2026-08-11_readme_restructuring_and_ai_engineering_bootstrap.md`
+- Updated: [[overview]] (project description now references portable scaffold)
+- Key insight: Split root README into AI Engineering scaffold guide (portable) and ADK swarm guide (project-specific). Created `bin/bootstrap_ai_engineering.sh` with LLM ingest prompt for initializing wiki + drift + sessions in any repo.

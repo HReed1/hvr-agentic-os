@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": "2026-08-11T02:23:20.584285+00:00",
+    "last_updated": "2026-08-11T03:49:44.899869+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
@@ -54,7 +54,7 @@
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": "2f39a8e4188dcea9cef71b7646dd38da5d990c33",
+      "verified_commit": "ae4d1f4118685324f91983f59f02665d642fb3b8",
       "dependencies": [
         {
           "type": "consumed-by",
