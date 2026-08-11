@@ -12,6 +12,7 @@ sources:
   - "[[mcp_servers/ast_context_mcp/README.md]]"
   - "[[.agents/skills/ast-context-engineer/SKILL.md]]"
   - "[[.agents/rules/ast-context-governance.md]]"
+  - "[[docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md]]"
 last_ingested: 2026-08-11
 ---
 

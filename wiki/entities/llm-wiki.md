@@ -10,6 +10,7 @@ tags:
   - karpathy
 sources:
   - "[[docs/reference/llm-wiki-antigravity.md]]"
+  - "[[docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md]]"
 last_ingested: 2026-08-11
 ---
 

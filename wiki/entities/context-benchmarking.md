@@ -10,6 +10,7 @@ tags:
 sources:
   - "[[projects/context-benchmarking/run_benchmarks.py]]"
   - "[[docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md]]"
+  - "[[docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md]]"
 last_ingested: 2026-08-11
 ---
 

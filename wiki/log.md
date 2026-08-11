@@ -123,3 +123,8 @@ tags:
 - Source: `docs/retrospectives/2026-08-11_readme_restructuring_and_ai_engineering_bootstrap.md`
 - Updated: [[overview]] (project description now references portable scaffold)
 - Key insight: Split root README into AI Engineering scaffold guide (portable) and ADK swarm guide (project-specific). Created `bin/bootstrap_ai_engineering.sh` with LLM ingest prompt for initializing wiki + drift + sessions in any repo.
+
+## [2026-08-11] ingest | Wiki-DB Infrastructure & v2.0.0 Wiki Expansion (backfill)
+- Source: `docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md`
+- Updated: [[llm-wiki]], [[drift-enforcer]], [[session-lifecycle]], [[ast-context-mcp]], [[context-benchmarking]] — added retro as provenance source
+- Key insight: Retrospective was the session that created all 5 entity pages + their governing skills/workflows, but was never logged as a source. Backfilled to close the coverage gap.
