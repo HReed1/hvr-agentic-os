@@ -80,3 +80,19 @@ tags:
 - Stale pages: 0
 - Missing pages suggested: 0
 - Auto-fixed: 4 edits across 4 files (overview.md, token-tax.md, hierarchical-routing.md, director-agent.md)
+
+## [2026-08-11] ingest | v2.0.0 & Post-Release Wiki Coverage Expansion
+- Source: `docs/reference/llm-wiki-antigravity.md`, `mcp_servers/ast_context_mcp/README.md`, `.agents/workflows/session-start.md`, `.agents/workflows/session-wrapup.md`, `scripts/drift_enforcer.py`
+- Created (5 entities):
+  - [[llm-wiki]] — Postgres-backed LLM Wiki (Karpathy pattern), v2.0.0 Pillar 1
+  - [[drift-enforcer]] — Git-hash drift enforcement script, v2.0.0 Pillar 2
+  - [[session-lifecycle]] — Structured session workflows, v2.0.0 Pillar 3
+  - [[ast-context-mcp]] — FastMCP AST parsing server (post-v2.0.0, unreleased)
+  - [[context-benchmarking]] — Agent context engineering test harness (post-v2.0.0, unreleased)
+- Updated: [[overview]], [[index]]
+- Key insight: v2.0.0 introduced 3 pillars (wiki, drift, sessions) and post-release work added AST-based context engineering — expanding wiki from 12 to 17 entity pages
+
+## [2026-08-11] fix | llm-wiki-antigravity.md Schema Drift Resolution
+- Source: `docs/reference/llm-wiki-antigravity.md`
+- Updated: `wiki_links` schema to add `context TEXT`, `created_at TIMESTAMP`, and `supersedes` link type — matching the actual `wiki_db_init.py` implementation
+- Key insight: Reference guide was out of sync with the deployed init script since commit 2d0103c

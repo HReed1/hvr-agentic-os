@@ -139,7 +139,9 @@ CREATE TABLE wiki_links (
     source_path TEXT NOT NULL,
     target_repo TEXT NOT NULL,
     target_path TEXT NOT NULL,
-    link_type   TEXT DEFAULT 'reference',  -- 'reference', 'contradicts', 'extends'
+    link_type   TEXT DEFAULT 'reference',  -- 'reference', 'contradicts', 'extends', 'supersedes'
+    context     TEXT,                       -- sentence or phrase around the link
+    created_at  TIMESTAMP DEFAULT NOW(),
     UNIQUE(source_repo, source_path, target_repo, target_path)
 );
 

@@ -12,7 +12,9 @@ sources:
   - "[[docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md]]"
   - "[[docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md]]"
   - "[[docs/retrospectives/2026-04-26_adk_2_0_iterative_refinement_migration.md]]"
-last_ingested: 2026-06-02
+  - "[[docs/reference/llm-wiki-antigravity.md]]"
+  - "[[mcp_servers/ast_context_mcp/README.md]]"
+last_ingested: 2026-08-11
 ---
 
 # hvr-agentic-os — Living Overview
@@ -66,11 +68,28 @@ The [[context-caching]] optimization (Era 5.1) achieved:
 
 The [[solo-vs-swarm-benchmarks]] proved the fundamental [[tool-parallelism-bottleneck]]: the Swarm operates at ~4× the inference cost of a Solo agent due to irreducible agent-boundary serialization — but this overhead is the literal cost of adversarial verification that prevents hallucinated code from reaching production.
 
+## v2.0.0 — Portable Agentic Workflows & Compounding Memory
+
+The v2.0.0 release (2026-06-15) shifted the framework from a multi-agent sandbox into a general-purpose toolkit. Three pillars were introduced:
+
+1. **[[llm-wiki]]**: A Postgres-backed implementation of Andrej Karpathy's LLM Wiki pattern — incrementally building and maintaining a persistent, interlinked knowledge base instead of re-deriving answers via RAG. The agent writes the wiki; you ask the questions.
+
+2. **[[drift-registry]]** + **[[drift-enforcer]]**: Machine-readable JSON contracts (4 domain registries: agent, docs, infra, wiki) linking source files to downstream dependencies, with `drift_enforcer.py` comparing git hashes to detect staleness. Stamping is exclusive to session boundaries.
+
+3. **[[session-lifecycle]]**: Structured session workflows (`/session-start`, `/session-wrapup`) with auto-context loading, drift checks, retrospective generation, and optional wiki ingest — creating a self-reinforcing loop where every significant session enriches the knowledge base.
+
+## Post-v2.0.0 Unreleased Work
+
+Two major subsystems were introduced in commit `69ef905` (2026-06-23) but remain unreleased:
+
+- **[[ast-context-mcp]]**: A standalone FastMCP server providing AST-based code parsing for Python and TypeScript/JavaScript. Four tools (`get_symbols`, `get_skeleton`, `get_symbol_block`, `get_hash`) enable up to 75% token reduction by replacing full file reads with targeted symbol extraction.
+
+- **[[context-benchmarking]]**: A testing framework (9,749 lines — the largest single commit in the repo) for evaluating agent context engineering strategies against mock codebases with known-good solutions.
+
 ## Ecosystem
 
 - **Sister repository**: `ngs-variant-validator` — domain-specific bioinformatics/FinOps layer using the hardened OS kernel
 - **[[seqera-ai-integration]]**: First cross-agent integration for Nextflow/nf-core module QA
-- **[[drift-registry]]**: Cross-file dependency tracking via `drift_enforcer.py`
 - **[[evaluation-framework]]**: Automated benchmarking with 11 test categories and telemetry scoring
 
 ## Further Reading
@@ -78,3 +97,4 @@ The [[solo-vs-swarm-benchmarks]] proved the fundamental [[tool-parallelism-bottl
 - [Meta-Retrospective](../docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md) — The master chronological timeline
 - [Era 5 Conclusion](../docs/retrospectives/2026-04-24_era_5_head_to_head_conclusion.md) — The definitive Solo vs Swarm verdict
 - [Tool Parallelism Analysis](../docs/retrospectives/2026-04-25_tool_parallelism_bottleneck_analysis.md) — The deepest architectural analysis
+- [LLM Wiki Reference Guide](../docs/reference/llm-wiki-antigravity.md) — The full wiki implementation spec
