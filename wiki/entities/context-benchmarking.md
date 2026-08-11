@@ -9,6 +9,7 @@ tags:
   - evaluation
 sources:
   - "[[projects/context-benchmarking/run_benchmarks.py]]"
+  - "[[docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md]]"
 last_ingested: 2026-08-11
 ---
 
@@ -55,9 +56,12 @@ The benchmarking harness exists to empirically validate the claims made by the [
 
 This directly supports the [[evaluation-framework]] and provides ground-truth data for [[token-tax]] analysis.
 
-## Coverage Gap
+## Documentation
 
-As of this writing, the Context Benchmarking Harness has **no retrospective or release documentation**. It was introduced post-v2.0.0 and has not been covered in any session retrospective or release notes. This makes it one of the least documented subsystems relative to its size.
+The Context Benchmarking Harness now has full documentation coverage:
+- **Retrospective**: `docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md` documents design decisions, architectural gotchas, and empirical results
+- **README**: `projects/context-benchmarking/README.md` provides setup, CLI usage, and adaptation guides
+- **Wiki**: This page and [[ast-context-mcp]] provide cross-referenced entity documentation
 
 ## History
 

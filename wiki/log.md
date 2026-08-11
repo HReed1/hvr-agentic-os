@@ -96,3 +96,16 @@ tags:
 - Source: `docs/reference/llm-wiki-antigravity.md`
 - Updated: `wiki_links` schema to add `context TEXT`, `created_at TIMESTAMP`, and `supersedes` link type — matching the actual `wiki_db_init.py` implementation
 - Key insight: Reference guide was out of sync with the deployed init script since commit 2d0103c
+
+## [2026-08-11] fix | Wiki.json Registry Coverage Completion
+- Source: N/A (registry maintenance)
+- Updated: wiki.json drift registry — added 6 untracked pages
+- Pages registered: [[amnesia-sweep]], [[llm-wiki]], [[drift-enforcer]], [[session-lifecycle]], [[ast-context-mcp]], [[context-benchmarking]]
+- Fixed 3 wiki pages with incorrect source paths (docs/ prefix removal)
+- Key insight: wiki.json now has 30 entries with 100% coverage of all entity/concept pages
+
+## [2026-08-11] ingest | AST MCP & Context Benchmarking Retrospective
+- Source: `docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md`
+- Created: Formal retrospective for commit 69ef905 (9,749 lines)
+- Updated: [[context-benchmarking]] — replaced coverage gap notice with documentation section
+- Key insight: 75% input token reduction empirically validated; harness uses mock LLM monkeypatching for deterministic offline benchmarks
