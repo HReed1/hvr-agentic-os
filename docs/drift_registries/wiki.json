@@ -1,18 +1,18 @@
 {
   "_meta": {
-    "description": "Wiki Drift Registry — tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": null,
+    "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
+    "last_updated": "2026-08-11T01:44:10.785255+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
     {
       "source_file": "wiki/overview.md",
-      "verified_commit": null,
+      "verified_commit": "dfcfb1d823135d3116f1d6a12098279eefd061ac",
       "dependencies": [
         {
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
-          "reason": "Meta-retrospective provides the high-level project narrative — overview must reflect the same evolution timeline and key milestones."
+          "reason": "Meta-retrospective provides the high-level project narrative \u2014 overview must reflect the same evolution timeline and key milestones."
         },
         {
           "type": "synthesized-from",
@@ -37,51 +37,51 @@
         {
           "type": "consumed-by",
           "path": ".agents/workflows/session-start.md",
-          "reason": "Session-start loads overview.md for project context — overview must stay current for accurate session briefings."
+          "reason": "Session-start loads overview.md for project context \u2014 overview must stay current for accurate session briefings."
         }
       ]
     },
     {
       "source_file": "wiki/index.md",
-      "verified_commit": null,
+      "verified_commit": "dfcfb1d823135d3116f1d6a12098279eefd061ac",
       "dependencies": [
         {
           "type": "consumed-by",
           "path": "scripts/wiki_db_backfill.py",
-          "reason": "Backfill script may parse index.md for page catalog — index must list all wiki pages."
+          "reason": "Backfill script may parse index.md for page catalog \u2014 index must list all wiki pages."
         }
       ]
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": null,
+      "verified_commit": "dfcfb1d823135d3116f1d6a12098279eefd061ac",
       "dependencies": [
         {
           "type": "consumed-by",
           "path": ".agents/workflows/session-wrapup.md",
-          "reason": "Session wrapup appends ingest entries to log.md — log format must match the template."
+          "reason": "Session wrapup appends ingest entries to log.md \u2014 log format must match the template."
         }
       ]
     },
     {
       "source_file": "wiki/entities/agentic-os.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md",
-          "reason": "Meta-retrospective provides the project evolution narrative — entity page must reflect the same architecture timeline."
+          "reason": "Meta-retrospective provides the project evolution narrative \u2014 entity page must reflect the same architecture timeline."
         },
         {
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md",
-          "reason": "Drift analysis provides governance model details — entity page must reflect the same drift detection architecture."
+          "reason": "Drift analysis provides governance model details \u2014 entity page must reflect the same drift detection architecture."
         }
       ]
     },
     {
       "source_file": "wiki/entities/director-agent.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -102,7 +102,7 @@
     },
     {
       "source_file": "wiki/entities/dlp-proxy.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -118,7 +118,7 @@
     },
     {
       "source_file": "wiki/entities/drift-registry.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -128,13 +128,13 @@
         {
           "type": "consumed-by",
           "path": "scripts/drift_enforcer.py",
-          "reason": "Entity page describes the enforcer's behavior — must stay consistent with actual script logic."
+          "reason": "Entity page describes the enforcer's behavior \u2014 must stay consistent with actual script logic."
         }
       ]
     },
     {
       "source_file": "wiki/entities/evaluation-framework.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -144,7 +144,7 @@
         {
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-04-24_context_caching_optimization_results.md",
-          "reason": "Caching results describe evaluation framework improvements (8 → 11 test coverage)."
+          "reason": "Caching results describe evaluation framework improvements (8 \u2192 11 test coverage)."
         },
         {
           "type": "synthesized-from",
@@ -160,7 +160,7 @@
     },
     {
       "source_file": "wiki/entities/executor-agent.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -181,7 +181,7 @@
     },
     {
       "source_file": "wiki/entities/qa-engineer-agent.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -202,7 +202,7 @@
     },
     {
       "source_file": "wiki/entities/seqera-ai-integration.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -213,7 +213,7 @@
     },
     {
       "source_file": "wiki/entities/staging-airlock.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -229,7 +229,7 @@
     },
     {
       "source_file": "wiki/entities/telemetry-engine.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -245,7 +245,7 @@
     },
     {
       "source_file": "wiki/entities/zero-trust-auditor.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -261,7 +261,7 @@
     },
     {
       "source_file": "wiki/entities/zero-trust-interceptors.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -282,7 +282,7 @@
     },
     {
       "source_file": "wiki/concepts/anti-pattern-knowledge-graph.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -303,7 +303,7 @@
     },
     {
       "source_file": "wiki/concepts/context-caching.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -319,7 +319,7 @@
     },
     {
       "source_file": "wiki/concepts/empirical-verification.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -335,7 +335,7 @@
     },
     {
       "source_file": "wiki/concepts/ephemeral-memory-handoff.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -356,7 +356,7 @@
     },
     {
       "source_file": "wiki/concepts/hierarchical-routing.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -372,7 +372,7 @@
     },
     {
       "source_file": "wiki/concepts/solo-vs-swarm-benchmarks.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -393,12 +393,12 @@
     },
     {
       "source_file": "wiki/concepts/tdaid-methodology.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
           "path": "docs/decisions/2026-04-23_tdaid_refactor_directive.md",
-          "reason": "TDAID refactor directive defines the canonical Red → Green → Refactor cycle."
+          "reason": "TDAID refactor directive defines the canonical Red \u2192 Green \u2192 Refactor cycle."
         },
         {
           "type": "synthesized-from",
@@ -414,7 +414,7 @@
     },
     {
       "source_file": "wiki/concepts/token-tax.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -430,7 +430,7 @@
     },
     {
       "source_file": "wiki/concepts/tool-parallelism-bottleneck.md",
-      "verified_commit": null,
+      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
       "dependencies": [
         {
           "type": "synthesized-from",

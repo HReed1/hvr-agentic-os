@@ -1,66 +1,66 @@
 {
   "_meta": {
-    "last_updated": "2026-06-02T18:38:57.192839+00:00"
+    "last_updated": "2026-08-11T01:44:10.349093+00:00"
   },
   "entries": [
     {
       "source_file": "GEMINI.md",
-      "verified_commit": null,
+      "verified_commit": "d887101dcc62540a689404316b90f08fb2f2193b",
       "dependencies": [
         {
           "type": "rule",
           "path": ".agents/rules/amnesia-sweep-defense.md",
-          "reason": "GEMINI.md §1 (Amnesia Sweep Defense) is the canonical source — the rule file must mirror the same constraints verbatim."
+          "reason": "GEMINI.md \u00a71 (Amnesia Sweep Defense) is the canonical source \u2014 the rule file must mirror the same constraints verbatim."
         },
         {
           "type": "rule",
           "path": ".agents/rules/artifacts-state-handoff.md",
-          "reason": "GEMINI.md §3 (Ephemeral Memory Handoff) defines the handoff protocol — the rule file must enforce the same .staging/ path and format."
+          "reason": "GEMINI.md \u00a73 (Ephemeral Memory Handoff) defines the handoff protocol \u2014 the rule file must enforce the same .staging/ path and format."
         },
         {
           "type": "rule",
           "path": ".agents/rules/cicd-hygiene.md",
-          "reason": "GEMINI.md §4 (CI/CD Hygiene) defines dependency and testing constraints — the rule file must not contradict or weaken them."
+          "reason": "GEMINI.md \u00a74 (CI/CD Hygiene) defines dependency and testing constraints \u2014 the rule file must not contradict or weaken them."
         },
         {
           "type": "rule",
           "path": ".agents/rules/empirical-verification.md",
-          "reason": "GEMINI.md §5 (Empirical Verification Pipeline) mandates evidence-first debugging — the rule file must enforce the same verification sequence."
+          "reason": "GEMINI.md \u00a75 (Empirical Verification Pipeline) mandates evidence-first debugging \u2014 the rule file must enforce the same verification sequence."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/session-start.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol — the workflow must implement the described initialization steps."
+          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol \u2014 the workflow must implement the described initialization steps."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/session-wrapup.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol — the workflow must implement the described teardown steps."
+          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the workflow must implement the described teardown steps."
         },
         {
           "type": "rule",
           "path": ".agents/rules/drift-detection-governance.md",
-          "reason": "GEMINI.md Drift Registry Protocol section defines drift tracking mandates — the governance rule must enforce the same entry lifecycle and stamping discipline."
+          "reason": "GEMINI.md Drift Registry Protocol section defines drift tracking mandates \u2014 the governance rule must enforce the same entry lifecycle and stamping discipline."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/wiki-db-sync.md",
-          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement — the wiki-db-sync workflow must implement the described backfill + psql pattern."
+          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement \u2014 the wiki-db-sync workflow must implement the described backfill + psql pattern."
         },
         {
           "type": "workflow",
           "path": ".agents/workflows/drift-check.md",
-          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer — the drift-check workflow must implement the described check + stamp sequence."
+          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer \u2014 the drift-check workflow must implement the described check + stamp sequence."
         },
         {
           "type": "skill",
           "path": ".agents/skills/wiki-synthesis/SKILL.md",
-          "reason": "GEMINI.md Wiki Maintenance Protocol references synthesis pages — the wiki-synthesis skill must implement the described cross-cutting analysis workflow."
+          "reason": "GEMINI.md Wiki Maintenance Protocol references synthesis pages \u2014 the wiki-synthesis skill must implement the described cross-cutting analysis workflow."
         },
         {
           "type": "skill",
           "path": ".agents/skills/drift-registry/SKILL.md",
-          "reason": "GEMINI.md Drift Registry Protocol references registry management — the drift-registry skill must implement the described entry schema and tracking protocol."
+          "reason": "GEMINI.md Drift Registry Protocol references registry management \u2014 the drift-registry skill must implement the described entry schema and tracking protocol."
         }
       ]
     },
@@ -193,7 +193,7 @@
     },
     {
       "source_file": "scripts/drift_enforcer.py",
-      "verified_commit": null,
+      "verified_commit": "7cb76a63dea7336e083472cbd429781908a487e0",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -214,7 +214,7 @@
     },
     {
       "source_file": "scripts/wiki_db_backfill.py",
-      "verified_commit": null,
+      "verified_commit": "2d0103ce6f216d6505f45903ddd067233a9c09d8",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -230,7 +230,7 @@
     },
     {
       "source_file": "scripts/wiki_db_init.py",
-      "verified_commit": null,
+      "verified_commit": "2d0103ce6f216d6505f45903ddd067233a9c09d8",
       "dependencies": [
         {
           "type": "schema",
@@ -241,7 +241,7 @@
     },
     {
       "source_file": ".agents/skills/ast-context-engineer/SKILL.md",
-      "verified_commit": null,
+      "verified_commit": "69ef90508c47045c478c94e60f409583a1706d07",
       "dependencies": [
         {
           "type": "consumed-by",
