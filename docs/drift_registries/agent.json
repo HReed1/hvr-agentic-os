@@ -1,11 +1,11 @@
 {
   "_meta": {
-    "last_updated": "2026-06-02T18:38:57.192839+00:00"
+    "last_updated": "2026-08-11T03:49:44.434705+00:00"
   },
   "entries": [
     {
       "source_file": "GEMINI.md",
-      "verified_commit": "b686b43a46bcdfef0b2f51791ea1418bf8a34648",
+      "verified_commit": "d887101dcc62540a689404316b90f08fb2f2193b",
       "dependencies": [
         {
           "type": "rule",
@@ -36,6 +36,31 @@
           "type": "workflow",
           "path": ".agents/workflows/session-wrapup.md",
           "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the workflow must implement the described teardown steps."
+        },
+        {
+          "type": "rule",
+          "path": ".agents/rules/drift-detection-governance.md",
+          "reason": "GEMINI.md Drift Registry Protocol section defines drift tracking mandates \u2014 the governance rule must enforce the same entry lifecycle and stamping discipline."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/wiki-db-sync.md",
+          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement \u2014 the wiki-db-sync workflow must implement the described backfill + psql pattern."
+        },
+        {
+          "type": "workflow",
+          "path": ".agents/workflows/drift-check.md",
+          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer \u2014 the drift-check workflow must implement the described check + stamp sequence."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/wiki-synthesis/SKILL.md",
+          "reason": "GEMINI.md Wiki Maintenance Protocol references synthesis pages \u2014 the wiki-synthesis skill must implement the described cross-cutting analysis workflow."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/drift-registry/SKILL.md",
+          "reason": "GEMINI.md Drift Registry Protocol references registry management \u2014 the drift-registry skill must implement the described entry schema and tracking protocol."
         }
       ]
     },
@@ -163,6 +188,65 @@
           "type": "workflow",
           "path": ".agents/workflows/evaluator-wrapup.md",
           "reason": "Evaluator governance constraints define how eval results are archived \u2014 the evaluator wrapup workflow must follow the same archival protocol."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/drift_enforcer.py",
+      "verified_commit": "7cb76a63dea7336e083472cbd429781908a487e0",
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": "docs/drift_registries/wiki.json",
+          "reason": "Drift enforcer globs *.json in the registries directory \u2014 wiki.json must conform to the same schema the enforcer expects."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/drift-check.md",
+          "reason": "Drift-check workflow invokes the enforcer script \u2014 must match the script's CLI flags and output format."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session-wrapup invokes the enforcer for stamping \u2014 must match the script's --stamp flag behavior."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/wiki_db_backfill.py",
+      "verified_commit": "2d0103ce6f216d6505f45903ddd067233a9c09d8",
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/wiki-db-sync.md",
+          "reason": "Wiki-db-sync workflow invokes the backfill script \u2014 must match the script's CLI interface."
+        },
+        {
+          "type": "consumed-by",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session-wrapup wiki ingest step invokes the backfill script \u2014 must match the script's --repo and --wiki-dir flags."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/wiki_db_init.py",
+      "verified_commit": "2d0103ce6f216d6505f45903ddd067233a9c09d8",
+      "dependencies": [
+        {
+          "type": "schema",
+          "path": "scripts/wiki_db_backfill.py",
+          "reason": "Init script creates the DB schema (wiki_pages, wiki_links, wiki_activity tables) \u2014 backfill must INSERT into the same column structure."
+        }
+      ]
+    },
+    {
+      "source_file": ".agents/skills/ast-context-engineer/SKILL.md",
+      "verified_commit": "69ef90508c47045c478c94e60f409583a1706d07",
+      "dependencies": [
+        {
+          "type": "consumed-by",
+          "path": "mcp_servers/hvr_ast_mcp/server.py",
+          "reason": "AST Context Engineer skill teaches agents to use the AST MCP tools \u2014 must match the server's actual tool names and parameters."
         }
       ]
     }

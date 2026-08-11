@@ -17,7 +17,7 @@ Never assume arbitrary `.py` files inside the `.staging/` airspace will natively
 * **Root Python Evasion**: Ensure evaluation prompts explicitly enforce structural namespace mappings (e.g., `bin/launch_kanban.py`) to bypass the Auditor's `shutil.rmtree` destruction protocol.
 
 ## 3. The Ephemeral Memory Handoff
-Whenever Swarm nodes or local testing layers generate structural insights within the `.staging/` sandbox, ensure the outputs are dynamically pushed to `.agents/memory/executor_handoff.md` so they cleanly persist across the amnesia sweep sequence without bleeding into core project boundaries.
+Whenever Swarm nodes or local testing layers generate structural insights within the `.staging/` sandbox, ensure the outputs are dynamically pushed to `.staging/.agents/memory/executor_handoff.md` so they cleanly persist across the amnesia sweep sequence without bleeding into core project boundaries.
 
 ## 4. Strict CI/CD Hygiene
 * **SAST CVE Exclusions**: Never arbitrarily pin external dependencies just to bypass non-exploitable local Agent LLM execution vulnerabilities. Use `.trivyignore` to logically bypass structural vulnerabilities trapped exclusively inside the zero-trust VPC.
@@ -63,7 +63,14 @@ wiki/
 
 ### Database Index
 
-The wiki is backed by a Postgres database (`wiki` database, localhost:5432) accessible via the `wiki-db` MCP server that indexes all pages, cross-references, and activity. This lets you find relevant pages instantly via SQL instead of reading the entire index file.
+The wiki is backed by a Postgres database (`wiki` database, localhost:5432) that indexes all pages, cross-references, and activity. This lets you find relevant pages instantly via SQL instead of reading the entire index file.
+
+> [!CAUTION]
+> **Read vs. Write Access:** The `wiki-db` MCP server (`query` tool) is **read-only** — it can only execute `SELECT` queries. All write operations (`INSERT`, `UPDATE`, `DELETE`) **MUST** be executed via `psql` on the command line:
+> ```bash
+> psql -h localhost -p 5432 -d wiki -c "<your SQL statement>"
+> ```
+> Do NOT attempt writes through the MCP tool — they will silently fail with a read-only transaction error.
 
 **Key tables:**
 - `wiki_pages` — every wiki page with repo, path, title, category, tags[], summary, sources[]
@@ -75,14 +82,14 @@ The wiki is backed by a Postgres database (`wiki` database, localhost:5432) acce
 - `wiki_orphans` — pages with no inbound links (lint target)
 - `wiki_hubs` — most-linked pages (knowledge centers)
 
-**Example agent queries:**
+**Example agent queries (via MCP `query` tool):**
 ```sql
 -- Find pages related to a topic
 SELECT path, title, summary FROM wiki_pages
 WHERE repo = 'hvr-agentic-os' AND ('security' = ANY(tags) OR title ILIKE '%security%');
 
 -- Find all sources for a page
-SELECT sources FROM wiki_pages WHERE path = 'wiki/entities/nexus-api.md';
+SELECT sources FROM wiki_pages WHERE repo = 'hvr-agentic-os' AND path = 'wiki/entities/nexus-api.md';
 
 -- Find orphan pages needing links
 SELECT * FROM wiki_orphans WHERE repo = 'hvr-agentic-os';
@@ -135,8 +142,9 @@ When the user adds a new source document or asks you to ingest content:
    - Key insight: One-line summary of what this source added
    ```
 7. **Optionally update** `wiki/overview.md` if the source changes the project's big picture
-8. **Update the database** — for each wiki page created or updated, upsert into `wiki_pages` and `wiki_links`:
-   ```sql
+8. **Update the database** — for each wiki page created or updated, upsert into `wiki_pages` and `wiki_links` via `psql` (the `wiki-db` MCP tool is read-only and cannot execute writes):
+   ```bash
+   psql -h localhost -p 5432 -d wiki -c "
    INSERT INTO wiki_pages (repo, path, title, category, tags, summary, sources, source_count, last_ingested)
    VALUES ('hvr-agentic-os', 'wiki/entities/page.md', 'Page Title', 'entity',
            ARRAY['tag1', 'tag2'], 'Summary text', ARRAY['docs/source.md'], 1, CURRENT_DATE)
@@ -144,11 +152,18 @@ When the user adds a new source document or asks you to ingest content:
      title = EXCLUDED.title, tags = EXCLUDED.tags, summary = EXCLUDED.summary,
      sources = EXCLUDED.sources, source_count = EXCLUDED.source_count,
      last_ingested = EXCLUDED.last_ingested, updated_at = NOW();
+   "
    ```
-9. **Log the activity** in the database:
-   ```sql
+   > **Alternative:** Instead of individual SQL upserts, run the backfill script to sync all pages at once:
+   > ```bash
+   > python3 scripts/wiki_db_backfill.py --repo hvr-agentic-os --wiki-dir wiki
+   > ```
+9. **Log the activity** in the database (also via `psql`):
+   ```bash
+   psql -h localhost -p 5432 -d wiki -c "
    INSERT INTO wiki_activity (repo, action, target, summary, pages_created, pages_updated)
    VALUES ('hvr-agentic-os', 'ingest', 'docs/path/to/source.md', 'Ingested source; updated 3 pages', 0, 3);
+   "
    ```
 
 ### Query Workflow
@@ -199,10 +214,11 @@ Periodically (or when the user asks), health-check the wiki:
 - **Never modify files in `docs/`** — that's the human-authored source layer
 - **Never modify files in `raw/`** — those are immutable external sources
 - **Always update `index.md`** when creating or deleting wiki pages
-- **Always update the database** when creating, updating, or deleting wiki pages
+- **Always update the database** when creating, updating, or deleting wiki pages — use `psql` CLI or the backfill script, not the `wiki-db` MCP tool (which is read-only)
 - **Always append to `log.md`** for every ingest, query, or lint operation
 - **Flag contradictions explicitly** — don't silently overwrite one claim with another
 - **Cite sources** — every claim in a wiki page should trace back to a document in `docs/` or `raw/`
+- **Add `[[wikilinks]]`** — every new or updated page must cross-reference 2–5 related pages to build the knowledge graph
 
 ## Drift Registry Protocol
 

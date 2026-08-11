@@ -139,7 +139,9 @@ CREATE TABLE wiki_links (
     source_path TEXT NOT NULL,
     target_repo TEXT NOT NULL,
     target_path TEXT NOT NULL,
-    link_type   TEXT DEFAULT 'reference',  -- 'reference', 'contradicts', 'extends'
+    link_type   TEXT DEFAULT 'reference',  -- 'reference', 'contradicts', 'extends', 'supersedes'
+    context     TEXT,                       -- sentence or phrase around the link
+    created_at  TIMESTAMP DEFAULT NOW(),
     UNIQUE(source_repo, source_path, target_repo, target_path)
 );
 
@@ -205,8 +207,16 @@ You drop a new source into `raw/` (or point the agent at a doc in `docs/`) and t
    - Updated: [[existing-concept-1]], [[existing-concept-2]]
    - Key insight: One-line summary of what this source added
    ```
-7. **Update the database** — upsert page metadata and cross-references
-8. **Log activity** in the database
+7. **Update the database** — upsert page metadata and cross-references.
+   > [!CAUTION]
+   > If using a `wiki-db` MCP server, note that it is **read-only** (`SELECT` only). All database writes must go through `psql` CLI or `scripts/wiki_db_backfill.py`:
+   > ```bash
+   > # Option A: Batch sync all pages at once
+   > python3 scripts/wiki_db_backfill.py --repo your-repo --wiki-dir wiki
+   > # Option B: Individual upsert via psql
+   > psql -h localhost -p 5432 -d wiki -c "INSERT INTO wiki_pages (...) VALUES (...) ON CONFLICT DO UPDATE ..."
+   > ```
+8. **Log activity** in the database (also via `psql`, not MCP)
 
 A single source typically touches 5-15 wiki pages. Ingest one at a time and stay involved — read the summaries, check the updates, guide the agent on what to emphasize. You can also batch-ingest with less supervision for large backlogs.
 
@@ -280,25 +290,32 @@ The drift enforcer then automatically catches when a source doc changes and the 
 - **Never modify files in `docs/`** — that's the human-authored source layer
 - **Never modify files in `raw/`** — those are immutable external sources
 - **Always update `index.md`** when creating or deleting wiki pages
-- **Always update the database** when creating, updating, or deleting wiki pages
+- **Always update the database** when creating, updating, or deleting wiki pages — use `psql` CLI or the backfill script, **not** the MCP server (which is read-only)
 - **Always append to `log.md`** for every ingest, query, or lint operation
 - **Flag contradictions explicitly** — don't silently overwrite one claim with another
 - **Cite sources** — every claim in a wiki page should trace back to a document in `docs/` or `raw/`
 
 ## Bootstrap instructions
 
-To set up the wiki in a new project, tell your Antigravity agent:
+If you have the `bin/bootstrap_ai_engineering.sh` script, run it first — it creates the directory structure, template files, and checks dependencies:
 
-> **"Bootstrap the LLM Wiki for this project. Follow the wiki setup in this file: [path to this file]. Create the directory structure, initialize the database schema, configure Obsidian, and add the Wiki Maintenance Protocol to GEMINI.md."**
+```bash
+chmod +x bin/bootstrap_ai_engineering.sh
+./bin/bootstrap_ai_engineering.sh
+```
+
+Then tell your Antigravity agent:
+
+> **"Bootstrap the LLM Wiki for this project. Follow the wiki setup in this file: [path to this file]. Initialize the database schema, configure Obsidian, and add the Wiki Maintenance Protocol to GEMINI.md."**
 
 The agent should:
-1. Create `wiki/`, `raw/`, and their subdirectories in the target project
-2. Create `wiki/index.md`, `wiki/log.md`, and `wiki/overview.md`
+1. Verify `wiki/`, `raw/`, and their subdirectories exist (or create them)
+2. Verify `wiki/index.md`, `wiki/log.md`, and `wiki/overview.md` exist (or create them)
 3. Run `wiki_db_init.py` (either locally or from your infra repo) to create/verify the database schema
 4. Run `wiki_db_backfill.py` to index the new project's wiki pages
 5. Deploy `.obsidian/` configuration for graph colors, wikilinks, and attachment paths
 6. Add the Wiki Maintenance Protocol to `GEMINI.md`
-7. Configure the `wiki-db` MCP server in your Antigravity MCP config
+7. Configure the `wiki-db` MCP server in your Antigravity MCP config (read-only — all writes via `psql`)
 
 > **Note:** For multi-repo setups, the DB scripts operate on a shared Postgres database, tracking each project via the `repo` column. You can specify a custom database connection using the `--host`, `--port`, `--user`, and `--database` flags on both scripts.
 
