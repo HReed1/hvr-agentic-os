@@ -108,4 +108,13 @@ tags:
 - Source: `docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md`
 - Created: Formal retrospective for commit 69ef905 (9,749 lines)
 - Updated: [[context-benchmarking]] — replaced coverage gap notice with documentation section
-- Key insight: 75% input token reduction empirically validated; harness uses mock LLM monkeypatching for deterministic offline benchmarks
+- Key insight: Harness uses mock LLM monkeypatching for deterministic offline benchmarks (75% figure is a design parameter, not measured)
+
+## [2026-08-11] fix | Benchmarking Accuracy Audit
+- Source: `docs/retrospectives/2026-08-11_benchmarking_accuracy_audit.md`
+- Updated: [[context-benchmarking]], [[ast-context-mcp]], overview.md, index.md
+- Key corrections:
+  - 75% token reduction is a hardcoded mock parameter (`run_benchmarks.py:503`), not an empirical measurement
+  - 3 core modules (`simulator.py`, `analyzer.py`, `tools.py`) are missing — real pipeline cannot execute
+  - ~7 of 12 test files would fail on import
+- Roadmap added: implement missing modules → run live inference → validate claims independently
