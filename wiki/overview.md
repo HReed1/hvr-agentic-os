@@ -82,9 +82,9 @@ The v2.0.0 release (2026-06-15) shifted the framework from a multi-agent sandbox
 
 Two major subsystems were introduced in commit `69ef905` (2026-06-23) but remain unreleased:
 
-- **[[ast-context-mcp]]**: A standalone FastMCP server providing AST-based code parsing for Python and TypeScript/JavaScript. Four tools (`get_symbols`, `get_skeleton`, `get_symbol_block`, `get_hash`) enable up to 75% token reduction by replacing full file reads with targeted symbol extraction.
+- **[[ast-context-mcp]]**: A standalone FastMCP server providing AST-based code parsing for Python and TypeScript/JavaScript. Four tools (`get_symbols`, `get_skeleton`, `get_symbol_block`, `get_hash`) enable targeted symbol extraction instead of full-file reads, with a theoretical ~75% token reduction projected by mock simulations (not yet validated with live inference).
 
-- **[[context-benchmarking]]**: A testing framework (9,749 lines — the largest single commit in the repo) for evaluating agent context engineering strategies against mock codebases with known-good solutions.
+- **[[context-benchmarking]]**: A deterministic simulation framework (9,749 lines — the largest single commit in the repo) demonstrating AST-guided context savings with mock LLM logic. The real inference pipeline is partially implemented (3 core modules missing). See the wiki entity page for roadmap.
 
 ## Ecosystem
 

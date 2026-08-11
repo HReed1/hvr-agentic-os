@@ -13,7 +13,7 @@ sources:
 last_ingested: 2026-08-11
 ---
 
-The Context Benchmarking Harness is a testing framework for evaluating agent context engineering strategies. Located in `projects/context-benchmarking/`, it uses mock codebases with known-good solutions to measure whether agents can perform targeted code modifications under different context loading strategies. It is the largest single commit in the repository by line count and currently has no retrospective or release coverage.
+The Context Benchmarking Harness is a **deterministic simulation framework** for evaluating agent context engineering strategies. Located in `projects/context-benchmarking/`, it uses mock codebases with known-good solutions and a **monkeypatched mock LLM** (not live Gemini inference) to demonstrate what AST-guided context savings would look like across different task tiers. It is the largest single commit in the repository by line count.
 
 ## Architecture
 
@@ -23,7 +23,7 @@ The benchmarking approach works by:
 
 1. **Defining mock codebases** with intentionally flawed or baseline implementations (Python and JavaScript).
 2. **Specifying known-good solutions** that represent the correct modifications an agent should produce.
-3. **Measuring** whether an agent's context strategy enables it to identify and apply the correct function-level changes.
+3. **Simulating** both Scenario A (full-file reads) and Scenario B (AST-guided reads) with hardcoded token counts to demonstrate the scorecard pipeline.
 
 ## Mock Codebase Structure
 
@@ -48,18 +48,37 @@ This makes it the largest single commit in the repository's history — all 9,74
 
 ## Relationship to AST Context Engineering
 
-The benchmarking harness exists to empirically validate the claims made by the [[ast-context-mcp]] server and the 80/20 context rule. By running agents against the same mock codebases with and without AST-based context strategies, the harness can measure:
+The benchmarking harness was designed to validate the claims made by the [[ast-context-mcp]] server and the 80/20 context rule. In its current state, it **demonstrates the evaluation pipeline** using mock-derived token figures (75% reduction is a hardcoded parameter at `run_benchmarks.py:503`, not a measured outcome). The Offline Analyzer's "Theoretical Context Read Savings" section independently measures file sizes but reports 0% savings because the mock doesn't actually read files differently between scenarios.
 
-- **Token consumption** — How many tokens does the agent use to reach the correct solution?
-- **Accuracy** — Does the agent modify the correct function without breaking adjacent code?
-- **Precision** — Are edits scoped to the target symbol, or do they bleed into unrelated lines?
+The harness validates that the infrastructure works end-to-end (git isolation, scorecard generation, test execution), but **live Gemini inference has never been run** through this pipeline.
 
-This directly supports the [[evaluation-framework]] and provides ground-truth data for [[token-tax]] analysis.
+## Missing Modules
+
+The real pipeline (`src/context_benchmarking/run_benchmarks.py`) imports three modules that are **not present on disk**:
+
+| Module | Role | Status |
+|--------|------|--------|
+| `simulator.py` | `CoderAgentSimulator` — live Gemini reasoning loop | ❌ Missing |
+| `analyzer.py` | `OfflineAnalyzer` — transcript token counting | ❌ Missing |
+| `tools.py` | Scenario A/B tool implementations | ❌ Missing |
+
+Only `dataset.py`, `git_manager.py`, and `reporter.py` exist in `src/`. This means the real pipeline cannot execute, and ~7 of the 12 test files would fail on import. These modules were either never committed or lost during the repo restructure.
+
+## Roadmap: Live Inference Evaluation
+
+To convert this from a demonstration scaffold to a genuine empirical validation tool:
+
+1. **Implement the 3 missing modules** (`simulator.py`, `analyzer.py`, `tools.py`) to enable live Gemini inference
+2. **Run Scenario A vs B** against real `gemini-2.5-flash` with actual token counting
+3. **Compare measured savings** against the theoretical 75% claim from the mock
+4. **Publish results** in a new retrospective with independently verified figures
+
+This directly supports the [[evaluation-framework]] and would provide genuine ground-truth data for [[token-tax]] analysis.
 
 ## Documentation
 
-The Context Benchmarking Harness now has full documentation coverage:
-- **Retrospective**: `docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md` documents design decisions, architectural gotchas, and empirical results
+The Context Benchmarking Harness has full documentation coverage:
+- **Retrospective**: `docs/retrospectives/2026-06-23_ast_mcp_and_context_benchmarking.md` documents design decisions, architectural gotchas, and the mock vs real pipeline distinction
 - **README**: `projects/context-benchmarking/README.md` provides setup, CLI usage, and adaptation guides
 - **Wiki**: This page and [[ast-context-mcp]] provide cross-referenced entity documentation
 

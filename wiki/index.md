@@ -16,8 +16,8 @@ tags:
 | Page | Summary | Sources |
 |------|---------|:-------:|
 | [[agentic-os]] | The Zero-Trust Multi-Agent OS built on Google ADK — the project itself | 2 |
-| [[ast-context-mcp]] | FastMCP server providing AST-based code parsing — 75% token reduction | 3 |
-| [[context-benchmarking]] | Testing framework for evaluating agent context engineering strategies | 1 |
+| [[ast-context-mcp]] | FastMCP server providing AST-based code parsing — ~75% token reduction (mock-projected) | 3 |
+| [[context-benchmarking]] | Deterministic simulation framework for AST-guided context savings (mock LLM, 3 modules missing) | 2 |
 | [[director-agent]] | Top-level orchestration node with macro-loop retry logic | 3 |
 | [[dlp-proxy]] | PHI/HIPAA redaction interceptor stripping genomic data from LLM context | 2 |
 | [[drift-enforcer]] | Python script enforcing architectural dependency contracts via git-hash tracking | 3 |

@@ -11,9 +11,9 @@ The hvr-agentic-os project had empirically demonstrated significant token waste 
 
 This commit introduced two complementary systems:
 1. **AST Context MCP Server** — A FastMCP server providing agents with structural code views (skeletons, symbol blocks) instead of raw file reads
-2. **Context Benchmarking Harness** — An automated simulation framework to empirically prove that AST-guided context strategies reduce token consumption without degrading correctness
+2. **Context Benchmarking Harness** — A deterministic simulation framework demonstrating what AST-guided context savings would look like, using mock LLM logic with hardcoded token values
 
-Together, these systems formalize and validate the **80/20 Context Engineering Rule**: 80% of agent context should come from structural skeletons, 20% from targeted symbol extraction.
+Together, these systems formalize the **80/20 Context Engineering Rule**: 80% of agent context should come from structural skeletons, 20% from targeted symbol extraction. The benchmarking harness demonstrates the evaluation pipeline but has not yet validated the rule with live Gemini inference.
 
 ## Key Accomplishments
 
@@ -29,14 +29,15 @@ Together, these systems formalize and validate the **80/20 Context Engineering R
 - **Decorator awareness**: Line range calculation includes `@decorator` lines to prevent stripping `@app.get` or `@pytest.mark` annotations during extraction
 
 ### Context Benchmarking Harness (`projects/context-benchmarking/`)
-- **Architecture**: 5-module pipeline — Dataset (Pydantic V2) → GitManager (branch isolation) → Simulator (Gemini SDK or mock LLM) → Analyzer (transcript parsing) → Reporter (markdown scorecard)
-- **Empirical results** (Small + Medium + Large tasks):
-  - **75.0% reduction** in input tokens (26,000 → 6,500)
-  - **100% success rate** maintained across both scenarios
-  - Output tokens identical (2,600) — no degradation in solution quality
+- **Architecture**: 5-module pipeline designed as Dataset (Pydantic V2) → GitManager (branch isolation) → Simulator → Analyzer → Reporter. However, only 3 of 5 modules exist on disk (`dataset.py`, `git_manager.py`, `reporter.py`). The `simulator.py`, `analyzer.py`, and `tools.py` modules are **missing**.
+- **Mock-derived figures** (Small + Medium + Large tasks):
+  - **75.0% reduction** in input tokens — this is a hardcoded parameter at `run_benchmarks.py:503` (`prompt_tokens = 2000 if scenario == "A" else 500`), not a measured outcome
+  - **100% success rate** maintained across both scenarios — the mock always produces the correct solution
+  - API latency ~0.0009s — confirming these are mock runs, not real API calls
+- **What the mock validates**: The scorecard pipeline, git branch isolation, test execution against the mock codebase, and reporter formatting all work correctly
+- **What it doesn't validate**: Actual Gemini token consumption, real-world accuracy differences between full-file and skeleton-based context strategies
 - **Mock codebase**: FastAPI routes, ES module clients, webhook signers with full test suites (pytest + vitest)
-- **Offline analyzer**: Can independently analyze any Antigravity `transcript.jsonl` to calculate theoretical token savings from AST-guided strategies
-- **Comprehensive test suite**: 12 test files covering security (path traversal), edge cases (tokenizer fallback, line merging), stress testing (malformed schemas, branch injection), and integration (CLI, simulator lifecycle)
+- **Comprehensive test suite**: 12 test files, but ~7 would fail on import due to missing `simulator.py`, `analyzer.py`, `tools.py`
 
 ### Agent Governance
 - `.agents/rules/ast-context-governance.md` — Mandates AST skeleton priming for files >100 lines
@@ -91,7 +92,12 @@ This commit was introduced before the drift registry system existed (v2.0.0 Pill
 2. **No `src/` directory in MCP server**: The MCP server lives flat under `mcp_servers/ast_context_mcp/` while the benchmarking harness uses a proper `src/context_benchmarking/` package layout. This inconsistency is noted but not blocking.
 3. **`tiktoken` dependency**: Listed in `pyproject.toml` but not strictly required due to the fallback ratio. This should be documented as optional.
 4. **`package-lock.json` inclusion**: 1,474 lines of the commit are the Node lockfile. Could be `.gitignore`-d in future.
+5. **3 missing core modules**: `simulator.py`, `analyzer.py`, and `tools.py` are imported by the real CLI and 7 test files but don't exist on disk. They were either never committed or lost during the repo restructure. This means the live inference pipeline cannot execute.
+6. **75% is a design parameter, not a measurement**: The mock injects `prompt_tokens = 2000` for Scenario A and `500` for Scenario B. The scorecard faithfully reports `(2000-500)/2000 = 75%`, but this is circular validation.
 
-## Carryover
+## Carryover / Roadmap
 
-- None — this retrospective closes the coverage gap. The commit is now documented across wiki entity pages, drift registries, and this retrospective.
+1. **Implement the 3 missing modules** (`simulator.py`, `analyzer.py`, `tools.py`) to enable live Gemini inference through the harness
+2. **Run live Scenario A vs B benchmarks** against real `gemini-2.5-flash` with actual token counting
+3. **Compare measured savings** against the theoretical 75% mock figure and publish independently verified results
+4. **Fix the ~7 broken test files** that import missing modules

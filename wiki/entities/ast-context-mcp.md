@@ -15,7 +15,7 @@ sources:
 last_ingested: 2026-08-11
 ---
 
-The AST Context MCP Server is a standalone, local FastMCP server that provides token-efficient Abstract Syntax Tree parsing, skeleton extraction, and symbol isolation for Python and TypeScript/JavaScript codebases. It is a core component of the [[agentic-os]] context engineering layer, enabling agents to inspect large files without flooding the LLM context window — achieving up to **75% token reduction** compared to loading raw source files.
+The AST Context MCP Server is a standalone, local FastMCP server that provides token-efficient Abstract Syntax Tree parsing, skeleton extraction, and symbol isolation for Python and TypeScript/JavaScript codebases. It is a core component of the [[agentic-os]] context engineering layer, enabling agents to inspect large files without flooding the LLM context window. The companion [[context-benchmarking]] harness projects a **~75% input token reduction** using deterministic mock simulations, though this figure has not yet been validated with live Gemini inference (see [[context-benchmarking]] for details and roadmap).
 
 ## Tools
 
