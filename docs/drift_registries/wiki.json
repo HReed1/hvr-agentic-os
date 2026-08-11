@@ -443,6 +443,102 @@
           "reason": "Head-to-head conclusion provides the empirical evidence for the bottleneck's impact."
         }
       ]
+    },
+    {
+      "source_file": "wiki/concepts/amnesia-sweep.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_the_swarm_crucible_retrospective.md",
+          "reason": "Swarm crucible retrospective documents the original git clean -fd data loss incidents that motivated the amnesia sweep defense."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-04-22_hierarchical_swarm_triumph.md",
+          "reason": "Hierarchical swarm retrospective documents the architectural decisions around artifact vaulting."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/llm-wiki.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "docs/reference/llm-wiki-antigravity.md",
+          "reason": "LLM Wiki reference guide is the canonical specification — wiki entity page must reflect the same architecture, operations, and guardrails."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/drift-enforcer.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "scripts/drift_enforcer.py",
+          "reason": "The drift enforcer script is the primary source — wiki entity must document the same CLI flags, report categories, and registry discovery logic."
+        },
+        {
+          "type": "synthesized-from",
+          "path": ".agents/skills/drift-registry/SKILL.md",
+          "reason": "Drift registry skill documents dependency types and usage patterns referenced in the wiki entity."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/session-lifecycle.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": ".agents/workflows/session-start.md",
+          "reason": "Session start workflow defines the 5-step initialization sequence documented in the wiki entity."
+        },
+        {
+          "type": "synthesized-from",
+          "path": ".agents/workflows/session-wrapup.md",
+          "reason": "Session wrapup workflow defines the 6-step teardown sequence and stamping rules documented in the wiki entity."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "GEMINI.md",
+          "reason": "GEMINI.md Session Lifecycle section defines the inviolable rules (no mid-session stamping, always generate retro) documented in the wiki entity."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/ast-context-mcp.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "mcp_servers/ast_context_mcp/README.md",
+          "reason": "README is the canonical tool documentation — wiki entity must reflect the same tools, setup, and integration instructions."
+        },
+        {
+          "type": "synthesized-from",
+          "path": ".agents/skills/ast-context-engineer/SKILL.md",
+          "reason": "AST Context Engineer skill defines the 80/20 context rule and token budget allocation documented in the wiki entity."
+        },
+        {
+          "type": "synthesized-from",
+          "path": ".agents/rules/ast-context-governance.md",
+          "reason": "AST governance rule defines the skeleton priming mandate and precision edit requirements documented in the wiki entity."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/context-benchmarking.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "projects/context-benchmarking/run_benchmarks.py",
+          "reason": "Benchmarking orchestrator is the primary source — wiki entity must reflect the same mock codebase structure, test approach, and metrics."
+        }
+      ]
     }
   ]
 }

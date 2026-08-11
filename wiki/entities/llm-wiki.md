@@ -9,7 +9,7 @@ tags:
   - obsidian
   - karpathy
 sources:
-  - "[[docs/reference/llm-wiki-antigravity]]"
+  - "[[docs/reference/llm-wiki-antigravity.md]]"
 last_ingested: 2026-08-11
 ---
 

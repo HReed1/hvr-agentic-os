@@ -8,9 +8,9 @@ tags:
   - drift-enforcement
   - retrospectives
 sources:
-  - "[[docs/.agents/workflows/session-start.md]]"
-  - "[[docs/.agents/workflows/session-wrapup.md]]"
-  - "[[docs/GEMINI.md]]"
+  - "[[.agents/workflows/session-start.md]]"
+  - "[[.agents/workflows/session-wrapup.md]]"
+  - "[[GEMINI.md]]"
 last_ingested: 2026-08-11
 ---
 

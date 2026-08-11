@@ -8,7 +8,7 @@ tags:
   - testing
   - evaluation
 sources:
-  - "[[docs/projects/context-benchmarking/run_benchmarks.py]]"
+  - "[[projects/context-benchmarking/run_benchmarks.py]]"
 last_ingested: 2026-08-11
 ---
 
