@@ -63,7 +63,7 @@ This creates:
 - `wiki/` — Directory structure for the LLM-maintained knowledge base
 - `docs/drift_registries/` — Empty registry templates
 - `docs/retrospectives/` — Session retrospective archive
-- `.agents/` — Agent governance (skills, workflows, rules)
+- `.agents/` — Agent governance (skills, rules)
 - `scripts/` — Utility scripts (drift enforcer)
 
 The script is idempotent — run it multiple times safely.
@@ -76,7 +76,7 @@ The bootstrap script prints an **LLM Ingest Prompt** at the end. Copy it and pas
 2. **[Drift Registry](docs/reference/drift-registry.md)** — Sets up dependency tracking, the enforcer script, and registry schemas
 3. **[Session Workflows](docs/reference/session-workflows.md)** — Sets up `/session-start` and `/session-wrapup` workflows that tie the wiki and drift registry together
 
-After ingestion, your agent will have created the `GEMINI.md` rules (or equivalent agent instructions), workflow files, and governance structure for your project.
+After ingestion, your agent will have created the `GEMINI.md` rules (or equivalent agent instructions), skills (including slash-command workflows), and governance structure for your project.
 
 ### 3. Initialize the Wiki Database (Optional)
 
@@ -171,8 +171,7 @@ hvr-agentic-os/
 │   ├── bootstrap_ai_engineering.sh  # AI Engineering scaffold setup
 │   └── bootstrap_agentic_os.sh     # ADK swarm setup
 ├── .agents/                      # Agent governance
-│   ├── skills/                   # Specialized capability guides
-│   ├── workflows/                # Session and operational workflows
+│   ├── skills/                   # Specialized capability guides and slash commands
 │   └── rules/                    # Behavioral constraints
 └── GEMINI.md                     # Agent operational constitution
 ```

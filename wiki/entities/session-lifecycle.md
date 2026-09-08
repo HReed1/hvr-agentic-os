@@ -8,18 +8,18 @@ tags:
   - drift-enforcement
   - retrospectives
 sources:
-  - "[[.agents/workflows/session-start.md]]"
-  - "[[.agents/workflows/session-wrapup.md]]"
+  - "[[.agents/skills/session-start/SKILL.md]]"
+  - "[[.agents/skills/session-wrapup/SKILL.md]]"
   - "[[GEMINI.md]]"
   - "[[docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md]]"
-last_ingested: 2026-08-11
+last_ingested: 2026-09-07
 ---
 
 The Session Lifecycle is a structured workflow system that governs how engineering sessions are initialized and torn down in the [[agentic-os]]. It replaces ad-hoc cold starts with a disciplined briefing-and-wrapup pattern that surfaces context, enforces [[drift-registry]] checks, compounds knowledge through retrospectives, and ensures no session ends without a documented record. It was introduced as **Pillar 3: Agnostic Session Lifecycle** in the v2.0.0 release.
 
 ## Session Start
 
-Triggered by `/session-start`, the initialization workflow (`.agents/workflows/session-start.md`) executes five steps:
+Triggered by `/session-start`, the initialization skill (`.agents/skills/session-start/SKILL.md`) executes five steps:
 
 1. **Load Project Context** — Reads `wiki/overview.md` to establish the current project state: architecture, active systems, known risks, and recent changes. Surfaces any architectural shifts or open questions from the overview.
 2. **Scan Recent Retrospectives** — Scans `docs/retrospectives/` for the two most recent entries by date prefix, looking for incomplete work, open questions, and known risks. Reports these as a session briefing.
@@ -29,7 +29,7 @@ Triggered by `/session-start`, the initialization workflow (`.agents/workflows/s
 
 ## Session Wrapup
 
-Triggered by `/session-wrapup`, the teardown workflow (`.agents/workflows/session-wrapup.md`) executes six steps:
+Triggered by `/session-wrapup`, the teardown skill (`.agents/skills/session-wrapup/SKILL.md`) executes six steps:
 
 1. **Stage and Commit** — Stages all modifications with `git add .` and generates a Conventional Commit message. Does **not** push to remote unless explicitly requested.
 2. **Enforce Drift Checks and Stamp** — This is the **single correct stamping point** per session. Runs the drift enforcer, reviews flagged files for intentional changes, and stamps the new baseline with `--stamp`. Mid-session drift is expected and should never be stamped early.
@@ -60,11 +60,13 @@ Every retrospective in `docs/retrospectives/` follows a standard structure:
 - **Decisions/Gotchas** — Design decisions or roadblocks encountered
 - **Carryover** — Incomplete items for the next session
 
-These retrospectives serve as the primary input to the session-start workflow's carryover scan, creating a self-reinforcing loop that combats the [[amnesia-sweep]] problem.
+These retrospectives serve as the primary input to the session-start skill's carryover scan, creating a self-reinforcing loop that combats the [[amnesia-sweep]] problem.
 
 ## History
 
 The Session Lifecycle was formalized as part of v2.0.0's Pillar 3 (Agnostic Session Lifecycle), designed to work identically across Cursor, Claude Code, and Antigravity IDE. It depends on the [[drift-registry]] for enforcement and feeds into [[ephemeral-memory-handoff]] through its retrospective chain.
+
+In September 2026, session workflows were migrated from `.agents/workflows/*.md` to first-class Antigravity skills (`.agents/skills/*/SKILL.md`), enabling direct slash command invocation (`/session-start`, `/session-wrapup`) and semantic agent discovery while preserving identical operational lifecycle steps.
 
 ## See Also
 

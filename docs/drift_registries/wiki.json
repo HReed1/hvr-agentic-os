@@ -36,7 +36,7 @@
         },
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/session-start.md",
+          "path": ".agents/skills/session-start/SKILL.md",
           "reason": "Session-start loads overview.md for project context \u2014 overview must stay current for accurate session briefings."
         }
       ]
@@ -58,7 +58,7 @@
       "dependencies": [
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/session-wrapup.md",
+          "path": ".agents/skills/session-wrapup/SKILL.md",
           "reason": "Session wrapup appends ingest entries to log.md \u2014 log format must match the template."
         }
       ]
@@ -493,13 +493,13 @@
       "dependencies": [
         {
           "type": "synthesized-from",
-          "path": ".agents/workflows/session-start.md",
-          "reason": "Session start workflow defines the 5-step initialization sequence documented in the wiki entity."
+          "path": ".agents/skills/session-start/SKILL.md",
+          "reason": "Session start skill defines the 5-step initialization sequence documented in the wiki entity."
         },
         {
           "type": "synthesized-from",
-          "path": ".agents/workflows/session-wrapup.md",
-          "reason": "Session wrapup workflow defines the 6-step teardown sequence and stamping rules documented in the wiki entity."
+          "path": ".agents/skills/session-wrapup/SKILL.md",
+          "reason": "Session wrapup skill defines the 6-step teardown sequence and stamping rules documented in the wiki entity."
         },
         {
           "type": "synthesized-from",

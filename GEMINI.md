@@ -266,7 +266,7 @@ enforce drift checks, and compound knowledge across sessions.
 
 ### Starting a session
 
-Run `/session-start` (or read `.agents/workflows/session-start.md`) at the
+Run `/session-start` (or read `.agents/skills/session-start/SKILL.md`) at the
 beginning of each engineering session. This:
 1. Loads `wiki/overview.md` for project context
 2. Scans the 2 most recent retrospectives for carryover items
@@ -276,7 +276,7 @@ beginning of each engineering session. This:
 
 ### Ending a session
 
-Run `/session-wrapup` (or read `.agents/workflows/session-wrapup.md`) at
+Run `/session-wrapup` (or read `.agents/skills/session-wrapup/SKILL.md`) at
 the end of each session. This:
 1. Stages and commits session changes
 2. Enforces drift checks and stamps registries (the **only** correct stamping point)

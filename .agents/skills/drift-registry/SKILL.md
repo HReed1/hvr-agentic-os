@@ -34,7 +34,7 @@ Registries live at `docs/drift_registries/*.json`. The enforcer script is `scrip
 
 ### Choosing the Right Registry
 
-- **agent.json** — The source file is an agent governance artifact (`GEMINI.md`, `.agents/agents.md`, `agent_app/*.py`, `.agents/rules/*`, `.agents/skills/*`, `.agents/workflows/*`)
+- **agent.json** — The source file is an agent governance artifact (`GEMINI.md`, `.agents/agents.md`, `agent_app/*.py`, `.agents/rules/*`, `.agents/skills/*`)
 - **docs.json** — The source file is a reference doc, guide, decision, retrospective, or director context document that describes code or systems
 - **infra.json** — The source file is a Dockerfile, `requirements.txt`, CI workflow, build script, or infrastructure config
 - **wiki.json** — The source file is a wiki page (`wiki/**/*.md`) that was synthesized from upstream source documents
@@ -142,9 +142,9 @@ Match the source file's domain to `agent.json`, `docs.json`, `infra.json`, or `w
   "verified_commit": null,
   "dependencies": [
     {
-      "type": "workflow",
-      "path": ".agents/workflows/executor-wrapup.md",
-      "reason": "The amnesia sweep defense mandates git-add before git-clean — the executor wrapup workflow must include this step."
+      "type": "skill",
+      "path": ".agents/skills/executor-wrapup/SKILL.md",
+      "reason": "The amnesia sweep defense mandates git-add before git-clean — the executor wrapup skill must include this step."
     }
   ]
 }
@@ -209,7 +209,7 @@ When the enforcer flags drift:
 
 Drift detected during development is **expected**. It means the enforcer is working. Premature stamping hides real drift by silently blessing uncommitted or unreviewed changes.
 
-The stamping ceremony is a formal step in `.agents/workflows/session-wrapup.md`:
+The stamping ceremony is a formal step in `.agents/skills/session-wrapup/SKILL.md`:
 1. Run `python3 scripts/drift_enforcer.py` to check
 2. Review every flagged entry
 3. Update dependent files if needed
@@ -233,9 +233,9 @@ The stamping ceremony is a formal step in `.agents/workflows/session-wrapup.md`:
       "reason": "GEMINI.md §1 (Amnesia Sweep Defense) is the canonical source — the rule file must mirror the same constraints verbatim."
     },
     {
-      "type": "workflow",
-      "path": ".agents/workflows/session-start.md",
-      "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol — the workflow must implement the described initialization steps."
+      "type": "skill",
+      "path": ".agents/skills/session-start/SKILL.md",
+      "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol — the skill must implement the described initialization steps."
     }
   ]
 }

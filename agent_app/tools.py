@@ -11,7 +11,7 @@ from .config import BASE_DIR
 # --- Native Python Tools for Documentation ---
 def list_docs() -> list[str]:
     """Lists all available documentation files tightly bound to zero-trust directories."""
-    permitted_dirs = ["docs/director_context", ".agents/rules", ".agents/workflows"]
+    permitted_dirs = ["docs/director_context", ".agents/rules", ".agents/workflows", ".agents/skills"]
     all_paths = []
     for d in permitted_dirs:
         all_paths.extend(glob.glob(os.path.join(BASE_DIR, d, "**", "*.md"), recursive=True))
@@ -19,8 +19,8 @@ def list_docs() -> list[str]:
 
 def read_doc(file_path: str) -> str:
     """Reads the full content of a specific documentation file by relative path."""
-    if not (file_path.startswith("docs/director_context/") or file_path.startswith(".agents/rules/") or file_path.startswith(".agents/workflows/")):
-        return "[SECURITY FATAL] You are not authorized to traverse outside docs/director_context, .agents/rules, or .agents/workflows."
+    if not (file_path.startswith("docs/director_context/") or file_path.startswith(".agents/rules/") or file_path.startswith(".agents/workflows/") or file_path.startswith(".agents/skills/")):
+        return "[SECURITY FATAL] You are not authorized to traverse outside docs/director_context, .agents/rules, .agents/workflows, or .agents/skills."
         
     full_path = os.path.join(BASE_DIR, file_path)
     if os.path.exists(full_path) and full_path.endswith('.md'):

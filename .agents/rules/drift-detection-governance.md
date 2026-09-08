@@ -10,7 +10,7 @@ You are operating within the hvr-agentic-os ecosystem, which strictly enforces a
 
 | Registry | Domain | Tracks |
 |----------|--------|--------|
-| `agent.json` | Agent layer | GEMINI.md, agent rules, workflows, skills, swarm architecture |
+| `agent.json` | Agent layer | GEMINI.md, agent rules, skills, swarm architecture |
 | `docs.json` | Documentation | Retrospectives, ADRs, wiki pages, README cross-references |
 | `infra.json` | Infrastructure | Dockerfiles, requirements, CI/CD configs, deploy scripts |
 | `wiki.json` | Wiki system | Wiki pages, backfill script, wiki-db MCP server contracts |
@@ -68,7 +68,7 @@ Each entry in a domain registry follows this structure:
   "verified_commit": "<sha>",
   "dependencies": [
     {
-      "type": "rule|workflow|skill|script|config|doc",
+      "type": "rule|skill|script|config|doc|schema|describes|consumed-by|synthesized-from",
       "path": "path/to/dependency",
       "reason": "Why this dependency exists and what breaks if they diverge."
     }

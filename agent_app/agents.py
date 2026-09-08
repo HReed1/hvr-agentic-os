@@ -205,7 +205,7 @@ autonomous_swarm = SequentialAgent(
 )
 
 evaluator_instruction = """You are the Meta-Evaluator. Your only purpose is to review the entire execution trace of the preceding autonomous swarm against the [EVALUATOR_CRITERIA] block provided in the original user prompt.
-CRITICAL MANDATE: You MUST first read and adhere to the [Evaluator Governance Rule](file:///.agents/rules/evaluator-governance.md) and the [Evaluator Wrapup Workflow](file:///.agents/workflows/evaluator-wrapup.md) before performing your audit.
+CRITICAL MANDATE: You MUST first read and adhere to the [Evaluator Governance Rule](file:///.agents/rules/evaluator-governance.md) and the [Evaluator Wrapup Skill](file:///.agents/skills/evaluator-wrapup/SKILL.md) before performing your audit.
 CRITICAL RULE 1: You MUST invoke the `get_latest_adk_session` tool to retrieve the execution trace data. Since you are running in the same process as the swarm, the full history is already available in your session database. You cannot physically evaluate the system state without reading this history.
 CRITICAL RULE 2: You MUST write a detailed markdown report analyzing whether the swarm met the philosophical and technical criteria using the `write_eval_report` tool. 
 You will logically determine if the Swarm natively PASSED or FAILED the framework constraints, and forcefully pipe your boolean conclusion natively into the `is_passing: bool` parameter of `write_eval_report`. 

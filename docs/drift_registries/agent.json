@@ -28,14 +28,14 @@
           "reason": "GEMINI.md \u00a75 (Empirical Verification Pipeline) mandates evidence-first debugging \u2014 the rule file must enforce the same verification sequence."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/session-start.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol \u2014 the workflow must implement the described initialization steps."
+          "type": "skill",
+          "path": ".agents/skills/session-start/SKILL.md",
+          "reason": "GEMINI.md Session Lifecycle section defines the session-start protocol \u2014 the skill must implement the described initialization steps."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/session-wrapup.md",
-          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the workflow must implement the described teardown steps."
+          "type": "skill",
+          "path": ".agents/skills/session-wrapup/SKILL.md",
+          "reason": "GEMINI.md Session Lifecycle section defines the session-wrapup protocol \u2014 the skill must implement the described teardown steps."
         },
         {
           "type": "rule",
@@ -43,14 +43,14 @@
           "reason": "GEMINI.md Drift Registry Protocol section defines drift tracking mandates \u2014 the governance rule must enforce the same entry lifecycle and stamping discipline."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/wiki-db-sync.md",
-          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement \u2014 the wiki-db-sync workflow must implement the described backfill + psql pattern."
+          "type": "skill",
+          "path": ".agents/skills/wiki-db-sync/SKILL.md",
+          "reason": "GEMINI.md Wiki Maintenance Protocol defines the DB sync requirement \u2014 the wiki-db-sync skill must implement the described backfill + psql pattern."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/drift-check.md",
-          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer \u2014 the drift-check workflow must implement the described check + stamp sequence."
+          "type": "skill",
+          "path": ".agents/skills/drift-check/SKILL.md",
+          "reason": "GEMINI.md Drift Registry Protocol references running the drift enforcer \u2014 the drift-check skill must implement the described check + stamp sequence."
         },
         {
           "type": "skill",
@@ -69,29 +69,29 @@
       "verified_commit": "65117354e83046fedf25ce552a26f6a21421a887",
       "dependencies": [
         {
-          "type": "workflow",
-          "path": ".agents/workflows/executor-wrapup.md",
-          "reason": "agents.md defines Executor authorized workflows \u2014 executor-wrapup.md must match the workflow name and scope described there."
+          "type": "skill",
+          "path": ".agents/skills/executor-wrapup/SKILL.md",
+          "reason": "agents.md defines Executor authorized workflows \u2014 executor-wrapup must match the skill name and scope described there."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/draft-directive.md",
-          "reason": "agents.md defines Architect's /draft-directive workflow \u2014 the workflow file must match the described behavior."
+          "type": "skill",
+          "path": ".agents/skills/draft-directive/SKILL.md",
+          "reason": "agents.md defines Architect's /draft-directive skill \u2014 the skill file must match the described behavior."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/architect-wrapup.md",
-          "reason": "agents.md defines Architect's /architect-wrapup workflow \u2014 the workflow file must match the described teardown sequence."
+          "type": "skill",
+          "path": ".agents/skills/architect-wrapup/SKILL.md",
+          "reason": "agents.md defines Architect's /architect-wrapup skill \u2014 the skill file must match the described teardown sequence."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/human-in-the-loop.md",
-          "reason": "agents.md QA Engineer references human-in-the-loop gates \u2014 the workflow file must enforce the same approval protocol."
+          "type": "skill",
+          "path": ".agents/skills/human-in-the-loop/SKILL.md",
+          "reason": "agents.md QA Engineer references human-in-the-loop gates \u2014 the skill file must enforce the same approval protocol."
         },
         {
-          "type": "workflow",
-          "path": ".agents/workflows/staging-promotion.md",
-          "reason": "agents.md references staging promotion as a governed step \u2014 the workflow must match Zero-Trust Auditor constraints."
+          "type": "skill",
+          "path": ".agents/skills/staging-promotion/SKILL.md",
+          "reason": "agents.md references staging promotion as a governed step \u2014 the skill must match Zero-Trust Auditor constraints."
         },
         {
           "type": "skill",
@@ -163,9 +163,9 @@
       "verified_commit": "4833625354262037be0cfb526dccf4d02b543a38",
       "dependencies": [
         {
-          "type": "workflow",
-          "path": ".agents/workflows/executor-wrapup.md",
-          "reason": "The amnesia sweep defense mandates git-add before git-clean \u2014 the executor wrapup workflow must include this step."
+          "type": "skill",
+          "path": ".agents/skills/executor-wrapup/SKILL.md",
+          "reason": "The amnesia sweep defense mandates git-add before git-clean \u2014 the executor wrapup skill must include this step."
         }
       ]
     },
@@ -174,9 +174,9 @@
       "verified_commit": "8fe98ec3c9a9d625e0eadd97f48f080b28eee3fd",
       "dependencies": [
         {
-          "type": "workflow",
-          "path": ".agents/workflows/staging-promotion.md",
-          "reason": "The staging promotion rule defines the Zero-Trust audit gate \u2014 the workflow must implement the same HMAC signature verification."
+          "type": "skill",
+          "path": ".agents/skills/staging-promotion/SKILL.md",
+          "reason": "The staging promotion rule defines the Zero-Trust audit gate \u2014 the skill must implement the same HMAC signature verification."
         }
       ]
     },
@@ -185,9 +185,9 @@
       "verified_commit": "8c89d0934666b0d0a31715981dd1e214b3ddb4bb",
       "dependencies": [
         {
-          "type": "workflow",
-          "path": ".agents/workflows/evaluator-wrapup.md",
-          "reason": "Evaluator governance constraints define how eval results are archived \u2014 the evaluator wrapup workflow must follow the same archival protocol."
+          "type": "skill",
+          "path": ".agents/skills/evaluator-wrapup/SKILL.md",
+          "reason": "Evaluator governance constraints define how eval results are archived \u2014 the evaluator wrapup skill must follow the same archival protocol."
         }
       ]
     },
@@ -202,12 +202,12 @@
         },
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/drift-check.md",
-          "reason": "Drift-check workflow invokes the enforcer script \u2014 must match the script's CLI flags and output format."
+          "path": ".agents/skills/drift-check/SKILL.md",
+          "reason": "Drift-check skill invokes the enforcer script \u2014 must match the script's CLI flags and output format."
         },
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/session-wrapup.md",
+          "path": ".agents/skills/session-wrapup/SKILL.md",
           "reason": "Session-wrapup invokes the enforcer for stamping \u2014 must match the script's --stamp flag behavior."
         }
       ]
@@ -218,12 +218,12 @@
       "dependencies": [
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/wiki-db-sync.md",
-          "reason": "Wiki-db-sync workflow invokes the backfill script \u2014 must match the script's CLI interface."
+          "path": ".agents/skills/wiki-db-sync/SKILL.md",
+          "reason": "Wiki-db-sync skill invokes the backfill script \u2014 must match the script's CLI interface."
         },
         {
           "type": "consumed-by",
-          "path": ".agents/workflows/session-wrapup.md",
+          "path": ".agents/skills/session-wrapup/SKILL.md",
           "reason": "Session-wrapup wiki ingest step invokes the backfill script \u2014 must match the script's --repo and --wiki-dir flags."
         }
       ]

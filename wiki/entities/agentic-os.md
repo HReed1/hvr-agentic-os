@@ -34,7 +34,7 @@ The project evolved through five major eras:
 ## Core Components
 
 - **`agent_app/`** — The Python package containing agents, prompts, tools, and zero-trust interceptors.
-- **`.agents/`** — Rules, workflows, skills, and memory ledgers governing the swarm.
+- **`.agents/`** — Rules, skills, and memory ledgers governing the swarm (with legacy workflows migrated to modern skills).
 - **`.staging/`** — The sandboxed airlock where all agent-generated code executes before promotion.
 - **`tests/adk_evals/`** — The evaluation matrix driving automated benchmarks.
 - **`bin/`** — Bash orchestration scripts for benchmarking, evaluation, and CI/CD.

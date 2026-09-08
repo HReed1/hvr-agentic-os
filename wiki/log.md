@@ -128,3 +128,9 @@ tags:
 - Source: `docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md`
 - Updated: [[llm-wiki]], [[drift-enforcer]], [[session-lifecycle]], [[ast-context-mcp]], [[context-benchmarking]] — added retro as provenance source
 - Key insight: Retrospective was the session that created all 5 entity pages + their governing skills/workflows, but was never logged as a source. Backfilled to close the coverage gap.
+
+## [2026-09-07] ingest | Workflow to Skill Migration
+- Source: `GEMINI.md`, `README.md`, `.agents/skills/session-start/SKILL.md`, `.agents/skills/session-wrapup/SKILL.md`
+- Updated: [[session-lifecycle]], [[agentic-os]]
+- Key insight: Migrated all 12 legacy workflows from `.agents/workflows/` to native Antigravity skills in `.agents/skills/`, updating drift registries, wiki entities, and database cross-references.
+

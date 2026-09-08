@@ -25,23 +25,23 @@
       "dependencies": [
         {
           "type": "describes",
-          "path": ".agents/workflows/session-start.md",
-          "reason": "Session workflows reference is the canonical spec \u2014 the session-start workflow must implement the described initialization steps."
+          "path": ".agents/skills/session-start/SKILL.md",
+          "reason": "Session workflows reference is the canonical spec \u2014 the session-start skill must implement the described initialization steps."
         },
         {
           "type": "describes",
-          "path": ".agents/workflows/session-wrapup.md",
-          "reason": "Session workflows reference is the canonical spec \u2014 the session-wrapup workflow must implement the described teardown steps."
+          "path": ".agents/skills/session-wrapup/SKILL.md",
+          "reason": "Session workflows reference is the canonical spec \u2014 the session-wrapup skill must implement the described teardown steps."
         },
         {
           "type": "describes",
-          "path": ".agents/workflows/executor-wrapup.md",
-          "reason": "Session workflows reference describes the wrapup protocol \u2014 the executor wrapup workflow must implement the described steps."
+          "path": ".agents/skills/executor-wrapup/SKILL.md",
+          "reason": "Session workflows reference describes the wrapup protocol \u2014 the executor wrapup skill must implement the described steps."
         },
         {
           "type": "describes",
-          "path": ".agents/workflows/architect-wrapup.md",
-          "reason": "Session workflows reference describes the architect teardown \u2014 the architect wrapup workflow must implement the described steps."
+          "path": ".agents/skills/architect-wrapup/SKILL.md",
+          "reason": "Session workflows reference describes the architect teardown \u2014 the architect wrapup skill must implement the described steps."
         }
       ]
     },
