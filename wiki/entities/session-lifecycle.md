@@ -12,6 +12,7 @@ sources:
   - "[[.agents/skills/session-wrapup/SKILL.md]]"
   - "[[GEMINI.md]]"
   - "[[docs/retrospectives/2026-08-11_wiki_db_infrastructure_and_v2_wiki_expansion.md]]"
+  - "[[docs/retrospectives/2026-09-07_workflow_to_skill_migration.md]]"
 last_ingested: 2026-09-07
 ---
 

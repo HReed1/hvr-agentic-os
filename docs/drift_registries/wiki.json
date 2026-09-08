@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": "2026-08-11T03:49:44.899869+00:00",
+    "last_updated": "2026-09-08T02:50:22.663018+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
@@ -54,7 +54,7 @@
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": "ae4d1f4118685324f91983f59f02665d642fb3b8",
+      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -65,7 +65,7 @@
     },
     {
       "source_file": "wiki/entities/agentic-os.md",
-      "verified_commit": "15ebf29c53f573d7c2789a661f554e11e7c0ae49",
+      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -76,6 +76,11 @@
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md",
           "reason": "Drift analysis provides governance model details \u2014 entity page must reflect the same drift detection architecture."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-09-07_workflow_to_skill_migration.md",
+          "reason": "Workflow to skill migration retrospective provides the September 2026 skill ecosystem transition."
         }
       ]
     },
@@ -462,7 +467,7 @@
     },
     {
       "source_file": "wiki/entities/llm-wiki.md",
-      "verified_commit": "7f70523d4793563eb899d585c99be869494232de",
+      "verified_commit": "32e31ca1d9e28ecf4b6762edb94ffe9ddd18b0cb",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -473,7 +478,7 @@
     },
     {
       "source_file": "wiki/entities/drift-enforcer.md",
-      "verified_commit": "dfcfb1d823135d3116f1d6a12098279eefd061ac",
+      "verified_commit": "32e31ca1d9e28ecf4b6762edb94ffe9ddd18b0cb",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -489,7 +494,7 @@
     },
     {
       "source_file": "wiki/entities/session-lifecycle.md",
-      "verified_commit": "7f70523d4793563eb899d585c99be869494232de",
+      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -505,12 +510,17 @@
           "type": "synthesized-from",
           "path": "GEMINI.md",
           "reason": "GEMINI.md Session Lifecycle section defines the inviolable rules (no mid-session stamping, always generate retro) documented in the wiki entity."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-09-07_workflow_to_skill_migration.md",
+          "reason": "Workflow to skill migration retrospective documents the migration from workflows to skills."
         }
       ]
     },
     {
       "source_file": "wiki/entities/ast-context-mcp.md",
-      "verified_commit": "203d660977119e3e4b6d987a1742214e2138d0d0",
+      "verified_commit": "32e31ca1d9e28ecf4b6762edb94ffe9ddd18b0cb",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -531,7 +541,7 @@
     },
     {
       "source_file": "wiki/entities/context-benchmarking.md",
-      "verified_commit": "203d660977119e3e4b6d987a1742214e2138d0d0",
+      "verified_commit": "32e31ca1d9e28ecf4b6762edb94ffe9ddd18b0cb",
       "dependencies": [
         {
           "type": "synthesized-from",

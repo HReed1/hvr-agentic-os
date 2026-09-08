@@ -10,7 +10,8 @@ tags:
 sources:
   - "[[docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md]]"
   - "[[docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md]]"
-last_ingested: 2026-06-02
+  - "[[docs/retrospectives/2026-09-07_workflow_to_skill_migration.md]]"
+last_ingested: 2026-09-07
 ---
 
 # hvr-agentic-os

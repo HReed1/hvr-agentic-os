@@ -134,3 +134,8 @@ tags:
 - Updated: [[session-lifecycle]], [[agentic-os]]
 - Key insight: Migrated all 12 legacy workflows from `.agents/workflows/` to native Antigravity skills in `.agents/skills/`, updating drift registries, wiki entities, and database cross-references.
 
+## [2026-09-07] ingest | Session Retrospective: Workflow to Skill Migration & Swarm Synchronization
+- Source: `docs/retrospectives/2026-09-07_workflow_to_skill_migration.md`
+- Updated: [[session-lifecycle]], [[agentic-os]]
+- Key insight: Completed migration of 12 legacy workflows to Antigravity skills, synchronized all drift registries, resolved zero-trust sandbox traversal barriers in agent tools, and achieved zero-drift across all 55 tracked entries.
+
