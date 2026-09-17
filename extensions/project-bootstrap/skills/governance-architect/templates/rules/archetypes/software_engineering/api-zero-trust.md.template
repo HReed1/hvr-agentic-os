@@ -1,0 +1,12 @@
+# API Zero-Trust & Webhook Security Invariants
+
+You are operating within the `{{project_name}}` software engineering workspace. All API endpoints, webhooks, and data ingestion pipelines MUST adhere to these invariants:
+
+## 1. Webhook Signature Verification
+All webhook handlers MUST verify signatures using HMAC-SHA256 with timing-safe comparison (`hmac.compare_digest`). Never use standard string equality (`==`) for token or signature comparisons.
+
+## 2. Replay Protection
+Endpoints that process mutations or trigger expensive background pipelines MUST deduplicate requests deterministically before execution using a unique event or message identifier.
+
+## 3. Error Sanitization
+Never expose raw internal stack traces, library exceptions, or unhandled 500 details to API clients. Log detailed errors server-side and return generic, sanitized messages to clients.

@@ -1,0 +1,9 @@
+# CI/CD Hygiene & Build Validation Governance
+
+You are operating within the `{{project_name}}` workspace.
+
+## 1. Build & Lint Gates
+Before committing code or preparing releases:
+- Static analysis checks (linting, typechecks, formatting) must pass with zero errors.
+- Unit and integration test suites must execute cleanly.
+- Never bypass linting or test assertions without explicit documented rationale.

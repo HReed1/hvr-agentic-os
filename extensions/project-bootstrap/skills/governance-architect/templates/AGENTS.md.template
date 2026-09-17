@@ -1,0 +1,68 @@
+# Project: {{project_name}} — Agent Governance Constitution
+
+> **Agent Governance Constitution.** This file defines the non-negotiable security and safety invariants, database boundaries, git guardrails, and operational workflows for the {{project_name}} workspace. For day-to-day command recipes, environment prerequisites, and domain workflows, see `GEMINI.md`. Both files are auto-loaded by Antigravity IDE and Gemini CLI.
+
+---
+
+## 1. Mandatory Constitutional Invariants
+
+### Git Guardrails — STRICTLY FORBIDDEN Without Human Approval
+The following actions require **explicit, per-action human approval** at the moment of execution:
+1. Forking any repository
+2. Creating Pull Requests against any external repository
+3. Pushing commits to any remote repository
+4. Creating branches on remote repositories
+5. Merging or closing Pull Requests
+6. Deleting remote branches or repositories
+7. Leaving comments, replies, or reviews on PRs or Issues
+
+*Local git operations (staging, committing, diffing, status checks, local branches) are permitted.*
+
+### Database & System Boundaries
+1. **PostgreSQL Multi-Tenant Isolation:** All queries and mutations to the shared local PostgreSQL database (`localhost:5432/wiki`) MUST be partitioned by `repo = '{{postgres_repo_key}}'`. Agents MUST never query, mutate, delete, or overwrite records belonging to sibling repositories.
+2. **Firestore Collection Isolation:** The Cadence engine operates exclusively within the `{{firestore_collection}}` collection inside Google Cloud Firestore project `general-477613`. Agents MUST never write to or alter other collections.
+3. **Database Write Protocol:** The `wiki-db` MCP server is read-only. All database writes must execute via `scripts/sync_wiki_db.py` or command-line `psql` transactions.
+
+### System Safety & Token Budgeting
+1. **Error Sanitization:** Never expose raw internal stack traces, library exceptions, or unhandled 500 details to external clients. Return generic, non-descriptive error messages only.
+2. **Context Engineering & AST Budgeting:** For all file inspection where the target resource exceeds 100 lines, agents MUST prioritize structural or AST tools (`get_symbols`, `get_skeleton`, `get_symbol_block`) over raw full-file reads to maintain context window efficiency.
+3. **Implementation Plan Preservation:** Active implementation plans remain in the local artifact directory. When archiving to `docs/decisions/`, use the format `YYYY-MM-DD-feature-name-implementation-plan.md` and never overwrite existing plans.
+
+{{domain_invariants}}
+
+---
+
+## 2. Agent Skills & Rituals
+
+The `.agents/` directory contains structured rules and skills governing autonomous operations:
+
+| Skill | Path | Purpose |
+| :--- | :--- | :--- |
+| **Session Start** | `.agents/skills/session-start/SKILL.md` | Loads overview context, syncs wiki-db, surfaces previous goals, and activates today's focus. |
+| **Session Wrapup** | `.agents/skills/session-wrapup/SKILL.md` | Completes daily goals, offers optional retrospective in wiki/retro/, syncs PostgreSQL wiki-db, runs drift check, and commits changes locally. |
+| **Cadence Manager** | `.agents/skills/cadence-manager/SKILL.md` | Operates `scripts/cadence.py` across domain phases in Firestore `{{firestore_collection}}`. |
+| **Wiki-DB Sync** | `.agents/skills/wiki-db-sync/SKILL.md` | Two-step sync: exports markdown to `wiki_bundle.json` and upserts into PostgreSQL under `repo = '{{postgres_repo_key}}'`. |
+| **Drift Enforcer** | `.agents/skills/drift-enforcer/SKILL.md` | Checks dependency hashes across `docs/drift_registries/` and stamps baselines during wrapup. |
+
+---
+
+## 3. Behavioral Rules Directory
+
+All files in `.agents/rules/` define operational invariants:
+
+* `.agents/rules/git-guardrails.md`: Remote operation guardrails requiring explicit human approval.
+* `.agents/rules/cadence-discipline.md`: 3-tier goal lifecycles, phase transition validity, and session boundary rules.
+* `.agents/rules/wiki-db-governance.md`: Multi-tenant isolation (`repo = '{{postgres_repo_key}}'`), frontmatter validation, and orphan prevention.
+* `.agents/rules/drift-detection-governance.md`: Registry tracking and stamping discipline (deliberate boundary markers only).
+* `.agents/rules/context-and-ast-governance.md`: Token budget management and AST structural tool prioritization.
+* `.agents/rules/plan-preservation-governance.md`: Preserving decision documents and artifact storage protocol.
+{{domain_rules_list}}
+
+---
+
+## 4. Drift Detection & Stamping Discipline
+
+The project tracks dependencies via `docs/drift_registries/*.json` and `scripts/drift_enforcer.py`:
+- **Stamp only** at the end of a session (during `[/session-wrapup]`), after completing a cohesive milestone, or before tagging a release.
+- **Do NOT stamp** after each individual file change or autonomously during debugging.
+- The `[/session-wrapup]` ritual is the single approved stamping point.

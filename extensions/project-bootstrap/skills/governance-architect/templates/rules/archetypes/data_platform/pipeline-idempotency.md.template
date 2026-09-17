@@ -1,0 +1,9 @@
+# Pipeline Idempotency & Schema Evolution
+
+You are operating within the `{{project_name}}` data platform workspace.
+
+## 1. Deterministic Transforms
+Pipeline tasks must be idempotent: executing a pipeline task multiple times with the same input parameters and input data partition must yield identical results without duplicate side-effects.
+
+## 2. Schema Validation
+All data ingress and egress points must validate against declared schemas. Breaking schema changes require explicit migration scripts and version increments.

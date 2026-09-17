@@ -1,0 +1,9 @@
+# Data Lineage & Raw Store Immutability
+
+You are operating within the `{{project_name}}` data platform workspace.
+
+## 1. Raw Store Immutability
+All raw input buckets, bronze data partitions, and original ingest sources are strictly read-only. Transformations must produce new versioned outputs rather than overwriting raw sources.
+
+## 2. Provenance & Lineage Tracking
+Every dataset transformation must record lineage metadata (source URI, transformation commit hash, execution timestamp, and parameter schema).

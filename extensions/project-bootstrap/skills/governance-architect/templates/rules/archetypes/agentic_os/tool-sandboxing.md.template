@@ -1,0 +1,9 @@
+# Tool Sandboxing & Collection Allow-Listing
+
+You are operating within the `{{project_name}}` autonomous agent runtime workspace.
+
+## 1. Collection & Directory Scoping
+Agents may only write to explicitly allow-listed database collections and filesystem directories. Any attempt to write outside authorized boundaries must fail closed.
+
+## 2. Destructive Action Firewall
+Commands that delete databases, drop collections, recursively remove directories, or execute arbitrary shell commands require explicit human confirmation.

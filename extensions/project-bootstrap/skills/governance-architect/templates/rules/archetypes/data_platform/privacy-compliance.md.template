@@ -1,0 +1,9 @@
+# Privacy & Data Redaction Governance
+
+You are operating within the `{{project_name}}` data platform workspace.
+
+## 1. PII / PHI Redaction
+Personally Identifiable Information (PII) and Protected Health Information (PHI) must be anonymized, hashed, or redacted before entering intermediate or analytical storage layers.
+
+## 2. Access Auditing
+All analytical queries and data exports must produce structured audit logs capturing the querying actor, target dataset, and timestamp.

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Unit test suite for {{project_name}} Cadence CLI."""
+
+import os
+from pathlib import Path
+import sys
+import unittest
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
+
+try:
+    import cadence
+except ImportError:
+    cadence = None
+
+
+class TestCadencePhaseValidation(unittest.TestCase):
+    """Verifies phase validation and domain transition logic."""
+
+    def setUp(self):
+        self.assertIsNotNone(cadence, "cadence.py must be importable")
+
+    def test_valid_phases_recognized(self):
+        for ph in cadence.ALL_VALID_PHASES:
+            ok, err = cadence.validate_phase(ph)
+            self.assertTrue(ok, f"Phase {ph} should be valid")
+            self.assertIsNone(err)
+
+    def test_invalid_phase_rejected(self):
+        invalid_phases = ["invalid_phase", "not_real", "foo_bar_phase"]
+        for iph in invalid_phases:
+            ok, err = cadence.validate_phase(iph)
+            self.assertFalse(ok, f"Phase {iph} should be invalid")
+            self.assertIsNotNone(err)
+
+    def test_phase_transition_same_domain(self):
+        phases = list(cadence.ALL_VALID_PHASES)
+        if len(phases) >= 2:
+            ok, _ = cadence.validate_phase_transition(phases[0], phases[1], force=True)
+            self.assertTrue(ok)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,24 @@
+# {{project_name}}
+
+> **Archetype:** `{{archetype}}`  
+> **Cadence Collection:** `{{firestore_collection}}` (Google Cloud Firestore: `general-477613`)  
+> **Wiki Database Key:** `{{postgres_repo_key}}` (Local PostgreSQL: `localhost:5432/wiki`)  
+> **Author:** {{author_name}}  
+
+## Quickstart
+
+1. **Verify Environment**:
+   ```bash
+   python3 scripts/verify_bootstrap.py --verbose
+   ```
+2. **Session Start Ritual**:
+   Trigger `[/session-start]` or run:
+   ```bash
+   python3 scripts/cadence.py list --scope daily --status in_progress
+   ```
+3. **Run Cadence Engine**:
+   ```bash
+   python3 scripts/cadence.py --help
+   ```
+4. **Session Wrapup Ritual**:
+   Trigger `[/session-wrapup]` to complete goals, sync wiki database, check drift, and commit changes.

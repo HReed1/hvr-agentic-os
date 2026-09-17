@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Unit test suite for {{project_name}} Wiki Markdown Knowledge Base."""
+
+import os
+from pathlib import Path
+import sys
+import unittest
+import yaml
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+WIKI_DIR = PROJECT_ROOT / "wiki"
+
+
+class TestWikiStructure(unittest.TestCase):
+    """Verifies markdown frontmatter and structure of core wiki pages."""
+
+    def test_core_pages_exist(self):
+        for name in ["overview.md", "index.md", "log.md"]:
+            p = WIKI_DIR / name
+            self.assertTrue(p.is_file(), f"Expected core wiki page {name} to exist.")
+
+    def test_overview_frontmatter(self):
+        p = WIKI_DIR / "overview.md"
+        with open(p, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertTrue(content.startswith("---"))
+        parts = content.split("---", 2)
+        self.assertGreaterEqual(len(parts), 3)
+        fm = yaml.safe_load(parts[1])
+        self.assertEqual(fm.get("category"), "overview")
+        self.assertIn("title", fm)
+
+
+if __name__ == "__main__":
+    unittest.main()

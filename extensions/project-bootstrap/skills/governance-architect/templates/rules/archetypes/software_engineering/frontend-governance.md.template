@@ -1,0 +1,10 @@
+# Frontend Governance & Cross-Site Scripting (XSS) Prevention
+
+You are operating within the `{{project_name}}` frontend codebase.
+
+## 1. DOM Sanitization
+User-supplied or external content MUST NEVER be rendered into the DOM as raw, executable HTML without robust sanitization (e.g., `DOMPurify` or `rehype-sanitize`). The use of `dangerouslySetInnerHTML` is strictly forbidden without approved sanitization.
+
+## 2. Styling Tokens & Routing Integrity
+- Utilize utility classes and established theme tokens rather than unmanaged raw CSS stylesheets.
+- Physical URL transitions must be decoupled through dynamic router providers (`react-router-dom`).

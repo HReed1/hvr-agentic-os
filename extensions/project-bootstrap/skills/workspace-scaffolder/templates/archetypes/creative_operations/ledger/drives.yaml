@@ -1,0 +1,9 @@
+schema_version: 1
+catalog_name: "{{project_name}} Storage Drives"
+last_updated: "{{date}}"
+status: pre_audit_uninitialized
+total_drives: 0
+total_capacity_tb: 0.0
+total_used_tb: 0.0
+total_free_tb: 0.0
+drives: {}

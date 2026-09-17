@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""Universal Drift Enforcer for {{project_name}}.
+
+Reads drift registry JSON files from docs/drift_registries/ and compares each entry's
+`verified_commit` against the file's latest git commit hash.
+
+Outputs:
+  - Table of tracked files and their drift status per domain.
+  - List of artifacts/files requiring review.
+  - Exit code 0 if everything is clean, 1 if drift is detected.
+
+Usage:
+  python3 scripts/drift_enforcer.py                  # Check all domains
+  python3 scripts/drift_enforcer.py --domain wiki    # Check only 'wiki' domain
+  python3 scripts/drift_enforcer.py --stamp          # Stamp current hashes into registries
+"""
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def find_repo_root() -> Path:
+    """Find the root directory of the repository."""
+    current = Path(__file__).resolve().parent
+    for parent in [current, *current.parents]:
+        if (parent / "docs" / "drift_registries").is_dir() or (parent / ".git").is_dir():
+            return parent
+    return current.parent
+
+
+REPO_ROOT = find_repo_root()
+REGISTRIES_DIR = REPO_ROOT / "docs" / "drift_registries"
+
+
+def git_latest_commit(filepath: str, repo_root: Path) -> Optional[str]:
+    """Return the full SHA of the last commit that touched `filepath`."""
+    abs_path = repo_root / filepath
+    if not abs_path.exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "log", "--format=%H", "-1", "--", filepath],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        sha = result.stdout.strip()
+        if sha:
+            return sha
+        # Fallback to HEAD commit if file exists and git is active
+        head_res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        head_sha = head_res.stdout.strip()
+        return head_sha if head_sha else None
+    except Exception:
+        return None
+
+
+def get_head_commit(repo_root: Path) -> Optional[str]:
+    """Return the HEAD commit SHA."""
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+        )
+        sha = res.stdout.strip()
+        return sha if sha else None
+    except Exception:
+        return None
+
+
+def load_registry(registry_path: Path) -> Dict[str, Any]:
+    """Load and parse registry JSON."""
+    with open(registry_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_registry(registry_path: Path, data: Dict[str, Any]) -> None:
+    """Save formatted registry JSON."""
+    with open(registry_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+
+
+def check_domain(
+    registry_file: Path, repo_root: Path, verbose: bool = False
+) -> Tuple[int, int, List[str]]:
+    """Check a single registry for drift.
+
+    Returns (total_entries, drifted_count, error_messages).
+    """
+    domain = registry_file.stem
+    try:
+        reg = load_registry(registry_file)
+    except Exception as exc:
+        return 0, 1, [f"Failed to read {registry_file.name}: {exc}"]
+
+    entries = reg.get("entries", [])
+    drifted = 0
+    errors: List[str] = []
+
+    print(f"\n--- Domain: {domain.upper()} ({len(entries)} entries) ---")
+    for entry in entries:
+        src = entry.get("source_file", "")
+        verified = entry.get("verified_commit", "")
+        actual = git_latest_commit(src, repo_root)
+
+        if not (repo_root / src).exists():
+            drifted += 1
+            msg = f"MISSING FILE: {src} not found on disk"
+            errors.append(msg)
+            print(f"  [MISSING] {src}")
+            continue
+
+        if not actual:
+            # File exists but git history is not yet established
+            if verified in ("initial", "uncommitted", ""):
+                print(f"  [CLEAN]   {src} (baseline uncommitted)")
+            else:
+                drifted += 1
+                msg = f"UNCOMMITTED: {src} has no git commit history"
+                errors.append(msg)
+                print(f"  [DRIFT]   {src} (no git commit, expected {verified[:8]})")
+            continue
+
+        if actual == verified or verified in ("initial", "uncommitted", ""):
+            print(f"  [CLEAN]   {src} ({actual[:8]})")
+        else:
+            drifted += 1
+            msg = f"DRIFT DETECTED: {src} (verified {verified[:8]} != actual {actual[:8]})"
+            errors.append(msg)
+            print(f"  [DRIFT]   {src} (verified {verified[:8]} != actual {actual[:8]})")
+
+    return len(entries), drifted, errors
+
+
+def stamp_domain(registry_file: Path, repo_root: Path) -> int:
+    """Stamp current git commit hashes into registry.
+
+    Returns count of updated entries.
+    """
+    domain = registry_file.stem
+    try:
+        reg = load_registry(registry_file)
+    except Exception as exc:
+        print(f"Error loading {registry_file.name}: {exc}")
+        return 0
+
+    head = get_head_commit(repo_root) or "initial"
+    entries = reg.get("entries", [])
+    updated = 0
+
+    for entry in entries:
+        src = entry.get("source_file", "")
+        latest = git_latest_commit(src, repo_root) or head
+        entry["verified_commit"] = latest
+        updated += 1
+
+    reg.setdefault("_meta", {})["last_updated"] = datetime.now(timezone.utc).isoformat()
+    save_registry(registry_file, reg)
+    print(f"Stamped {updated} entries in {domain}.json with current git baseline.")
+    return updated
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Enforce or stamp drift registries.")
+    parser.add_argument("--domain", type=str, help="Check or stamp specific domain.")
+    parser.add_argument("--stamp", action="store_true", help="Stamp current commit hashes.")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output.")
+    args = parser.parse_args()
+
+    if not REGISTRIES_DIR.is_dir():
+        print(f"Registries directory not found: {REGISTRIES_DIR}")
+        return 1
+
+    registry_files = sorted(REGISTRIES_DIR.glob("*.json"))
+    if args.domain:
+        target = REGISTRIES_DIR / f"{args.domain}.json"
+        if not target.exists():
+            print(f"No registry found for domain: {args.domain}")
+            return 1
+        registry_files = [target]
+
+    if args.stamp:
+        print(f"Stamping drift registries in {REGISTRIES_DIR}...")
+        total_stamped = sum(stamp_domain(rf, REPO_ROOT) for rf in registry_files)
+        print(f"Successfully stamped {total_stamped} entries across {len(registry_files)} domain(s).")
+        return 0
+
+    total_entries = 0
+    total_drifted = 0
+    all_errors: List[str] = []
+
+    print(f"Checking drift registries in {REGISTRIES_DIR} against repository at {REPO_ROOT}...")
+    for rf in registry_files:
+        cnt, drf, errs = check_domain(rf, REPO_ROOT, verbose=args.verbose)
+        total_entries += cnt
+        total_drifted += drf
+        all_errors.extend(errs)
+
+    print("\n" + "=" * 60)
+    if total_drifted == 0:
+        print(f"RESULT: ALL CLEAN. {total_entries} entries verified without drift.")
+        return 0
+    else:
+        print(f"RESULT: DRIFT DETECTED in {total_drifted}/{total_entries} entries.")
+        for err in all_errors:
+            print(f"  - {err}")
+        print("\nTo update verified baselines after review, run:")
+        print("  python3 scripts/drift_enforcer.py --stamp")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

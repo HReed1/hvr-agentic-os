@@ -1,0 +1,420 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "psycopg2-binary>=2.9.9",
+# ]
+# ///
+"""Wiki Database Synchronizer for {{project_name}}.
+
+Reads wiki_bundle.json and synchronizes page records and cross-references
+into the knowledge database (PostgreSQL localhost:5432/wiki OR local SQLite .wiki/wiki.db).
+
+Key Guardrails:
+1. Multi-tenant partitioning: strictly filtered by `repo = '{{postgres_repo_key}}'`.
+2. Pluggable backend: PostgreSQL (cloud/dev) or SQLite (embedded/offline/work).
+3. Zero orphan invariant check.
+"""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import sqlite3
+import sys
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None  # type: ignore
+
+REPO_KEY = "{{postgres_repo_key}}"
+WIKI_BACKEND = "{{wiki_backend}}"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SQLITE_DB_PATH = PROJECT_ROOT / ".wiki" / "wiki.db"
+
+
+def find_project_root() -> Path:
+    """Locate project root."""
+    return PROJECT_ROOT
+
+
+def get_postgres_connection(
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    dbname: Optional[str] = None,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+):
+    """Establishes PostgreSQL connection with resilient fallback."""
+    if psycopg2 is None:
+        print("Error: psycopg2-binary package is required for postgres backend.", file=sys.stderr)
+        print("Install via: pip install psycopg2-binary", file=sys.stderr)
+        sys.exit(1)
+
+    c_host = host or os.environ.get("WIKI_DB_HOST", "localhost")
+    c_port = port or int(os.environ.get("WIKI_DB_PORT", "5432"))
+    c_db = dbname or os.environ.get("WIKI_DB_NAME", "wiki")
+    c_user = (
+        user
+        or os.environ.get("WIKI_DB_USER")
+        or os.environ.get("USER")
+        or "harrisonreed"
+    )
+    c_pwd = password if password is not None else os.environ.get("WIKI_DB_PASSWORD", "")
+
+    conn_args = {
+        "host": c_host,
+        "port": c_port,
+        "database": c_db,
+        "user": c_user,
+    }
+    if c_pwd:
+        conn_args["password"] = c_pwd
+
+    try:
+        return psycopg2.connect(**conn_args)
+    except psycopg2.OperationalError:
+        conn_args["user"] = "postgres"
+        return psycopg2.connect(**conn_args)
+
+
+def get_sqlite_connection() -> sqlite3.Connection:
+    """Establishes SQLite connection."""
+    SQLITE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(SQLITE_DB_PATH))
+    conn.row_factory = sqlite3.Row
+    with conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wiki_pages (
+                repo TEXT NOT NULL,
+                path TEXT NOT NULL,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                tags TEXT,
+                summary TEXT,
+                sources TEXT,
+                source_count INT DEFAULT 0,
+                last_ingested TEXT,
+                updated_at TEXT,
+                PRIMARY KEY (repo, path)
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wiki_links (
+                source_repo TEXT NOT NULL,
+                source_path TEXT NOT NULL,
+                target_repo TEXT NOT NULL,
+                target_path TEXT NOT NULL,
+                link_type TEXT NOT NULL,
+                created_at TEXT,
+                PRIMARY KEY (source_repo, source_path, target_repo, target_path)
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS wiki_activity (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                repo TEXT NOT NULL,
+                action TEXT NOT NULL,
+                target TEXT,
+                summary TEXT,
+                pages_created INT DEFAULT 0,
+                pages_updated INT DEFAULT 0,
+                created_at TEXT
+            );
+        """)
+        conn.execute("""
+            CREATE VIEW IF NOT EXISTS wiki_orphans AS
+            SELECT p.repo, p.path, p.title
+            FROM wiki_pages p
+            LEFT JOIN wiki_links l ON p.repo = l.target_repo AND p.path = l.target_path
+            WHERE l.target_path IS NULL
+              AND p.path != 'wiki/overview.md'
+              AND p.path != 'wiki/index.md'
+              AND p.path != 'wiki/log.md';
+        """)
+    return conn
+
+
+def build_resolution_maps(pages: List[Dict[str, Any]]) -> Tuple[Dict[str, str], Dict[str, str]]:
+    """Build lookup maps for resolving wikilinks to canonical paths."""
+    slug_to_path: Dict[str, str] = {}
+    path_to_path: Dict[str, str] = {}
+
+    for p in pages:
+        path = p.get("path", "")
+        if not path:
+            continue
+        norm = path.replace("\\", "/").strip("/")
+        path_to_path[norm] = norm
+        if norm.endswith(".md"):
+            path_to_path[norm[:-3]] = norm
+        if norm.startswith("wiki/"):
+            rel = norm[5:]
+            path_to_path[rel] = norm
+            if rel.endswith(".md"):
+                path_to_path[rel[:-3]] = norm
+
+        slug = Path(path).stem
+        slug_to_path[slug] = norm
+
+    return slug_to_path, path_to_path
+
+
+def resolve_link_target(
+    raw_target: str,
+    slug_to_path: Dict[str, str],
+    path_to_path: Dict[str, str],
+) -> Optional[str]:
+    """Resolve raw wikilink to canonical database target path."""
+    cleaned = raw_target.strip().replace("\\", "/").strip("/")
+    if cleaned in path_to_path:
+        return path_to_path[cleaned]
+
+    target_slug = Path(cleaned).name
+    if target_slug.endswith(".md"):
+        target_slug = target_slug[:-3]
+    if target_slug in slug_to_path:
+        return slug_to_path[target_slug]
+
+    return None
+
+
+def sync_sqlite(bundle_path: Path, verbose: bool = False) -> Tuple[int, int]:
+    """Synchronize bundle into local SQLite database."""
+    data = json.loads(bundle_path.read_text(encoding="utf-8"))
+    pages = data.get("pages", []) if isinstance(data, dict) else data
+
+    slug_to_path, path_to_path = build_resolution_maps(pages)
+    conn = get_sqlite_connection()
+
+    with conn:
+        upsert_sql = """
+            INSERT INTO wiki_pages (repo, path, title, category, tags, summary, sources, source_count, last_ingested, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(repo, path) DO UPDATE SET
+                title = excluded.title,
+                category = excluded.category,
+                tags = excluded.tags,
+                summary = excluded.summary,
+                sources = excluded.sources,
+                source_count = excluded.source_count,
+                last_ingested = excluded.last_ingested,
+                updated_at = excluded.updated_at;
+        """
+        now_str = datetime.now(timezone.utc).isoformat()
+        for p in pages:
+            conn.execute(
+                upsert_sql,
+                (
+                    REPO_KEY,
+                    p["path"],
+                    p["title"],
+                    p["category"],
+                    json.dumps(p.get("tags", [])),
+                    p.get("summary", ""),
+                    json.dumps(p.get("sources", [])),
+                    p.get("source_count", 0),
+                    p.get("last_ingested"),
+                    now_str,
+                ),
+            )
+
+        valid_paths = [p["path"] for p in pages]
+        if valid_paths:
+            placeholders = ",".join(["?"] * len(valid_paths))
+            conn.execute(f"DELETE FROM wiki_pages WHERE repo = ? AND path NOT IN ({placeholders})", [REPO_KEY, *valid_paths])
+
+        conn.execute("DELETE FROM wiki_links WHERE source_repo = ?", (REPO_KEY,))
+        insert_link_sql = """
+            INSERT OR IGNORE INTO wiki_links (source_repo, source_path, target_repo, target_path, link_type, created_at)
+            VALUES (?, ?, ?, ?, 'wikilink', ?)
+        """
+        link_count = 0
+        for p in pages:
+            source_p = p["path"]
+            for raw_tgt in p.get("wikilinks", []):
+                resolved = resolve_link_target(raw_tgt, slug_to_path, path_to_path)
+                if resolved:
+                    conn.execute(insert_link_sql, (REPO_KEY, source_p, REPO_KEY, resolved, now_str))
+                    link_count += 1
+                    if verbose:
+                        print(f"  Link: {source_p} -> {resolved}")
+
+        conn.execute(
+            """
+            INSERT INTO wiki_activity (repo, action, target, summary, pages_updated, created_at)
+            VALUES (?, 'sync', ?, ?, ?, ?);
+            """,
+            (REPO_KEY, str(bundle_path), f"Synchronized {len(pages)} pages", len(pages), now_str),
+        )
+
+    print(f"Successfully synchronized {len(pages)} pages and {link_count} links to SQLite: {SQLITE_DB_PATH}")
+    cur = conn.execute("SELECT path, title FROM wiki_orphans WHERE repo = ?", (REPO_KEY,))
+    orphans = cur.fetchall()
+    if orphans:
+        print(f"\nWarning: Found {len(orphans)} orphaned pages:")
+        for o in orphans:
+            print(f"  - {o['path']} ({o['title']})")
+    else:
+        print("Zero orphans invariant verified cleanly.")
+
+    return len(pages), link_count
+
+
+def sync_postgres(bundle_path: Path, verbose: bool = False) -> Tuple[int, int]:
+    """Synchronize bundle into PostgreSQL database."""
+    data = json.loads(bundle_path.read_text(encoding="utf-8"))
+    pages = data.get("pages", []) if isinstance(data, dict) else data
+
+    slug_to_path, path_to_path = build_resolution_maps(pages)
+    conn = get_postgres_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS wiki_pages (
+                repo TEXT NOT NULL,
+                path TEXT NOT NULL,
+                title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                tags TEXT[],
+                summary TEXT,
+                sources TEXT[],
+                source_count INT DEFAULT 0,
+                last_ingested DATE,
+                updated_at TIMESTAMP DEFAULT NOW(),
+                PRIMARY KEY (repo, path)
+            );
+            CREATE TABLE IF NOT EXISTS wiki_links (
+                source_repo TEXT NOT NULL,
+                source_path TEXT NOT NULL,
+                target_repo TEXT NOT NULL,
+                target_path TEXT NOT NULL,
+                link_type TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                PRIMARY KEY (source_repo, source_path, target_repo, target_path)
+            );
+            CREATE TABLE IF NOT EXISTS wiki_activity (
+                id SERIAL PRIMARY KEY,
+                repo TEXT NOT NULL,
+                action TEXT NOT NULL,
+                target TEXT,
+                summary TEXT,
+                pages_created INT DEFAULT 0,
+                pages_updated INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+        """)
+
+        upsert_page_sql = """
+            INSERT INTO wiki_pages (repo, path, title, category, tags, summary, sources, source_count, last_ingested, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            ON CONFLICT (repo, path) DO UPDATE SET
+                title = EXCLUDED.title,
+                category = EXCLUDED.category,
+                tags = EXCLUDED.tags,
+                summary = EXCLUDED.summary,
+                sources = EXCLUDED.sources,
+                source_count = EXCLUDED.source_count,
+                last_ingested = EXCLUDED.last_ingested,
+                updated_at = NOW();
+        """
+        for p in pages:
+            cur.execute(
+                upsert_page_sql,
+                (
+                    REPO_KEY,
+                    p["path"],
+                    p["title"],
+                    p["category"],
+                    p.get("tags", []),
+                    p.get("summary", ""),
+                    p.get("sources", []),
+                    p.get("source_count", 0),
+                    p.get("last_ingested"),
+                ),
+            )
+
+        valid_paths = [p["path"] for p in pages]
+        if valid_paths:
+            cur.execute("DELETE FROM wiki_pages WHERE repo = %s AND path != ALL(%s);", (REPO_KEY, valid_paths))
+
+        cur.execute("DELETE FROM wiki_links WHERE source_repo = %s;", (REPO_KEY,))
+        insert_link_sql = """
+            INSERT INTO wiki_links (source_repo, source_path, target_repo, target_path, link_type, created_at)
+            VALUES (%s, %s, %s, %s, 'wikilink', NOW())
+            ON CONFLICT (source_repo, source_path, target_repo, target_path) DO NOTHING;
+        """
+        link_count = 0
+        for p in pages:
+            source_p = p["path"]
+            for raw_tgt in p.get("wikilinks", []):
+                resolved = resolve_link_target(raw_tgt, slug_to_path, path_to_path)
+                if resolved:
+                    cur.execute(insert_link_sql, (REPO_KEY, source_p, REPO_KEY, resolved))
+                    link_count += 1
+                    if verbose:
+                        print(f"  Link: {source_p} -> {resolved}")
+
+        cur.execute(
+            """
+            INSERT INTO wiki_activity (repo, action, target, summary, pages_updated)
+            VALUES (%s, 'sync', %s, %s, %s);
+            """,
+            (REPO_KEY, str(bundle_path), f"Synchronized {len(pages)} pages", len(pages)),
+        )
+
+        conn.commit()
+        print(f"Successfully synchronized {len(pages)} pages and {link_count} links to PostgreSQL.")
+
+        cur.execute("""
+            SELECT p.path, p.title
+            FROM wiki_pages p
+            LEFT JOIN wiki_links l ON p.repo = l.target_repo AND p.path = l.target_path
+            WHERE p.repo = %s
+              AND l.target_path IS NULL
+              AND p.path != 'wiki/overview.md'
+              AND p.path != 'wiki/index.md'
+              AND p.path != 'wiki/log.md';
+        """, (REPO_KEY,))
+        orphans = cur.fetchall()
+        if orphans:
+            print(f"\nWarning: Found {len(orphans)} orphaned pages:")
+            for o in orphans:
+                print(f"  - {o[0]} ({o[1]})")
+        else:
+            print("Zero orphans invariant verified cleanly.")
+
+        return len(pages), link_count
+    finally:
+        conn.close()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Synchronize wiki bundle into database.")
+    parser.add_argument("--bundle", "-b", default="wiki_bundle.json", help="Path to wiki_bundle.json.")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
+    args = parser.parse_args()
+
+    root = find_project_root()
+    bundle_p = root / args.bundle
+    if not bundle_p.is_file():
+        print(f"Error: Bundle file not found at {bundle_p}", file=sys.stderr)
+        print("Run scripts/export_wiki.py first.", file=sys.stderr)
+        return 1
+
+    if WIKI_BACKEND == "sqlite":
+        sync_sqlite(bundle_p, verbose=args.verbose)
+    else:
+        sync_postgres(bundle_p, verbose=args.verbose)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

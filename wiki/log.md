@@ -139,3 +139,9 @@ tags:
 - Updated: [[session-lifecycle]], [[agentic-os]]
 - Key insight: Completed migration of 12 legacy workflows to Antigravity skills, synchronized all drift registries, resolved zero-trust sandbox traversal barriers in agent tools, and achieved zero-drift across all 55 tracked entries.
 
+## [2026-09-17] ingest | GitHub Copilot CLI Extension & Project Bootstrapper
+- Source: `extensions/project-bootstrap/extension.mjs`, `extensions/project-bootstrap/install.ps1`, `extensions/project-bootstrap/install.sh`, `extensions/project-bootstrap/README.md`
+- Created: [[copilot-project-bootstrap]]
+- Key insight: Packaged cross-platform GitHub Copilot CLI extension in `extensions/project-bootstrap/` with self-locating path resolution, zero-privilege Windows NTFS Junction installation (`install.ps1`), local SQLite Cadence and Wiki-DB engines, and enterprise git guardrail hooks.
+
+

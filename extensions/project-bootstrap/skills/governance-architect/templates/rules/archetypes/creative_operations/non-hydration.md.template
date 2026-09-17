@@ -1,0 +1,8 @@
+# Cloud Storage Non-Hydration Invariant
+
+You are operating within the `{{project_name}}` workspace. When evaluating cloud-synced storage (Dropbox, Google Drive, Box via macOS FileProvider):
+
+## 1. Non-Hydration Enforcement
+- Never execute commands (`file`, `du -sh`, `xxh64sum`, `md5`, `ffprobe`) that trigger on-demand hydration of dataless stubs to the local boot drive.
+- Use non-hydrating metadata discovery (`ls -leO`, `stat`, or non-reading file queries).
+- Do not write temporary files or audit scratch logs to target volumes.

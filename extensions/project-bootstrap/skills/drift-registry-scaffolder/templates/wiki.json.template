@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "domain": "wiki",
+    "description": "Wiki Drift Registry \u2014 tracks markdown knowledge pages against sources and schemas.",
+    "schema_version": "1.0.0",
+    "last_updated": "{{date}}"
+  },
+  "entries": [
+    {
+      "source_file": "wiki/overview.md",
+      "verified_commit": "{{initial_commit}}",
+      "dependencies": [
+        {
+          "type": "doc",
+          "path": "wiki/index.md",
+          "reason": "Overview must be cataloged in index."
+        },
+        {
+          "type": "governance",
+          "path": "AGENTS.md",
+          "reason": "Overview mirrors AGENTS.md constitutional invariants."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/concepts/workspace-operations.md",
+      "verified_commit": "{{initial_commit}}",
+      "dependencies": [
+        {
+          "type": "governance",
+          "path": ".agents/rules/domain-safety-governance.md",
+          "reason": "Concept formalizes domain safety invariants."
+        }
+      ]
+    }
+  ]
+}

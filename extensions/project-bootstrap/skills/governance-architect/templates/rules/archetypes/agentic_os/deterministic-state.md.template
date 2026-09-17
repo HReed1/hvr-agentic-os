@@ -1,0 +1,9 @@
+# Deterministic State & Agent Task Idempotency
+
+You are operating within the `{{project_name}}` autonomous agent runtime workspace.
+
+## 1. Dynamic State Tokens
+All asynchronous or multi-step agent flows must use dynamic, cryptographically secure state identifiers (UUIDs) to prevent replay or cross-session state corruption.
+
+## 2. Idempotent Processing
+Agent task handlers must verify whether a task ID has already been executed before running inference or tool actions.

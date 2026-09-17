@@ -1,0 +1,12 @@
+# Context Engineering & AST Budgeting Governance
+
+You are operating within the `{{project_name}}` workspace. To maintain token budget discipline and prevent context blowup, agents MUST adhere to the following rules:
+
+## 1. AST Tool Prioritization for Large Files
+For any file inspection or reading where the target resource exceeds 100 lines, agents MUST prioritize structural and AST tools over raw full-file reads:
+- In Python / TypeScript: Inspect symbols and skeletons first before extracting deep implementation blocks.
+- Target only the specific symbols or functions under investigation.
+
+## 2. Token Budget Discipline
+- Keep conversation context lean by reading only the minimal necessary blocks.
+- Never dump entire multi-thousand-line source files into the context when targeted inspection suffices.

@@ -549,6 +549,22 @@
           "reason": "Benchmarking orchestrator is the primary source \u2014 wiki entity must reflect the same mock codebase structure, test approach, and metrics."
         }
       ]
+    },
+    {
+      "source_file": "wiki/entities/copilot-project-bootstrap.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "extensions/project-bootstrap/README.md",
+          "reason": "Extension documentation provides the architectural specification and usage instructions."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "extensions/project-bootstrap/extension.mjs",
+          "reason": "Extension entry point defines registered tools and lifecycle hooks."
+        }
+      ]
     }
   ]
 }

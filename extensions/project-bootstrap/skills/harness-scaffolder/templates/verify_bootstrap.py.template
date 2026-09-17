@@ -1,0 +1,479 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "pyyaml>=6.0.1",
+#     "psycopg2-binary>=2.9.9",
+#     "google-cloud-firestore>=2.16.0",
+# ]
+# ///
+"""Comprehensive 9-Layer Bootstrap & Governance Verification Harness.
+
+Validates:
+- Layer 1: Directory Structure (Mode 0755, archetype & flavor tailored)
+- Layer 2: Obsidian Vault Configuration (6 JSON files, UTF-8 BOM-free)
+- Layer 3: Markdown Templates Frontmatter Schema
+- Layer 4: Domain Contracts & Structure Verification
+- Layer 5: Knowledge Base & Wiki Index
+- Layer 6: Database Sync & Orphan Assertions (SQLite or PostgreSQL)
+- Layer 7: Wiki Export Pipeline (wiki_bundle.json)
+- Layer 8: Cadence Goal Engine CLI (SQLite or Firestore)
+- Layer 9: Automated Test Suite & Drift Enforcer
+"""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass, field
+import json
+import os
+from pathlib import Path
+import sqlite3
+import stat
+import subprocess
+import sys
+import time
+from typing import Dict, List, Optional
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
+
+try:
+    from google.cloud import firestore
+except ImportError:
+    firestore = None
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_NAME = "{{project_name}}"
+PROJECT_SLUG = "{{project_slug}}"
+ARCHETYPE = "{{archetype}}"
+FLAVOR = "{{flavor}}"
+CADENCE_BACKEND = "{{cadence_backend}}"
+WIKI_BACKEND = "{{wiki_backend}}"
+POSTGRES_REPO_KEY = "{{postgres_repo_key}}"
+FIRESTORE_COLLECTION = "{{firestore_collection}}"
+
+
+class Ansi:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    RED = "\033[31m"
+    YELLOW = "\033[33m"
+    CYAN = "\033[36m"
+    DIM = "\033[2m"
+
+    def pass_msg(self, text: str) -> str:
+        return f"{self.GREEN}{self.BOLD}PASS{self.RESET} {text}"
+
+    def fail_msg(self, text: str) -> str:
+        return f"{self.RED}{self.BOLD}FAIL{self.RESET} {text}"
+
+    def skip_msg(self, text: str) -> str:
+        return f"{self.YELLOW}{self.BOLD}SKIP{self.RESET} {text}"
+
+    def header(self, title: str) -> str:
+        divider_len = max(60 - len(title) - 5, 5)
+        return f"\n{self.BOLD}{self.CYAN}=== {title} {self.RESET}" + "=" * divider_len
+
+
+@dataclass
+class CheckResult:
+    check_id: str
+    name: str
+    status: str
+    duration_sec: float
+    message: str = ""
+    errors: List[str] = field(default_factory=list)
+
+
+def check_1_directory_structure(root: Path) -> CheckResult:
+    """Layer 1: Directory Structure (mode 0755, archetype & flavor tailored)."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+
+    common_dirs = [
+        "wiki", "wiki/entities", "wiki/concepts", "wiki/synthesis", "wiki/retro",
+        "scripts", "templates", ".obsidian", "tests", "docs", "docs/drift_registries",
+        ".agents", ".agents/rules",
+    ]
+
+    if FLAVOR in ("antigravity", "universal"):
+        common_dirs.extend([
+            ".agents/skills/session-start", ".agents/skills/session-wrapup"
+        ])
+
+    if FLAVOR in ("copilot", "universal"):
+        common_dirs.extend([
+            ".github", ".github/prompts"
+        ])
+
+    archetype_dirs = {
+        "creative_operations": ["ledger", "ledger/attachments", "projects", "meetings", "templates/examples"],
+        "agentic_os": ["agents", "core", "tools", "evals", "docs"],
+        "software_engineering": ["src", "api", "docs"],
+        "data_platform": ["pipelines", "data", "schemas", "notebooks"],
+        "minimal_research": ["papers", "notes", "drafts"],
+    }
+
+    expected = list(dict.fromkeys(common_dirs + archetype_dirs.get(ARCHETYPE, [])))
+
+    for d in expected:
+        p = root / d
+        if not p.is_dir():
+            errors.append(f"Directory missing: {d}")
+            continue
+        mode = stat.S_IMODE(p.stat().st_mode)
+        if mode != 0o755:
+            errors.append(f"Directory {d} mode is {oct(mode)}, expected 0755")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Verified {len(expected)} directories with mode 0755" if not errors else f"{len(errors)} directory errors"
+    return CheckResult("CHK-01", "Layer 1: Directory Structure (Mode 0755)", status, duration, msg, errors)
+
+
+def check_2_obsidian_vault(root: Path) -> CheckResult:
+    """Layer 2: Obsidian Vault Configuration (6 JSONs, BOM-free)."""
+    t0 = time.perf_counter()
+    files = ["app.json", "appearance.json", "core-plugins.json", "editor.json", "graph.json", "templates.json"]
+    errors: List[str] = []
+    obsidian_dir = root / ".obsidian"
+
+    for f in files:
+        p = obsidian_dir / f
+        if not p.is_file():
+            errors.append(f"Missing .obsidian/{f}")
+            continue
+        raw = p.read_bytes()
+        if raw.startswith(b"\xef\xbb\xbf"):
+            errors.append(f"File .obsidian/{f} contains UTF-8 BOM")
+            continue
+        try:
+            json.loads(raw.decode("utf-8"))
+        except Exception as exc:
+            errors.append(f"Invalid JSON in .obsidian/{f}: {exc}")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Verified {len(files)} BOM-free Obsidian configuration JSONs" if not errors else f"{len(errors)} vault config errors"
+    return CheckResult("CHK-02", "Layer 2: Obsidian Vault Config", status, duration, msg, errors)
+
+
+def check_3_templates(root: Path) -> CheckResult:
+    """Layer 3: Markdown Templates Frontmatter."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+    templates_dir = root / "templates"
+    required = ["_template_retro.md"]
+
+    archetype_templates = {
+        "creative_operations": ["_template_meeting.md", "_template_project.md", "_template_asset.md"],
+        "agentic_os": ["_template_agent.md", "_template_tool.md", "_template_eval.md"],
+        "software_engineering": ["_template_feature.md", "_template_architecture_decision.md"],
+        "data_platform": ["_template_pipeline.md", "_template_schema.md"],
+        "minimal_research": ["_template_paper.md", "_template_experiment.md"],
+    }
+    required += archetype_templates.get(ARCHETYPE, [])
+
+    for tmpl in required:
+        p = templates_dir / tmpl
+        if not p.is_file():
+            errors.append(f"Missing template: {tmpl}")
+            continue
+        content = p.read_text(encoding="utf-8")
+        if not content.startswith("---"):
+            errors.append(f"Template {tmpl} missing frontmatter delimiter")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Verified {len(required)} markdown templates" if not errors else f"{len(errors)} template errors"
+    return CheckResult("CHK-03", "Layer 3: Markdown Templates", status, duration, msg, errors)
+
+
+def check_4_domain_contracts(root: Path) -> CheckResult:
+    """Layer 4: Domain Contracts & Structure Verification."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+
+    if ARCHETYPE == "creative_operations":
+        ledger_dir = root / "ledger"
+        for f in ["drives.yaml", "projects.yaml", "assets.yaml"]:
+            p = ledger_dir / f
+            if not p.is_file():
+                errors.append(f"Missing ledger/{f}")
+                continue
+            if yaml is not None:
+                try:
+                    data = yaml.safe_load(p.read_text(encoding="utf-8"))
+                    if not isinstance(data, dict):
+                        errors.append(f"ledger/{f} did not parse as a dictionary")
+                        continue
+                    if data.get("status") == "pre_audit_uninitialized":
+                        if f == "drives.yaml" and (data.get("total_drives") != 0 or len(data.get("drives", {})) != 0):
+                            errors.append("drives.yaml has pre_audit_uninitialized status but non-zero drives")
+                        elif f == "projects.yaml" and (data.get("total_projects") != 0 or len(data.get("projects", {})) != 0):
+                            errors.append("projects.yaml has pre_audit_uninitialized status but non-zero projects")
+                        elif f == "assets.yaml" and (data.get("total_assets") != 0 or len(data.get("assets", {})) != 0):
+                            errors.append("assets.yaml has pre_audit_uninitialized status but non-zero assets")
+                except Exception as exc:
+                    errors.append(f"Failed parsing ledger/{f}: {exc}")
+    elif ARCHETYPE == "agentic_os":
+        for d in ["agents", "core", "tools", "evals"]:
+            if not (root / d).is_dir():
+                errors.append(f"Missing required agentic directory: {d}")
+        agent_tmpl = root / "templates" / "_template_agent.md"
+        if not agent_tmpl.is_file():
+            errors.append("Missing templates/_template_agent.md")
+    elif ARCHETYPE == "software_engineering":
+        for d in ["src", "api", "tests", "docs"]:
+            if not (root / d).is_dir():
+                errors.append(f"Missing required software engineering directory: {d}")
+    elif ARCHETYPE == "data_platform":
+        for d in ["pipelines", "data", "schemas", "notebooks"]:
+            if not (root / d).is_dir():
+                errors.append(f"Missing required data platform directory: {d}")
+    elif ARCHETYPE == "minimal_research":
+        for d in ["papers", "notes", "drafts"]:
+            if not (root / d).is_dir():
+                errors.append(f"Missing required research directory: {d}")
+
+    if FLAVOR in ("copilot", "universal"):
+        copilot_file = root / ".github" / "copilot-instructions.md"
+        if not copilot_file.is_file():
+            errors.append("Missing .github/copilot-instructions.md")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Verified domain contracts for '{ARCHETYPE}' ({FLAVOR})" if not errors else f"{len(errors)} contract errors"
+    return CheckResult("CHK-04", f"Layer 4: Domain Contracts ({ARCHETYPE})", status, duration, msg, errors)
+
+
+def check_5_concepts_and_wiki(root: Path) -> CheckResult:
+    """Layer 5: Knowledge Base & Concepts."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+    required_wiki = ["wiki/overview.md", "wiki/index.md", "wiki/log.md", "wiki/concepts/workspace-operations.md"]
+
+    for w in required_wiki:
+        p = root / w
+        if not p.is_file():
+            errors.append(f"Missing core wiki file: {w}")
+            continue
+        content = p.read_text(encoding="utf-8")
+        if not content.startswith("---"):
+            errors.append(f"Wiki page {w} missing frontmatter delimiter")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Verified {len(required_wiki)} core wiki markdown pages" if not errors else f"{len(errors)} wiki errors"
+    return CheckResult("CHK-05", "Layer 5: Knowledge Base & Wiki Index", status, duration, msg, errors)
+
+
+def check_6_database(root: Path, skip: bool = False) -> CheckResult:
+    """Layer 6: Knowledge Database Sync & Orphan Assertions (SQLite or PostgreSQL)."""
+    t0 = time.perf_counter()
+    if skip:
+        return CheckResult("CHK-06", f"Layer 6: Database Sync ({WIKI_BACKEND})", "SKIP", 0.0, "Database checks skipped by flag")
+
+    errors: List[str] = []
+
+    if WIKI_BACKEND == "sqlite":
+        db_path = root / ".wiki" / "wiki.db"
+        if not db_path.is_file():
+            errors.append(f"Missing SQLite database file at {db_path}")
+            msg = "Missing SQLite database"
+        else:
+            try:
+                conn = sqlite3.connect(str(db_path))
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM wiki_pages WHERE repo = ?", (POSTGRES_REPO_KEY,))
+                count = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM wiki_orphans WHERE repo = ?", (POSTGRES_REPO_KEY,))
+                orphans = cur.fetchone()[0]
+                if orphans > 0:
+                    errors.append(f"Found {orphans} orphaned wiki pages in SQLite for repo '{POSTGRES_REPO_KEY}'")
+                conn.close()
+                msg = f"SQLite verified: {count} pages, {orphans} orphans"
+            except Exception as exc:
+                errors.append(f"SQLite verification failed: {exc}")
+                msg = "SQLite query failure"
+    else:
+        if psycopg2 is None:
+            return CheckResult("CHK-06", "Layer 6: PostgreSQL Database Sync", "SKIP", 0.0, "psycopg2 package missing")
+        db_user = os.getenv("WIKI_DB_USER", os.getenv("USER", "harrisonreed"))
+        try:
+            conn = psycopg2.connect(dbname="wiki", user=db_user, host="localhost", port=5432, connect_timeout=3)
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM wiki_pages WHERE repo = %s;", (POSTGRES_REPO_KEY,))
+            count = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM wiki_orphans WHERE repo = %s;", (POSTGRES_REPO_KEY,))
+            orphans = cur.fetchone()[0]
+            if orphans > 0:
+                errors.append(f"Found {orphans} orphaned wiki pages in PostgreSQL for repo '{POSTGRES_REPO_KEY}'")
+            conn.close()
+            msg = f"PostgreSQL verified: {count} pages, {orphans} orphans"
+        except Exception as exc:
+            errors.append(f"PostgreSQL verification failed: {exc}")
+            msg = "PostgreSQL connection/query failure"
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    return CheckResult("CHK-06", f"Layer 6: Database Sync ({WIKI_BACKEND})", status, duration, msg, errors)
+
+
+def check_7_wiki_export(root: Path) -> CheckResult:
+    """Layer 7: Wiki Export Pipeline (wiki_bundle.json)."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+    export_script = root / "scripts" / "export_wiki.py"
+    bundle_path = root / "wiki_bundle.json"
+
+    if not export_script.is_file():
+        errors.append("Missing scripts/export_wiki.py")
+    else:
+        res = subprocess.run([sys.executable, str(export_script)], cwd=root, capture_output=True, text=True)
+        if res.returncode != 0:
+            errors.append(f"scripts/export_wiki.py failed: {res.stderr.strip()}")
+        elif not bundle_path.is_file():
+            errors.append("wiki_bundle.json was not created")
+        else:
+            try:
+                data = json.loads(bundle_path.read_text(encoding="utf-8"))
+                pages = data.get("pages", []) if isinstance(data, dict) else data
+                if not isinstance(pages, list) or len(pages) == 0:
+                    errors.append("wiki_bundle.json has no pages or invalid format")
+            except Exception as exc:
+                errors.append(f"Failed parsing wiki_bundle.json: {exc}")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = "Wiki bundle compiled and verified cleanly" if not errors else f"{len(errors)} export errors"
+    return CheckResult("CHK-07", "Layer 7: Wiki Export Pipeline", status, duration, msg, errors)
+
+
+def check_8_cadence_cli(root: Path, skip_network: bool = False) -> CheckResult:
+    """Layer 8: Cadence Goal Engine CLI (SQLite or Firestore)."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+    cadence_script = root / "scripts" / "cadence.py"
+
+    if not cadence_script.is_file():
+        errors.append("Missing scripts/cadence.py")
+    else:
+        res = subprocess.run([sys.executable, str(cadence_script), "--help"], cwd=root, capture_output=True, text=True)
+        if res.returncode != 0:
+            errors.append(f"cadence.py --help failed: {res.stderr.strip()}")
+
+        if CADENCE_BACKEND == "sqlite":
+            db_path = root / ".cadence" / "cadence.db"
+            if not db_path.is_file():
+                # Try creating a test goal to ensure CLI operates cleanly
+                res_create = subprocess.run(
+                    [sys.executable, str(cadence_script), "create", "--title", "Bootstrap Verification Goal", "--scope", "daily"],
+                    cwd=root, capture_output=True, text=True
+                )
+                if res_create.returncode != 0:
+                    errors.append(f"cadence.py create failed: {res_create.stderr.strip()}")
+        elif not skip_network and firestore is not None:
+            try:
+                db = firestore.Client(project="general-477613")
+                col_ref = db.collection(FIRESTORE_COLLECTION)
+                docs = list(col_ref.limit(1).stream())
+            except Exception as exc:
+                errors.append(f"Firestore connectivity failed for {FIRESTORE_COLLECTION}: {exc}")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = f"Cadence CLI verified ({CADENCE_BACKEND})" if not errors else f"{len(errors)} Cadence errors"
+    return CheckResult("CHK-08", f"Layer 8: Cadence Goal Engine ({CADENCE_BACKEND})", status, duration, msg, errors)
+
+
+def check_9_tests_and_drift(root: Path) -> CheckResult:
+    """Layer 9: Automated Test Suite & Drift Enforcer."""
+    t0 = time.perf_counter()
+    errors: List[str] = []
+
+    res_tests = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], cwd=root, capture_output=True, text=True)
+    if res_tests.returncode != 0:
+        errors.append(f"Unit tests failed: {res_tests.stderr.strip() or res_tests.stdout.strip()}")
+
+    drift_script = root / "scripts" / "drift_enforcer.py"
+    if not drift_script.is_file():
+        errors.append("Missing scripts/drift_enforcer.py")
+    else:
+        res_drift = subprocess.run([sys.executable, str(drift_script)], cwd=root, capture_output=True, text=True)
+        if res_drift.returncode != 0:
+            errors.append(f"Drift enforcer detected drift: {res_drift.stdout.strip()}")
+
+    duration = time.perf_counter() - t0
+    status = "FAIL" if errors else "PASS"
+    msg = "All unit tests and drift enforcer checks passed" if not errors else f"{len(errors)} test/drift errors"
+    return CheckResult("CHK-09", "Layer 9: Tests & Drift Enforcer", status, duration, msg, errors)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Antigravity 9-Layer Bootstrap Verification Harness")
+    parser.add_argument("--skip-network", action="store_true", help="Skip live network and Firestore calls")
+    parser.add_argument("--skip-db", action="store_true", help="Skip database connection checks")
+    parser.add_argument("--quick", action="store_true", help="Run fast checks only (Layers 1-5)")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Display detailed check progress")
+    args = parser.parse_args()
+
+    ansi = Ansi()
+    root = PROJECT_ROOT
+
+    print(ansi.header(f"VERIFYING BOOTSTRAP: {PROJECT_NAME} ({ARCHETYPE} | {FLAVOR})"))
+    print(f"Target Directory: {root}")
+    print(f"Wiki DB: {WIKI_BACKEND} ({POSTGRES_REPO_KEY}) | Cadence: {CADENCE_BACKEND}\n")
+
+    checks = [
+        check_1_directory_structure(root),
+        check_2_obsidian_vault(root),
+        check_3_templates(root),
+        check_4_domain_contracts(root),
+        check_5_concepts_and_wiki(root),
+    ]
+
+    if not args.quick:
+        checks.extend([
+            check_6_database(root, skip=args.skip_db),
+            check_7_wiki_export(root),
+            check_8_cadence_cli(root, skip_network=args.skip_network),
+            check_9_tests_and_drift(root),
+        ])
+
+    failed = False
+    for res in checks:
+        icon = ansi.pass_msg(f"[{res.check_id}] {res.name} ({res.duration_sec:.2f}s)")
+        if res.status == "FAIL":
+            icon = ansi.fail_msg(f"[{res.check_id}] {res.name} ({res.duration_sec:.2f}s)")
+            failed = True
+        elif res.status == "SKIP":
+            icon = ansi.skip_msg(f"[{res.check_id}] {res.name}")
+
+        print(icon)
+        if args.verbose and res.message:
+            print(f"  └─ {res.message}")
+        if res.errors:
+            for err in res.errors:
+                print(f"  {ansi.RED}✖ {err}{ansi.RESET}")
+
+    print("\n" + "=" * 60)
+    if failed:
+        print(f"{ansi.RED}{ansi.BOLD}VERIFICATION FAILED{ansi.RESET}")
+        return 1
+    else:
+        print(f"{ansi.GREEN}{ansi.BOLD}ALL LAYERS VERIFIED SUCCESSFULLY (0 FAILURES){ansi.RESET}")
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,24 @@
+# Git Guardrails Governance
+
+You are operating within the `{{project_name}}` workspace. All agents interacting with this repository MUST strictly adhere to the following git guardrails:
+
+## 1. Strictly Forbidden Without Human Approval
+The following actions require **explicit, per-action human approval** at the moment of execution:
+1. Forking any repository
+2. Creating Pull Requests against any external repository
+3. Pushing commits to any remote repository
+4. Creating branches on remote repositories
+5. Merging or closing Pull Requests
+6. Deleting remote branches or repositories
+7. Leaving comments, replies, or reviews on PRs or Issues
+
+## 2. Permitted Local Operations
+Local git operations are permitted without human intervention:
+- Checking repository status (`git status`)
+- Staging files (`git add`)
+- Reviewing diffs (`git diff`, `git diff --staged`)
+- Committing staged changes locally (`git commit`) during session wrapup or milestone boundaries
+- Creating or switching local branches (`git checkout`, `git switch`)
+
+## 3. Remote Isolation
+Never configure automated push scripts or CI runners that bypass human review for remote repository mutations.

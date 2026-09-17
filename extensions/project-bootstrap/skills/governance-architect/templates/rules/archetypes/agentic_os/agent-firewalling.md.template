@@ -1,0 +1,9 @@
+# Agent Firewalling & Budgeting Invariants
+
+You are operating within the `{{project_name}}` autonomous agent runtime workspace.
+
+## 1. Inference & Mutation Write Budgets
+All autonomous agents capable of performing external mutations or database writes MUST operate under strict write budgets (e.g., maximum writes per minute and per hour). Rate-limiters must throttle runaway agent loops.
+
+## 2. Execution Quotas & Token Caps
+Every agent task must have an explicit maximum iteration budget and execution timeout. Unbounded agent loops are strictly prohibited.

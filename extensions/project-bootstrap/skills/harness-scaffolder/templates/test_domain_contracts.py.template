@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Dual-State Unit Test Suite for {{project_name}} Domain Contracts.
+
+Verifies:
+- Archetype-specific directory and schema integrity
+- Template syntax and YAML frontmatter validation
+"""
+
+import os
+from pathlib import Path
+import unittest
+import yaml
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ARCHETYPE = "{{archetype}}"
+
+
+class TestDomainContracts(unittest.TestCase):
+    """Asserts domain contracts match declared archetype: {{archetype}}."""
+
+    def test_archetype_contract_integrity(self):
+        if ARCHETYPE == "creative_operations":
+            ledger_dir = PROJECT_ROOT / "ledger"
+            self.assertTrue(ledger_dir.is_dir(), "Missing ledger directory")
+            for f in ["drives.yaml", "projects.yaml", "assets.yaml"]:
+                p = ledger_dir / f
+                self.assertTrue(p.is_file(), f"Missing ledger/{f}")
+                with open(p, "r", encoding="utf-8") as yf:
+                    data = yaml.safe_load(yf)
+                self.assertIsInstance(data, dict, f"ledger/{f} must parse as dict")
+                self.assertIn("schema_version", data)
+        elif ARCHETYPE == "agentic_os":
+            for d in ["agents", "core", "tools", "evals"]:
+                self.assertTrue((PROJECT_ROOT / d).is_dir(), f"Missing directory: {d}")
+            agent_tmpl = PROJECT_ROOT / "templates" / "_template_agent.md"
+            self.assertTrue(agent_tmpl.is_file(), "Missing _template_agent.md")
+        elif ARCHETYPE == "software_engineering":
+            for d in ["src", "api", "tests", "docs"]:
+                self.assertTrue((PROJECT_ROOT / d).is_dir(), f"Missing directory: {d}")
+            feat_tmpl = PROJECT_ROOT / "templates" / "_template_feature.md"
+            self.assertTrue(feat_tmpl.is_file(), "Missing _template_feature.md")
+        elif ARCHETYPE == "data_platform":
+            for d in ["pipelines", "data", "schemas", "notebooks"]:
+                self.assertTrue((PROJECT_ROOT / d).is_dir(), f"Missing directory: {d}")
+        elif ARCHETYPE == "minimal_research":
+            for d in ["papers", "notes", "drafts"]:
+                self.assertTrue((PROJECT_ROOT / d).is_dir(), f"Missing directory: {d}")
+
+
+if __name__ == "__main__":
+    unittest.main()
