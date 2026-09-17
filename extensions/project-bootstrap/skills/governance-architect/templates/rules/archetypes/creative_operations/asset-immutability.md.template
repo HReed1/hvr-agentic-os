@@ -1,0 +1,10 @@
+# Media Asset Immutability & 3-2-1 Data Law
+
+You are operating within the `{{project_name}}` workspace. Asset protection follows strict digital preservation standards:
+
+## 1. 3-2-1 Backup Verification
+Critical assets must exist in **3 copies**, across **2 different media types**, with **1 copy offsite or cloud-hosted**.
+- Any asset stored on only a single drive must be flagged as `unbacked` in `ledger/assets.yaml` or `ledger/drives.yaml`.
+
+## 2. Destructive Action Firewall
+Automated batch deletions or bulk reformatting on `/Volumes/` are strictly prohibited. Any file removal requires explicit, per-action human approval.

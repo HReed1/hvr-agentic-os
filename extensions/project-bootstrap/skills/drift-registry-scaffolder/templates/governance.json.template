@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "domain": "governance",
+    "description": "Governance Drift Registry \u2014 tracks constitutional invariants and verification harnesses.",
+    "schema_version": "1.0.0",
+    "last_updated": "{{date}}"
+  },
+  "entries": [
+    {
+      "source_file": "AGENTS.md",
+      "verified_commit": "{{initial_commit}}",
+      "dependencies": [
+        {
+          "type": "constitution",
+          "path": ".agents/rules/domain-safety-governance.md",
+          "reason": "Constitution delegates specifics to domain safety rules."
+        },
+        {
+          "type": "harness",
+          "path": "scripts/verify_bootstrap.py",
+          "reason": "Bootstrap verification validates constitutional invariants."
+        }
+      ]
+    },
+    {
+      "source_file": "GEMINI.md",
+      "verified_commit": "{{initial_commit}}",
+      "dependencies": [
+        {
+          "type": "documentation",
+          "path": "README.md",
+          "reason": "README quickstart commands must align with GEMINI.md operations."
+        }
+      ]
+    }
+  ]
+}

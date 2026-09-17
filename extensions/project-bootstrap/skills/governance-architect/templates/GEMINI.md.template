@@ -1,0 +1,95 @@
+# Project: {{project_name}} — Operations & Architecture Manual
+
+## Overview
+`{{project_slug}}` is an Antigravity-managed workspace configured for the **{{archetype}}** archetype. It integrates a local Obsidian markdown knowledge base, domain-tailored architecture components, a local PostgreSQL cross-reference database, and Google Cloud Firestore 3-tier goal management.
+
+**Key Architecture Components:**
+- **Local Knowledge Base (`wiki/`):** Obsidian-compatible Markdown with YAML frontmatter and `[[wikilinks]]`.
+{{architecture_components}}
+- **PostgreSQL Database Index (`localhost:5432/wiki`):** Multi-tenant partition `repo = '{{postgres_repo_key}}'`.
+- **Goal Management (`scripts/cadence.py`):** Firestore project `general-477613`, collection `{{firestore_collection}}`.
+- **Drift Detection (`scripts/drift_enforcer.py`):** Machine-readable dependency tracking in `docs/drift_registries/`.
+
+---
+
+## Building & Verifying
+
+### Environment Prerequisites
+- Python 3.11+
+- PostgreSQL running locally on port 5432 with database `wiki`
+- Google Cloud credentials configured (`gcloud auth application-default login`)
+
+### Automated Verification Harness
+Run the full 9-layer verification harness to validate directory structure, permissions, JSON schemas, domain contracts, wiki sync, Cadence CLI, and test suites:
+
+```bash
+python3 scripts/verify_bootstrap.py --verbose
+```
+
+Flags available:
+- `--skip-network`: Skips live Firestore calls.
+- `--skip-db`: Skips PostgreSQL connection checks.
+- `--quick`: Runs fast local checks only.
+
+### Running Unit Tests
+```bash
+python3 -m unittest discover -s tests -p "test_*.py"
+```
+
+### Checking & Stamping Drift
+```bash
+# Check all domains for drift (exits 1 if drift detected)
+python3 scripts/drift_enforcer.py
+
+# Stamp current git commit hashes into registries (run only during session-wrapup)
+python3 scripts/drift_enforcer.py --stamp
+```
+
+---
+
+## Cadence CLI Commands (`scripts/cadence.py`)
+
+Target Firestore Collection: `{{firestore_collection}}`
+
+```bash
+# List active daily goals
+python3 scripts/cadence.py list --scope daily --status in_progress
+
+# Create a new daily goal
+python3 scripts/cadence.py create --title "Implement feature" --scope daily --phase {{default_phase}}
+
+# Advance goal phase
+python3 scripts/cadence.py advance <goal_id> --phase {{next_phase}}
+
+# Complete goal
+python3 scripts/cadence.py complete <goal_id>
+
+# Run weekly sync rituals
+python3 scripts/cadence.py week-plan
+```
+
+---
+
+## PostgreSQL Database Queries (`wiki` db)
+
+All queries must filter by `repo = '{{postgres_repo_key}}'`:
+
+```sql
+-- Find pages by tag
+SELECT path, title, summary FROM wiki_pages
+WHERE repo = '{{postgres_repo_key}}' AND 'governance' = ANY(tags);
+
+-- Find orphan pages (must be 0)
+SELECT * FROM wiki_orphans WHERE repo = '{{postgres_repo_key}}';
+
+-- Inbound cross-references
+SELECT source_path, target_slug FROM wiki_links
+WHERE repo = '{{postgres_repo_key}}';
+```
+
+---
+
+## Agent Autonomy Rules
+1. **No Autonomous Stamping**: Never run `python3 scripts/drift_enforcer.py --stamp` autonomously. Stamping requires explicit user approval during `/session-wrapup`.
+2. **No Autonomous Session Wrapups**: Wait for the user to explicitly invoke `[/session-wrapup]` or ask to wrap up.
+{{domain_autonomy_rules}}

@@ -1,0 +1,178 @@
+schema_version: "1.0.0"
+catalog_name: "Wonder Creative Projects Ledger"
+description: "Master registry of creative productions, post-production pipelines, phase tracking, and storage mappings."
+last_updated: "2026-09-05"
+total_projects: 4
+
+projects:
+  PRJ-2026-CASCADE-DOC:
+    project_id: "PRJ-2026-CASCADE-DOC"
+    project_name: "Echoes of the Cascades: Old Growth Documentary"
+    slug: "echoes-of-the-cascades"
+    type: "documentary_short"
+    pipeline: "davinci_resolve"
+    primary_nle: "davinci_resolve_studio"
+    status: "active"
+    active_phase: "rough_cut"
+    primary_working_drive_id: "DRV-001"
+    primary_working_drive: "DRV-001"
+    backup_drive_ids:
+      - "DRV-002"
+      - "DRV-003"
+    backup_drive: "DRV-002"
+    media_formats:
+      - ".braw"
+      - ".mov"
+      - ".wav"
+    resolution: "6144x3456 (6K 16:9)"
+    frame_rates:
+      - "23.976 fps"
+      - "59.94 fps"
+    target_runtime_minutes: 14.5
+    deliverable_count: 4
+    deliverables_breakdown:
+      - "DCI 4K Master (Apple ProRes 422 HQ, 23.976 fps)"
+      - "1080p Web Distribution Master (Rec.709 H.265)"
+      - "60-second Theatrical Trailer"
+      - "3x 9:16 Vertical Social Cutdowns (Instagram Reels / YouTube Shorts)"
+    linked_cadence_goal_ids:
+      - "goal_4a8e2f1c9d3e"
+      - "goal_9b2d4e6f1a8c"
+    cadence_goal_id: "goal_4a8e2f1c9d3e"
+    color_space: "DaVinci Wide Gamut Intermediate / Rec.709 Gamma 2.4"
+    audio_delivery: "Stereo 24-bit 48kHz (-14 LUFS Integrated, -1.0 dBTP)"
+    estimated_post_hours: 78.5
+    actual_post_hours: 34.0
+    project_file_path: "/Volumes/WonderMedia_01/Projects/2026/EchoesOfTheCascades/EchoesOfTheCascades.drp"
+    proxy_cache_path: "/Volumes/NVMe_Scratch_Extreme/CacheClip/EchoesOfTheCascades/"
+    created_date: "2026-08-10"
+    target_delivery_date: "2026-09-30"
+    actual_delivery_date: null
+    associated_asset_ids:
+      - "AST-20260810-CASCADE-CAM-A"
+      - "AST-20260810-CASCADE-AUDIO"
+      - "AST-20260811-CASCADE-DRONE"
+    notes: "6K BRAW 5:1 multi-cam forest documentary shot in Olympic National Park. Dual ISO 3200 utilized under dense rainforest canopy. Currently in rough cut assembly focusing on interview pacing."
+
+  PRJ-2026-PACIFIC-ARCH:
+    project_id: "PRJ-2026-PACIFIC-ARCH"
+    project_name: "Pacific Coast Modernist Architecture"
+    slug: "pacific-coast-modernist"
+    type: "architectural_editorial"
+    pipeline: "lightroom_classic"
+    primary_nle: "adobe_lightroom_classic"
+    status: "active"
+    active_phase: "culling"
+    primary_working_drive_id: "DRV-001"
+    primary_working_drive: "DRV-001"
+    backup_drive_ids:
+      - "DRV-002"
+    backup_drive: "DRV-002"
+    media_formats:
+      - ".arw"
+    resolution: "9504x6336 (61 Megapixels)"
+    frame_rates: null
+    target_runtime_minutes: null
+    deliverable_count: 35
+    deliverables_breakdown:
+      - "35 Master Retouched Architectural Plates (16-bit ProPhoto RGB TIFF)"
+      - "35 Web Display Deliverables (Full-res sRGB JPEG @ 90% Quality)"
+      - "Archival Contact Sheet PDF"
+    linked_cadence_goal_ids:
+      - "goal_1e3c5a7b9f2d"
+    cadence_goal_id: "goal_1e3c5a7b9f2d"
+    color_space: "Adobe RGB (1998) / ProPhoto RGB"
+    audio_delivery: null
+    estimated_post_hours: 22.0
+    actual_post_hours: 6.5
+    project_file_path: "/Volumes/WonderMedia_01/Photo/Catalogs/2026_PacificArch/2026_PacificArch.lrcat"
+    proxy_cache_path: "/Volumes/WonderMedia_01/Photo/Catalogs/2026_PacificArch/2026_PacificArch Smart Previews.lrdata"
+    created_date: "2026-08-25"
+    target_delivery_date: "2026-09-20"
+    actual_delivery_date: null
+    associated_asset_ids:
+      - "AST-20260825-PACIFIC-ARCH-RAW"
+    notes: "Editorial feature documenting cantilevered coastal residential architecture along Big Sur and Oregon headlands. Sony A7R V paired with Canon TS-E 24mm tilt-shift for vertical perspective correction."
+
+  PRJ-2026-NEON-SYNTH:
+    project_id: "PRJ-2026-NEON-SYNTH"
+    project_name: "Neon Pulse: Hardware Synthesizer Studio Session"
+    slug: "neon-pulse-synth-session"
+    type: "commercial_promo"
+    pipeline: "davinci_resolve"
+    primary_nle: "davinci_resolve_studio"
+    status: "completed"
+    active_phase: "master_delivery"
+    primary_working_drive_id: "DRV-001"
+    primary_working_drive: "DRV-001"
+    backup_drive_ids:
+      - "DRV-002"
+      - "DRV-003"
+    backup_drive: "DRV-002"
+    media_formats:
+      - ".mov"
+      - ".wav"
+    resolution: "3840x2160 (4K UHD)"
+    frame_rates:
+      - "24.0 fps"
+    target_runtime_minutes: 3.5
+    deliverable_count: 3
+    deliverables_breakdown:
+      - "Apple ProRes 4444 XQ Master (4K UHD, 24.0 fps)"
+      - "YouTube 4K Rec.709 Master (H.265 80 Mbps)"
+      - "Instagram Reels 9:16 Cutdown (1080x1920, 24.0 fps)"
+    linked_cadence_goal_ids:
+      - "goal_7f1c3d9a2e4b"
+    cadence_goal_id: "goal_7f1c3d9a2e4b"
+    color_space: "ACEScc / ACES 1.3 (Rec.709 ODT)"
+    audio_delivery: "Stereo 24-bit 96kHz High-Res Studio Master (-14 LUFS Integrated)"
+    estimated_post_hours: 35.0
+    actual_post_hours: 32.5
+    project_file_path: "/Volumes/ArchiveVault_A/Projects/2026/NeonPulse/NeonPulse.drp"
+    proxy_cache_path: "/Volumes/WonderMedia_01/Cache/NeonPulse/"
+    created_date: "2026-07-01"
+    target_delivery_date: "2026-08-01"
+    actual_delivery_date: "2026-07-28"
+    associated_asset_ids:
+      - "AST-20260701-NEON-PRORES"
+    notes: "Modular analog synthesizer promo film in dark studio setting with neon cyan and magenta backlighting. High contrast grading with Fairlight multiband audio mastering."
+
+  PRJ-2026-WILD-PORTRAITS:
+    project_id: "PRJ-2026-WILD-PORTRAITS"
+    project_name: "High Sierra Wildlife Field Studies"
+    slug: "high-sierra-wildlife"
+    type: "fine_art_wildlife"
+    pipeline: "lightroom_classic"
+    primary_nle: "adobe_lightroom_classic"
+    status: "active"
+    active_phase: "global_dev"
+    primary_working_drive_id: "DRV-001"
+    primary_working_drive: "DRV-001"
+    backup_drive_ids:
+      - "DRV-002"
+    backup_drive: "DRV-002"
+    media_formats:
+      - ".cr3"
+    resolution: "8192x5464 (45 Megapixels)"
+    frame_rates: null
+    target_runtime_minutes: null
+    deliverable_count: 50
+    deliverables_breakdown:
+      - "50 Fine Art Archival Prints (16-bit TIFF Adobe RGB)"
+      - "50 High-Resolution Web Portfolio Images"
+      - "Gallery Exhibition Program Booklet"
+    linked_cadence_goal_ids:
+      - "goal_m20260901a1"
+    cadence_goal_id: "goal_m20260901a1"
+    color_space: "Adobe RGB (1998)"
+    audio_delivery: null
+    estimated_post_hours: 30.0
+    actual_post_hours: 12.0
+    project_file_path: "/Volumes/WonderMedia_01/Photo/Catalogs/2026_HighSierra/2026_HighSierra.lrcat"
+    proxy_cache_path: "/Volumes/WonderMedia_01/Photo/Catalogs/2026_HighSierra/2026_HighSierra Smart Previews.lrdata"
+    created_date: "2026-08-18"
+    target_delivery_date: "2026-10-15"
+    actual_delivery_date: null
+    associated_asset_ids:
+      - "AST-20260818-SIERRA-CR3"
+    notes: "Telephoto wildlife portrait series shot in High Sierra alpine passes. Canon EOS R5 with RF 400mm f/2.8L. Fast shutter speeds capturing Sierra bighorn sheep and raptors."

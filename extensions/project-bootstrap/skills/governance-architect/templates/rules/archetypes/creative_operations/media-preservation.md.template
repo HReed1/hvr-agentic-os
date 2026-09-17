@@ -1,0 +1,11 @@
+# Domain Safety & Storage Preservation Governance
+
+You are operating within the `{{project_name}}` workspace. When inspecting, indexing, or managing storage media, files, or cloud repositories, you **MUST** strictly adhere to the following invariants:
+
+## 1. Zero-Mutation Invariant
+Observability and taxonomy are strictly virtual. When inspecting external volumes (`/Volumes/*`) or cloud storage (`~/Library/CloudStorage/*`), agents and automated scripts are strictly forbidden from executing commands that modify the filesystem in-place:
+- Forbidden commands on target storage: `mv`, `rm`, `mkdir`, `touch`, `rsync`, or custom sorting scripts.
+- All file categorization, directory mapping, and project grouping must be recorded in `ledger/` without modifying target files.
+
+## 2. Master Asset Immutability
+Raw assets, original source files, and primary project files are strictly read-only. Never delete, overwrite, or modify them in-place.

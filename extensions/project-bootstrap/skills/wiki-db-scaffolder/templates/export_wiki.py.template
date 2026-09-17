@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "pyyaml>=6.0.1",
+# ]
+# ///
+"""Wiki Exporter CLI for {{project_name}}.
+
+Scans local markdown directories, parses frontmatter, extracts wikilinks,
+and outputs a compiled wiki bundle JSON file for database indexing.
+
+Usage:
+    python3 scripts/export_wiki.py
+    python3 scripts/export_wiki.py --output wiki_bundle.json --verbose
+"""
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import re
+import sys
+from typing import Any, Dict, List, Optional, Set
+import yaml
+
+REPO_KEY = "{{postgres_repo_key}}"
+WIKILINK_REGEX = re.compile(r"(?<!!)\[\[([^\[\]]+)\]\]")
+
+KNOWN_CATEGORIES = {
+    "entities": "entity",
+    "concepts": "concept",
+    "synthesis": "synthesis",
+    "journals": "journal",
+    "ideas": "idea",
+    "projects": "project",
+    "meetings": "meeting",
+    "ledgers": "ledger",
+    "retro": "retro",
+}
+
+
+def find_project_root() -> Path:
+    """Locate project root containing .obsidian, wiki, or .git."""
+    curr = Path(__file__).resolve().parent
+    for p in [curr, *curr.parents]:
+        if (p / ".obsidian").is_dir() or (p / "wiki").is_dir() or (p / ".git").is_dir():
+            return p
+    return curr.parent
+
+
+def parse_frontmatter(content: str) -> Tuple[Dict[str, Any], str]:
+    """Extract YAML frontmatter and body from markdown content."""
+    if not content.startswith("---"):
+        return {}, content
+
+    parts = content.split("---", 2)
+    if len(parts) < 3:
+        return {}, content
+
+    try:
+        data = yaml.safe_load(parts[1]) or {}
+        body = parts[2]
+        return data, body
+    except Exception:
+        return {}, content
+
+
+def extract_wikilinks(text: str) -> List[str]:
+    """Extract clean target slugs from [[wikilinks]]."""
+    matches = WIKILINK_REGEX.findall(text)
+    links: List[str] = []
+    for m in matches:
+        target = m.split("|")[0].split("#")[0].strip()
+        if target.endswith(".md"):
+            target = target[:-3]
+        if target:
+            links.append(target)
+    return sorted(list(set(links)))
+
+
+def process_markdown_file(file_path: Path, root_dir: Path) -> Optional[Dict[str, Any]]:
+    """Process a single markdown file into a structured page dictionary."""
+    if file_path.name.startswith(("_template", ".")) or file_path.name.lower() == "readme.md":
+        return None
+
+    try:
+        raw_text = file_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        print(f"Warning: Failed reading {file_path}: {exc}", file=sys.stderr)
+        return None
+
+    fm, body = parse_frontmatter(raw_text)
+    rel_path = str(file_path.relative_to(root_dir))
+
+    title = fm.get("title")
+    if not title:
+        # Fallback to first heading or filename
+        heading_match = re.search(r"^#\s+(.+)$", body, re.MULTILINE)
+        title = heading_match.group(1).strip() if heading_match else file_path.stem.replace("-", " ").title()
+
+    # Determine category
+    category = fm.get("category")
+    if not category:
+        parent_dir = file_path.parent.name.lower()
+        category = KNOWN_CATEGORIES.get(parent_dir, "concept" if "concept" in rel_path else "synthesis")
+
+    summary = fm.get("summary")
+    if not summary:
+        lines = [l.strip() for l in body.splitlines() if l.strip() and not l.strip().startswith(("#", ">", "-"))]
+        summary = lines[0][:280] if lines else "No summary available."
+
+    sources = fm.get("sources", [])
+    if isinstance(sources, str):
+        sources = [sources]
+
+    tags = fm.get("tags", [])
+    if isinstance(tags, str):
+        tags = [tags]
+
+    wikilinks = extract_wikilinks(raw_text)
+
+    return {
+        "repo": REPO_KEY,
+        "path": rel_path,
+        "title": title,
+        "category": category,
+        "tags": tags,
+        "summary": summary,
+        "sources": sources,
+        "source_count": len(sources),
+        "wikilinks": wikilinks,
+        "last_ingested": (
+            str(fm.get("last_ingested"))
+            if fm.get("last_ingested")
+            else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        ),
+    }
+
+
+def export_bundle(wiki_dirs: List[Path], output_path: Path, root_dir: Path, verbose: bool = False) -> Dict[str, Any]:
+    """Scans directories and writes compiled bundle JSON."""
+    pages: List[Dict[str, Any]] = []
+
+    for d in wiki_dirs:
+        if not d.is_dir():
+            continue
+        for md_file in d.rglob("*.md"):
+            page_data = process_markdown_file(md_file, root_dir)
+            if page_data:
+                pages.append(page_data)
+                if verbose:
+                    print(f"  Processed: {page_data['path']} ({page_data['category']})")
+
+    bundle = {
+        "_meta": {
+            "repo": REPO_KEY,
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "page_count": len(pages),
+        },
+        "pages": pages,
+    }
+
+    output_path.write_text(json.dumps(bundle, indent=2, default=str), encoding="utf-8")
+    print(f"Exported {len(pages)} wiki pages to {output_path}")
+    return bundle
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Export wiki markdown files to JSON bundle.")
+    parser.add_argument("--wiki-dirs", nargs="+", default=["wiki"], help="Directories to scan.")
+    parser.add_argument("--output", "-o", default="wiki_bundle.json", help="Output bundle path.")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
+    args = parser.parse_args()
+
+    root = find_project_root()
+    dirs = [root / d for d in args.wiki_dirs]
+    out_p = root / args.output
+
+    export_bundle(dirs, out_p, root, verbose=args.verbose)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

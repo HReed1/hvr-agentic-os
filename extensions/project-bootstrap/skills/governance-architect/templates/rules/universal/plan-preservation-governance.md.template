@@ -1,0 +1,15 @@
+# Implementation Plan Naming & Preservation Governance
+
+You are operating within the `{{project_name}}` workspace. Implementation plans are living engineering artifacts subject to strict preservation:
+
+## 1. Default Artifact Storage
+Active implementation plans are kept in the conversation's local Antigravity artifact directory. Do not save or check scratch plans into the project repository by default.
+
+## 2. Workspace Archiving Protocol
+When explicitly archiving an approved implementation plan to the workspace:
+- Store exclusively under `docs/decisions/`.
+- Use the unique naming format: `YYYY-MM-DD-feature-name-implementation-plan.md` (e.g., `2026-06-18-custom-analytics-implementation-plan.md`).
+- Never use generic unversioned filenames like `implementation_plan.md`.
+
+## 3. Immutability of Archived Decisions
+Never overwrite or delete existing archived decision documents in `docs/decisions/`. If an archived plan needs revisions, create a new versioned file (e.g., `-v2`, `-v3`) or ask for human approval.

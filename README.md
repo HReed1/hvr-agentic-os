@@ -8,11 +8,14 @@ A Zero-Trust multi-agent operating system built on [Google's Agent Development K
 
 ## What's In This Repo
 
-**Two things:**
+**Three things:**
 
 1. **A Multi-Agent Swarm** — Four specialized AI agents (Director, Executor, QA Engineer, Auditor) collaborating through strict tool segregation, adversarial verification, and DLP-enforced sandbox boundaries. → [See `agent_app/README.md`](agent_app/README.md)
 
 2. **A Portable AI Engineering Scaffold** — Battle-tested patterns for LLM-maintained knowledge bases, cross-file dependency tracking, and structured session workflows. These work with any LLM agent (Antigravity, Cursor, Claude Code, etc.) and can be adopted into any codebase. → Keep reading.
+
+3. **GitHub Copilot CLI Extension (`extensions/project-bootstrap/`)** — A zero-dependency, enterprise-safe bridge bringing project scaffolding, local SQLite Cadence goal tracking, drift checking, and git guardrails into GitHub Copilot CLI on both **Windows (PowerShell)** and **macOS/Linux**. → [See `extensions/project-bootstrap/README.md`](extensions/project-bootstrap/README.md)
+
 
 ---
 
@@ -138,6 +141,16 @@ A deterministic simulation framework for evaluating agent context engineering st
 
 → [Full documentation](projects/context-benchmarking/README.md)
 
+### GitHub Copilot CLI Extension (Project Bootstrapper)
+
+A user-level extension bringing Antigravity-grade workspace bootstrapping, local SQLite Cadence goal tracking, and drift enforcement into GitHub Copilot CLI across **Windows (PowerShell)**, **macOS**, and **Linux**.
+
+- **Zero Cloud Friction:** Uses Python's built-in `sqlite3` for local `.cadence/cadence.db` sprint tracking and `.wiki/wiki.db`.
+- **Zero-Privilege Windows Setup:** Uses native NTFS Directory Junctions (`install.ps1`) requiring no Administrator privileges.
+- **Enterprise Guardrails:** Intercepts shell execution to block unauthorized `git push` or PR modifications.
+
+→ [Full documentation](extensions/project-bootstrap/README.md)
+
 ---
 
 ## Project Structure
@@ -145,6 +158,8 @@ A deterministic simulation framework for evaluating agent context engineering st
 ```
 hvr-agentic-os/
 ├── agent_app/                    # ADK multi-agent swarm (see agent_app/README.md)
+├── extensions/                   # Copilot CLI extensions
+│   └── project-bootstrap/        # Cross-platform Copilot CLI extension (portable)
 ├── mcp_servers/                  # MCP tool servers
 │   ├── ast_context_mcp/          # Standalone AST context server (portable)
 │   ├── executor_mcp.py           # Workspace mutations (ADK-specific)

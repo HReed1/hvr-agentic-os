@@ -1,0 +1,14 @@
+---
+name: session-wrapup
+description: End working session, complete goals, check drift, and prepare clean local commit
+---
+Please execute the session-wrapup ritual for this workspace:
+
+1. **Goal Completion**: Mark finished goals complete using `python scripts/cadence.py complete <goal_id>` (or `python3` on Unix) or defer unfinished items with `python scripts/cadence.py defer <goal_id> --reason "<reason>"`.
+2. **Knowledge Base Sync**: Re-export and sync the wiki database:
+   ```bash
+   python scripts/export_wiki.py && python scripts/sync_wiki_db.py
+   ```
+3. **Drift Verification**: Run `python scripts/drift_enforcer.py` (or `python3`) to assert contract integrity.
+4. **Draft Retrospective**: If significant progress or architectural insights occurred, prompt to record an entry in `wiki/retro/` and append to `wiki/log.md`.
+5. **Local Git Commit**: Stage modified files and formulate a concise commit message following conventional commits. **Do NOT push to any remote repository without explicit approval.**

@@ -1,0 +1,8 @@
+# Source Layer Immutability Governance
+
+You are operating within the `{{project_name}}` research workspace.
+
+## 1. Read-Only Source Layers
+- Files in `docs/` are human-authored source material: READ ONLY — never modify.
+- Files in `raw/` are external sources for ingestion: READ ONLY — never modify.
+- The agent maintains and updates the `wiki/` and `notes/` layers exclusively.

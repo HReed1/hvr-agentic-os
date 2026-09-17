@@ -1,0 +1,139 @@
+schema_version: "1.0.0"
+catalog_name: "Wonder Storage Media & Volume Ledger"
+description: "Master physical media inventory, mount configurations, capacity tracking, and 3-2-1 backup tier topology."
+last_updated: "2026-09-05"
+total_drives: 5
+total_capacity_tb: 50.0
+total_used_tb: 27.3
+total_free_tb: 22.7
+
+drives:
+  DRV-001:
+    drive_id: "DRV-001"
+    volume_name: "WonderMedia_01"
+    storage_category: "physical_drive"
+    brand_model: "SanDisk Professional G-DRIVE ArmorATD"
+    serial_number: "SN-WNDR-01-9824X"
+    physical_type: "nvme_ssd"
+    physical_connection: "USB-C 3.2 Gen 2"
+    connection_speed_gbps: 10.0
+    total_capacity_tb: 4.0
+    used_capacity_tb: 2.2
+    free_capacity_tb: 1.8
+    utilization_percent: 55.0
+    filesystem: "APFS"
+    role_tier: "active working"
+    backup_role: "primary_working"
+    physical_location: "Studio Desk Bay 1"
+    health_status: "healthy"
+    encryption: "FileVault APFS"
+    mount_point: "/Volumes/WonderMedia_01"
+    backup_mirror_target_id: "DRV-002"
+    last_audited: "2026-09-05"
+    benchmark_read_mb_s: 1020
+    benchmark_write_mb_s: 950
+    notes: "Primary mobile NVMe scratch and active working volume for 2026 productions. Contains active DaVinci Resolve projects and raw BRAW/ProRes ingest."
+
+  DRV-002:
+    drive_id: "DRV-002"
+    volume_name: "ArchiveVault_A"
+    storage_category: "physical_drive"
+    brand_model: "OWC ThunderBay 4 RAID5 (4x 8TB Enterprise SATA)"
+    serial_number: "SN-OWC-TB4-4821A"
+    physical_type: "sata_hdd_raid5"
+    physical_connection: "Thunderbolt 3"
+    connection_speed_gbps: 40.0
+    total_capacity_tb: 24.0
+    used_capacity_tb: 12.5
+    free_capacity_tb: 11.5
+    utilization_percent: 52.1
+    filesystem: "APFS"
+    role_tier: "nearline backup"
+    backup_role: "nearline_backup"
+    physical_location: "Studio Rack Station 2"
+    health_status: "healthy"
+    encryption: "Encrypted APFS"
+    mount_point: "/Volumes/ArchiveVault_A"
+    backup_mirror_target_id: "DRV-003"
+    last_audited: "2026-09-05"
+    benchmark_read_mb_s: 650
+    benchmark_write_mb_s: 580
+    notes: "Onsite Tier 2 nearline RAID5 array. Daily scheduled differential sync via Carbon Copy Cloner mirrors all active footage and catalogs from DRV-001."
+
+  DRV-003:
+    drive_id: "DRV-003"
+    volume_name: "ColdStorage_Offsite_01"
+    storage_category: "physical_drive"
+    brand_model: "G-Technology G-DRIVE Enterprise Desktop 18TB"
+    serial_number: "SN-GTECH-CLD-7719Z"
+    physical_type: "sata_hdd_enterprise"
+    physical_connection: "USB-C 3.2 Gen 2"
+    connection_speed_gbps: 10.0
+    total_capacity_tb: 18.0
+    used_capacity_tb: 11.2
+    free_capacity_tb: 6.8
+    utilization_percent: 62.2
+    filesystem: "APFS"
+    role_tier: "cold archive"
+    backup_role: "cold_archive"
+    physical_location: "Bank Safe Deposit Box (Offsite Vault)"
+    health_status: "healthy"
+    encryption: "FileVault APFS"
+    mount_point: "/Volumes/ColdStorage_Offsite_01"
+    backup_mirror_target_id: null
+    last_audited: "2026-08-15"
+    benchmark_read_mb_s: 240
+    benchmark_write_mb_s: 230
+    notes: "Tier 3 disaster recovery archive clone. Rotated bi-monthly to physical offsite vault. Zero continuous network attachment for ransomware immunity."
+
+  DRV-004:
+    drive_id: "DRV-004"
+    volume_name: "FieldShuttle_SSD"
+    storage_category: "physical_drive"
+    brand_model: "Samsung T7 Shield Rugged 2TB"
+    serial_number: "SN-SAM-T7S-5531M"
+    physical_type: "portable_ssd"
+    physical_connection: "USB-C 3.2 Gen 2"
+    connection_speed_gbps: 10.0
+    total_capacity_tb: 2.0
+    used_capacity_tb: 0.8
+    free_capacity_tb: 1.2
+    utilization_percent: 40.0
+    filesystem: "exFAT"
+    role_tier: "travel offload"
+    backup_role: "travel_offload"
+    physical_location: "Pelican 1510 Field Camera Kit"
+    health_status: "healthy"
+    encryption: "None (Cross-Platform Ingest Compatibility)"
+    mount_point: "/Volumes/FieldShuttle_SSD"
+    backup_mirror_target_id: "DRV-001"
+    last_audited: "2026-09-02"
+    benchmark_read_mb_s: 1050
+    benchmark_write_mb_s: 1000
+    notes: "Ruggedized field drive for on-location offloads from CFexpress Type B and SDXC UHS-II cards via ShotPut Pro with xxHash64 checksums."
+
+  DRV-005:
+    drive_id: "DRV-005"
+    volume_name: "NVMe_Scratch_Extreme"
+    storage_category: "physical_drive"
+    brand_model: "OWC Envoy Pro FX NVMe PCIe 4.0 2TB"
+    serial_number: "SN-OWC-NVME-0092K"
+    physical_type: "nvme_pcie"
+    physical_connection: "Thunderbolt 4 / PCIe 4.0"
+    connection_speed_gbps: 40.0
+    total_capacity_tb: 2.0
+    used_capacity_tb: 0.6
+    free_capacity_tb: 1.4
+    utilization_percent: 30.0
+    filesystem: "APFS"
+    role_tier: "active working"
+    backup_role: "scratch_cache"
+    physical_location: "Mac Studio Direct Bus 0"
+    health_status: "healthy"
+    encryption: "FileVault APFS"
+    mount_point: "/Volumes/NVMe_Scratch_Extreme"
+    backup_mirror_target_id: "DRV-002"
+    last_audited: "2026-09-05"
+    benchmark_read_mb_s: 2800
+    benchmark_write_mb_s: 2700
+    notes: "Dedicated ultra-high-speed timeline scratch, DaVinci Resolve CacheClip, Fairlight temp bounce, and Lightroom Smart Previews volume."

@@ -1,0 +1,7 @@
+schema_version: 1
+catalog_name: "{{project_name}} Master Asset Registry"
+last_updated: "{{date}}"
+status: pre_audit_uninitialized
+total_assets: 0
+total_footprint_gb: 0.0
+assets: {}

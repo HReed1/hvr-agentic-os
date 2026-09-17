@@ -1,0 +1,69 @@
+# GitHub Copilot Repository Instructions — {{project_name}}
+
+> **Repository Governance & Engineering Constitution.**
+> This file is auto-loaded by GitHub Copilot across VS Code, GitHub.com PR reviews, and Copilot Chat.
+> All AI agents interacting with this repository MUST adhere to the invariants defined below.
+
+---
+
+## 1. System Architecture & Workflows
+
+- **Project:** `{{project_name}}` (`{{project_slug}}`)
+- **Archetype:** `{{archetype}}`
+{{architecture_components}}
+- **Knowledge Base (`wiki/`):** Markdown documentation layer with frontmatter and `[[wikilinks]]`.
+- **Goal Management (`scripts/cadence.py`):** 3-tier goal management CLI (Monthly Milestones -> Weekly Sprints -> Daily Tasks).
+- **Drift Enforcer (`scripts/drift_enforcer.py`):** Dependency tracking via `docs/drift_registries/*.json`.
+
+---
+
+## 2. Non-Negotiable Safety & Git Invariants
+
+### Git Guardrails — STRICTLY FORBIDDEN Without Human Confirmation
+1. **Never push commits to any remote repository** without explicit, per-action human confirmation.
+2. **Never create Pull Requests** or merge branches autonomously.
+3. Keep all git operations strictly local (`git add`, `git diff`, `git status`, local commits).
+
+### Secret & Credential Safety
+1. **Never commit secrets, tokens, API keys, or credentials.**
+2. Never store `.env` files in source control.
+3. Obey all enterprise secret scanner findings.
+
+{{domain_invariants}}
+
+---
+
+## 3. Working With Cadence Goals (`scripts/cadence.py`)
+
+When helping the developer plan or execute work:
+- Check current active goals: `python3 scripts/cadence.py list --scope daily --status active`
+- Advance goal phase: `python3 scripts/cadence.py advance <goal_id> --phase <phase>`
+- Mark complete: `python3 scripts/cadence.py complete <goal_id>`
+- Weekly planning: `python3 scripts/cadence.py week-plan`
+
+---
+
+## 4. Working With the Knowledge Base (`wiki/`)
+
+- All wiki pages in `wiki/` have YAML frontmatter with `title`, `date`, `category`, `tags`, `sources`.
+- Never modify files in `docs/` or `raw/` if present (those are human-authored sources).
+- When creating or editing wiki pages, re-synchronize the database index:
+  ```bash
+  python3 scripts/export_wiki.py && python3 scripts/sync_wiki_db.py
+  ```
+
+---
+
+## 5. Drift Enforcement & Stamping Discipline
+
+- The project tracks file and symbol integrity via `docs/drift_registries/*.json`.
+- **NEVER stamp registries autonomously.** Stamping requires explicit human approval during session wrapup.
+- To check for drift: `python3 scripts/drift_enforcer.py`.
+
+---
+
+## 6. Implementation Plan Preservation
+
+- When formulating complex plans, write design proposals under `docs/decisions/`.
+- Use unique versioned names: `YYYY-MM-DD-feature-name-implementation-plan.md`.
+- Never overwrite existing decision records.

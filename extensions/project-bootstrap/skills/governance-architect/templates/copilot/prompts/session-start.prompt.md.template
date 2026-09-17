@@ -1,0 +1,11 @@
+---
+name: session-start
+description: Initialize work session, review active goals, and align on focus
+---
+Please execute the session-start ritual for this workspace:
+
+1. **Check Active Goals**: Run `python scripts/cadence.py list --scope daily --status active` (or `python3` on Unix) to see what was previously in flight.
+2. **Context Grounding**: Review recent updates in `wiki/log.md` and `wiki/overview.md`.
+3. **Recent Retrospectives**: Check the latest notes in `wiki/retro/` if available.
+4. **Establish Today's Focus**: Summarize current status and ask the developer what the primary milestone for today's session is, offering to create a goal using `python scripts/cadence.py create --title "<Title>" --scope daily --phase {{default_phase}}`.
+

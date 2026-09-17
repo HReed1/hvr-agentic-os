@@ -1,0 +1,9 @@
+{
+  "showLineNumber": true,
+  "readableLineLength": true,
+  "tabSize": 2,
+  "useTab": false,
+  "autoPairBrackets": true,
+  "autoPairMarkdown": true,
+  "smartIndentList": true
+}

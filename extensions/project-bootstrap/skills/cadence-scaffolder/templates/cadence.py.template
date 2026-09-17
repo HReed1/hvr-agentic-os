@@ -1,0 +1,645 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "google-cloud-firestore>=2.14.0",
+# ]
+# ///
+"""Cadence CLI — 3-Tier Goal Management Engine for {{project_name}}.
+
+Supports:
+- Backends: SQLite (local/enterprise) or Google Cloud Firestore (cloud)
+- 3-Tier Hierarchy: Monthly Strategic Milestones -> Weekly Sprints -> Daily Sessions
+- Domain Phase Vocabularies with strict transition validation
+- Ritual Commands: saturday-sync, week-plan
+
+Usage:
+    python3 scripts/cadence.py list --scope daily --status active
+    python3 scripts/cadence.py create --title "Title" --scope daily --phase {{default_phase}}
+    python3 scripts/cadence.py advance <goal_id> --phase {{next_phase}}
+    python3 scripts/cadence.py complete <goal_id>
+    python3 scripts/cadence.py saturday-sync
+    python3 scripts/cadence.py week-plan
+"""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import sqlite3
+import sys
+from typing import Any, Dict, List, Optional, Set, Tuple
+import uuid
+
+try:
+    from google.cloud import firestore
+    from google.cloud.firestore_v1.base_query import FieldFilter
+except ImportError:
+    firestore = None  # type: ignore
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_NAME = "{{project_name}}"
+PROJECT_ID = "general-477613"
+COLLECTION = "{{firestore_collection}}"
+ARCHETYPE = "{{archetype}}"
+CADENCE_BACKEND = "{{cadence_backend}}"
+SQLITE_DB_PATH = PROJECT_ROOT / ".cadence" / "cadence.db"
+
+VALID_SCOPES = ["monthly", "weekly", "daily"]
+VALID_STATUSES = ["active", "pending", "completed", "deferred", "dropped"]
+VALID_PRIORITIES = ["critical", "high", "medium", "low"]
+
+# Domain Phase Vocabularies
+VIDEO_PHASES = [
+    "ingest_sync",
+    "paper_edit",
+    "rough_cut",
+    "fine_cut",
+    "picture_lock",
+    "sound_mix",
+    "color_grade",
+    "master_delivery",
+]
+
+PHOTO_PHASES = [
+    "import_backup",
+    "culling",
+    "global_dev",
+    "local_retouch",
+    "export_archive",
+]
+
+ENGINEERING_PHASES = [
+    "discovery",
+    "design",
+    "scaffold",
+    "implement",
+    "test",
+    "review",
+    "deploy",
+    "triage",
+    "hotfix",
+    "refactor",
+]
+
+AGENTIC_PHASES = [
+    "spec",
+    "prompt_eng",
+    "tool_binding",
+    "eval",
+    "integration",
+    "deployment",
+    "audit",
+    "red_team",
+]
+
+DATA_PHASES = [
+    "ingest",
+    "validation",
+    "transformation",
+    "modeling",
+    "serving",
+    "schema_migration",
+    "backfill",
+    "quality_audit",
+]
+
+RESEARCH_PHASES = [
+    "literature_review",
+    "hypothesis",
+    "experimentation",
+    "analysis",
+    "synthesis",
+    "peer_review",
+    "publication",
+]
+
+STRATEGIC_PHASES = [
+    "planning",
+    "in_progress",
+    "review",
+    "completed",
+]
+
+PHASE_DOMAIN_MAP: Dict[str, str] = {}
+for p in VIDEO_PHASES:
+    PHASE_DOMAIN_MAP[p] = "video"
+for p in PHOTO_PHASES:
+    PHASE_DOMAIN_MAP[p] = "photo"
+for p in ENGINEERING_PHASES:
+    PHASE_DOMAIN_MAP[p] = "engineering"
+for p in AGENTIC_PHASES:
+    PHASE_DOMAIN_MAP[p] = "agentic"
+for p in DATA_PHASES:
+    PHASE_DOMAIN_MAP[p] = "data"
+for p in RESEARCH_PHASES:
+    PHASE_DOMAIN_MAP[p] = "research"
+for p in STRATEGIC_PHASES:
+    PHASE_DOMAIN_MAP[p] = "strategic"
+
+ALL_VALID_PHASES: Set[str] = set(PHASE_DOMAIN_MAP.keys())
+
+STATUS_ICONS = {
+    "active": "🔵",
+    "pending": "⬜",
+    "completed": "✅",
+    "deferred": "⏸️",
+    "dropped": "❌",
+}
+
+_firestore_client = None
+
+
+def now_iso() -> str:
+    """Return formatted UTC timestamp."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def today_date() -> str:
+    """Return current UTC date string YYYY-MM-DD."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def get_sqlite_conn() -> sqlite3.Connection:
+    """Connect to local SQLite Cadence database."""
+    SQLITE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(SQLITE_DB_PATH))
+    conn.row_factory = sqlite3.Row
+    with conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS goals (
+                goal_id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                phase TEXT NOT NULL,
+                status TEXT NOT NULL,
+                priority TEXT DEFAULT 'medium',
+                parent_goal_id TEXT,
+                description TEXT,
+                tags TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                target_date TEXT,
+                completed_at TEXT,
+                defer_reason TEXT
+            );
+        """)
+    return conn
+
+
+def get_firestore_client():
+    """Lazy-initialize Cloud Firestore client."""
+    global _firestore_client
+    if _firestore_client is None:
+        if firestore is None:
+            print("Error: google-cloud-firestore package is required for firestore backend.", file=sys.stderr)
+            print("Install via: pip install google-cloud-firestore", file=sys.stderr)
+            sys.exit(1)
+        try:
+            _firestore_client = firestore.Client(project=PROJECT_ID)
+        except Exception as exc:
+            print(f"Error: Unable to connect to Firestore project '{PROJECT_ID}': {exc}", file=sys.stderr)
+            sys.exit(1)
+    return _firestore_client
+
+
+def validate_phase(phase_str: str) -> Tuple[bool, Optional[str]]:
+    """Validate whether phase string exists in domain vocabulary."""
+    if phase_str in ALL_VALID_PHASES:
+        return True, None
+    err = f"Error: Invalid phase '{phase_str}'. Allowed phases include:\n  Strategic: {', '.join(STRATEGIC_PHASES)}\n"
+    if ARCHETYPE == "creative_operations":
+        err += f"  Video: {', '.join(VIDEO_PHASES)}\n  Photo: {', '.join(PHOTO_PHASES)}\n"
+    elif ARCHETYPE == "software_engineering":
+        err += f"  Engineering: {', '.join(ENGINEERING_PHASES)}\n"
+    elif ARCHETYPE == "agentic_os":
+        err += f"  Agentic: {', '.join(AGENTIC_PHASES)}\n"
+    elif ARCHETYPE == "data_platform":
+        err += f"  Data: {', '.join(DATA_PHASES)}\n"
+    elif ARCHETYPE == "minimal_research":
+        err += f"  Research: {', '.join(RESEARCH_PHASES)}\n"
+    return False, err
+
+
+def validate_phase_transition(current_phase: str, new_phase: str, force: bool = False) -> Tuple[bool, Optional[str]]:
+    """Validate transition from current_phase to new_phase."""
+    ok, err = validate_phase(new_phase)
+    if not ok:
+        return False, err
+
+    curr_domain = PHASE_DOMAIN_MAP.get(current_phase, "unknown")
+    new_domain = PHASE_DOMAIN_MAP.get(new_phase, "unknown")
+
+    if curr_domain != new_domain and curr_domain != "strategic" and new_domain != "strategic":
+        if not force:
+            return False, f"Cross-domain transitions require --force flag (from {curr_domain} to {new_domain})."
+    return True, None
+
+
+def create_goal(
+    title: str,
+    scope: str = "daily",
+    phase: Optional[str] = None,
+    parent: Optional[str] = None,
+    priority: str = "medium",
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> str:
+    """Create a new goal."""
+    if scope not in VALID_SCOPES:
+        print(f"Error: Scope must be one of {VALID_SCOPES}", file=sys.stderr)
+        sys.exit(1)
+
+    default_p = "planning" if scope != "daily" else "{{default_phase}}"
+    actual_phase = phase or default_p
+    valid, err = validate_phase(actual_phase)
+    if not valid:
+        print(err, file=sys.stderr)
+        sys.exit(1)
+
+    goal_id = f"goal_{uuid.uuid4().hex[:12]}"
+    created_at = now_iso()
+    t_date = today_date()
+    prio = priority if priority in VALID_PRIORITIES else "medium"
+    desc = description or ""
+    tag_list = tags or []
+
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        with conn:
+            conn.execute("""
+                INSERT INTO goals (goal_id, title, scope, phase, status, priority, parent_goal_id, description, tags, created_at, updated_at, target_date)
+                VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?)
+            """, (goal_id, title, scope, actual_phase, prio, parent, desc, json.dumps(tag_list), created_at, created_at, t_date))
+    else:
+        db = get_firestore_client()
+        doc_data = {
+            "goal_id": goal_id,
+            "title": title,
+            "scope": scope,
+            "phase": actual_phase,
+            "status": "active",
+            "priority": prio,
+            "parent_goal_id": parent,
+            "description": desc,
+            "tags": tag_list,
+            "created_at": created_at,
+            "updated_at": created_at,
+            "target_date": t_date,
+            "completed_at": None,
+        }
+        db.collection(COLLECTION).document(goal_id).set(doc_data)
+
+    print(f"Created goal: {goal_id} [{actual_phase}] \"{title}\"")
+    return goal_id
+
+
+def list_goals(
+    scope: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+) -> List[Dict[str, Any]]:
+    """Query and list goals."""
+    results: List[Dict[str, Any]] = []
+
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        q = "SELECT * FROM goals WHERE 1=1"
+        params: List[Any] = []
+        if scope:
+            q += " AND scope = ?"
+            params.append(scope)
+        if status:
+            q += " AND status = ?"
+            params.append(status)
+        q += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+        cur = conn.execute(q, params)
+        for row in cur.fetchall():
+            d = dict(row)
+            if d.get("tags"):
+                try:
+                    d["tags"] = json.loads(d["tags"])
+                except Exception:
+                    pass
+            results.append(d)
+    else:
+        db = get_firestore_client()
+        coll = db.collection(COLLECTION)
+        query = coll
+        if scope:
+            query = query.where(filter=FieldFilter("scope", "==", scope))
+        if status:
+            query = query.where(filter=FieldFilter("status", "==", status))
+        docs = list(query.limit(limit).stream())
+        for doc in docs:
+            d = doc.to_dict()
+            results.append(d)
+
+    target_label = f"SQLite: {SQLITE_DB_PATH.name}" if CADENCE_BACKEND == "sqlite" else f"Firestore: {COLLECTION}"
+    print(f"\n--- Cadence Goals ({target_label}) ({len(results)} found) ---")
+    for d in results:
+        gid = d.get("goal_id", "")
+        st = d.get("status", "pending")
+        icon = STATUS_ICONS.get(st, "⬜")
+        ph = d.get("phase", "none")
+        sc = d.get("scope", "daily")
+        title = d.get("title", "")
+        print(f"{icon} [{sc.upper():<7}] {gid} ({ph}) - {title}")
+
+    return results
+
+
+def show_goal(goal_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieve and display detailed goal information."""
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        cur = conn.execute("SELECT * FROM goals WHERE goal_id = ?", (goal_id,))
+        row = cur.fetchone()
+        if not row:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            return None
+        data = dict(row)
+    else:
+        db = get_firestore_client()
+        doc = db.collection(COLLECTION).document(goal_id).get()
+        if not doc.exists:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            return None
+        data = doc.to_dict()
+
+    print(json.dumps(data, indent=2))
+    return data
+
+
+def advance_phase(goal_id: str, new_phase: str, force: bool = False) -> bool:
+    """Advance the phase of a goal."""
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        cur = conn.execute("SELECT phase FROM goals WHERE goal_id = ?", (goal_id,))
+        row = cur.fetchone()
+        if not row:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            sys.exit(1)
+        curr_phase = row["phase"]
+        valid, err = validate_phase_transition(curr_phase, new_phase, force=force)
+        if not valid:
+            print(err, file=sys.stderr)
+            sys.exit(1)
+        with conn:
+            conn.execute("UPDATE goals SET phase = ?, updated_at = ? WHERE goal_id = ?", (new_phase, now_iso(), goal_id))
+    else:
+        db = get_firestore_client()
+        ref = db.collection(COLLECTION).document(goal_id)
+        doc = ref.get()
+        if not doc.exists:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            sys.exit(1)
+        curr_phase = doc.to_dict().get("phase", "planning")
+        valid, err = validate_phase_transition(curr_phase, new_phase, force=force)
+        if not valid:
+            print(err, file=sys.stderr)
+            sys.exit(1)
+        ref.update({"phase": new_phase, "updated_at": now_iso()})
+
+    print(f"Goal {goal_id}: Phase advanced from '{curr_phase}' -> '{new_phase}'.")
+    return True
+
+
+def complete_goal(goal_id: str) -> bool:
+    """Mark a goal completed."""
+    ts = now_iso()
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        with conn:
+            res = conn.execute("UPDATE goals SET status = 'completed', completed_at = ?, updated_at = ? WHERE goal_id = ?", (ts, ts, goal_id))
+            if res.rowcount == 0:
+                print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+                sys.exit(1)
+    else:
+        db = get_firestore_client()
+        ref = db.collection(COLLECTION).document(goal_id)
+        doc = ref.get()
+        if not doc.exists:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            sys.exit(1)
+        ref.update({"status": "completed", "completed_at": ts, "updated_at": ts})
+
+    print(f"Goal {goal_id} marked COMPLETED.")
+    return True
+
+
+def defer_goal(goal_id: str, reason: Optional[str] = None) -> bool:
+    """Mark a goal deferred."""
+    ts = now_iso()
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        with conn:
+            res = conn.execute("UPDATE goals SET status = 'deferred', defer_reason = ?, updated_at = ? WHERE goal_id = ?", (reason, ts, goal_id))
+            if res.rowcount == 0:
+                print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+                sys.exit(1)
+    else:
+        db = get_firestore_client()
+        ref = db.collection(COLLECTION).document(goal_id)
+        doc = ref.get()
+        if not doc.exists:
+            print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+            sys.exit(1)
+        upd: Dict[str, Any] = {"status": "deferred", "updated_at": ts}
+        if reason:
+            upd["defer_reason"] = reason
+        ref.update(upd)
+
+    print(f"Goal {goal_id} marked DEFERRED.")
+    return True
+
+
+def delete_goal(goal_id: str, confirm: bool = False) -> bool:
+    """Delete a goal."""
+    if not confirm:
+        ans = input(f"Are you sure you want to delete goal {goal_id}? [y/N]: ")
+        if ans.lower() not in ("y", "yes"):
+            print("Deletion aborted.")
+            return False
+
+    if CADENCE_BACKEND == "sqlite":
+        conn = get_sqlite_conn()
+        with conn:
+            res = conn.execute("DELETE FROM goals WHERE goal_id = ?", (goal_id,))
+            if res.rowcount == 0:
+                print(f"Goal '{goal_id}' not found.", file=sys.stderr)
+                return False
+    else:
+        db = get_firestore_client()
+        db.collection(COLLECTION).document(goal_id).delete()
+
+    print(f"Goal {goal_id} permanently deleted.")
+    return True
+
+
+def saturday_sync(save: bool = False) -> str:
+    """Run weekly progress retrospective."""
+    t_str = today_date()
+    cycle = datetime.now(timezone.utc).strftime("%Y-W%W")
+
+    daily_goals = list_goals(scope="daily", limit=100)
+    weekly_goals = list_goals(scope="weekly", limit=20)
+
+    completed = [g for g in daily_goals if g.get("status") == "completed"]
+    active = [g for g in daily_goals if g.get("status") in ("active", "in_progress")]
+    deferred = [g for g in daily_goals if g.get("status") == "deferred"]
+
+    content = f"""# Saturday Creative & Progress Sync: {cycle} ({t_str})
+
+## 1. Weekly Sprints Status
+"""
+    for wg in weekly_goals:
+        content += f"- [{wg.get('status', 'pending').upper()}] {wg.get('title')} ({wg.get('phase')})\n"
+
+    content += f"""
+## 2. Completed Sessions This Week ({len(completed)})
+"""
+    for g in completed:
+        content += f"- ✅ {g.get('title')} [{g.get('phase')}]\n"
+
+    content += f"""
+## 3. In-Progress & Deferred ({len(active) + len(deferred)})
+"""
+    for g in active:
+        content += f"- 🔵 Active: {g.get('title')} [{g.get('phase')}]\n"
+    for g in deferred:
+        content += f"- ⏸️ Deferred: {g.get('title')} [{g.get('defer_reason', 'No reason given')}]\n"
+
+    content += """
+## 4. Retrospective & Adjustments
+- What went well?
+- What was blocked or took longer than expected?
+- Strategic adjustments for next week:
+"""
+
+    print(content)
+    if save:
+        out_file = PROJECT_ROOT / "wiki" / "retro" / f"{t_str}-sync.md"
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text(content, encoding="utf-8")
+        print(f"Saved sync notes to: {out_file}")
+    return content
+
+
+def week_plan() -> str:
+    """Run weekly planning session."""
+    t_str = today_date()
+    cycle = datetime.now(timezone.utc).strftime("%Y-W%W")
+    monthly_goals = list_goals(scope="monthly", limit=10)
+
+    content = f"""# Weekly Sprint Kickoff: {cycle} ({t_str})
+
+## 1. Monthly Strategic Alignment
+"""
+    for mg in monthly_goals:
+        content += f"- 🎯 {mg.get('title')} [{mg.get('status')}]\n"
+
+    content += """
+## 2. Planned Weekly Deliverables
+- [ ] Deliverable 1
+- [ ] Deliverable 2
+
+## 3. Daily Breakdown Strategy
+- Monday: Planning & Ingest
+- Tuesday: Execution / Dev
+- Wednesday: Midweek checkpoint
+- Thursday: Integration / Testing
+- Friday: Review & Packaging
+"""
+    print(content)
+    return content
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=f"Cadence 3-Tier Goal CLI for {PROJECT_NAME}")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # create
+    p_create = subparsers.add_parser("create", help="Create a new goal")
+    p_create.add_argument("--title", required=True, help="Goal title")
+    p_create.add_argument("--scope", default="daily", choices=VALID_SCOPES, help="Goal tier")
+    p_create.add_argument("--phase", default=None, help="Domain phase")
+    p_create.add_argument("--parent", default=None, help="Parent goal ID")
+    p_create.add_argument("--priority", default="medium", choices=VALID_PRIORITIES, help="Priority level")
+    p_create.add_argument("--description", default=None, help="Detailed goal description")
+    p_create.add_argument("--tag", action="append", dest="tags", help="Tags")
+
+    # list
+    p_list = subparsers.add_parser("list", help="List goals")
+    p_list.add_argument("--scope", default=None, choices=VALID_SCOPES, help="Filter scope")
+    p_list.add_argument("--status", default=None, choices=VALID_STATUSES, help="Filter status")
+    p_list.add_argument("--limit", type=int, default=50, help="Max results")
+
+    # show
+    p_show = subparsers.add_parser("show", help="Show goal details")
+    p_show.add_argument("goal_id", help="Goal ID")
+
+    # advance / phase
+    p_adv = subparsers.add_parser("advance", help="Advance goal phase")
+    p_adv.add_argument("goal_id", help="Goal ID")
+    p_adv.add_argument("--phase", required=True, help="Target phase")
+    p_adv.add_argument("--force", action="store_true", help="Force cross-domain transition")
+
+    # complete
+    p_comp = subparsers.add_parser("complete", help="Complete goal")
+    p_comp.add_argument("goal_id", help="Goal ID")
+
+    # defer
+    p_def = subparsers.add_parser("defer", help="Defer goal")
+    p_def.add_argument("goal_id", help="Goal ID")
+    p_def.add_argument("--reason", default=None, help="Deferral reason")
+
+    # delete
+    p_del = subparsers.add_parser("delete", help="Delete goal")
+    p_del.add_argument("goal_id", help="Goal ID")
+    p_del.add_argument("--yes", "-y", action="store_true", dest="confirm", help="Skip confirmation")
+
+    # rituals
+    p_sat = subparsers.add_parser("saturday-sync", help="Run Saturday sync ritual")
+    p_sat.add_argument("--save", action="store_true", help="Save notes to wiki/retro/")
+
+    p_wp = subparsers.add_parser("week-plan", help="Run weekly planning kickoff")
+
+    args = parser.parse_args()
+
+    if args.command == "create":
+        create_goal(
+            title=args.title,
+            scope=args.scope,
+            phase=args.phase,
+            parent=args.parent,
+            priority=args.priority,
+            description=args.description,
+            tags=args.tags,
+        )
+    elif args.command == "list":
+        list_goals(scope=args.scope, status=args.status, limit=args.limit)
+    elif args.command == "show":
+        show_goal(args.goal_id)
+    elif args.command == "advance":
+        advance_phase(args.goal_id, args.phase, force=args.force)
+    elif args.command == "complete":
+        complete_goal(args.goal_id)
+    elif args.command == "defer":
+        defer_goal(args.goal_id, reason=args.reason)
+    elif args.command == "delete":
+        delete_goal(args.goal_id, confirm=args.confirm)
+    elif args.command == "saturday-sync":
+        saturday_sync(save=args.save)
+    elif args.command == "week-plan":
+        week_plan()
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

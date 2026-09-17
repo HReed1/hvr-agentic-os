@@ -1,0 +1,108 @@
+---
+name: session-wrapup
+description: Structured session completion ritual. Completes Cadence goals, prompts for an optional retrospective in wiki/retro/, runs drift enforcement, syncs the PostgreSQL database, and enforces local-only git commits.
+---
+
+# Session Wrapup — {{project_name}} Cadence Ritual
+
+> **Trigger:** Run this workflow at the conclusion of each working session (`[/session-wrapup]`).  
+> **Purpose:** Ensure clean closure by accounting for completed goals, capturing institutional knowledge in retrospectives, running drift checks, and committing all work locally.
+
+---
+
+## Step 1: Goal Accounting in Cadence
+
+Check all goals marked `in_progress` in Firestore `{{firestore_collection}}`:
+
+```bash
+python3 scripts/cadence.py list --scope daily --status in_progress
+```
+
+For each goal, prompt the user or mark status:
+- If finished: `python3 scripts/cadence.py complete <goal_id>`
+- If unfinished: `python3 scripts/cadence.py defer <goal_id> --reason "Deferred to next session"`
+
+---
+
+## Step 2: Prompt for Optional Retrospective
+
+Ask the user:
+> *"Would you like to write a session retrospective in `wiki/retro/`?"*
+
+If the user agrees (or says yes):
+1. Determine the retrospective filename: `wiki/retro/YYYY-MM-DD-<topic>-retrospective.md`.
+2. Author the retrospective using the template `templates/_template_retro.md`.
+3. Include:
+   - Summary of accomplishments and deliverables.
+   - Architectural decisions made and alternatives evaluated.
+   - Cadence goals completed and weekly sprints advanced.
+   - Files created or modified.
+   - Next session priorities.
+
+---
+
+## Step 3: Drift Check & Controlled Stamping
+
+Run the drift enforcer to verify dependency integrity across registries:
+
+```bash
+python3 scripts/drift_enforcer.py
+```
+
+If drift is detected or new tracked files were created:
+1. Review the modified files with the user.
+2. Ask for explicit approval to stamp the registry:
+   > *"Dependencies have evolved. Would you like to stamp the current commit baseline into `docs/drift_registries/`?"*
+3. If approved, execute:
+   ```bash
+   python3 scripts/drift_enforcer.py --stamp
+   ```
+
+---
+
+## Step 4: Re-Synchronize Wiki Database
+
+Export markdown and sync to the local PostgreSQL database:
+
+```bash
+python3 scripts/export_wiki.py
+python3 scripts/sync_wiki_db.py
+```
+
+Assert that 0 orphan pages exist under `repo = '{{postgres_repo_key}}'`.
+
+---
+
+## Step 5: Local Git Commit Protocol
+
+Review git status and changes:
+
+```bash
+git status
+git diff --stat
+```
+
+**Git Guardrail Check**: Ensure no remote push is attempted. Pushing to remotes requires explicit human approval.
+
+Stage and commit changes locally:
+
+```bash
+git add .
+git commit -m "feat(session): wrap up session [brief summary of work]"
+```
+
+---
+
+## Step 6: Log Session Activity
+
+Append a summary entry to `wiki/log.md`:
+
+```markdown
+## [YYYY-MM-DD] wrapup | Session Wrapup: <Summary>
+- Goals completed: <list of goal titles>
+- Retrospective: [[wiki/retro/<filename>]] (or "None")
+- Drift status: Clean (stamped baseline)
+- Commit: `<short_sha>`
+```
+
+Provide a final session summary and confirm workspace is clean.

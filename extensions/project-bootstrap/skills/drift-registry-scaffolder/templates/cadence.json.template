@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "domain": "cadence",
+    "description": "Cadence Drift Registry \u2014 tracks Cadence CLI, phase models, and rituals.",
+    "schema_version": "1.0.0",
+    "last_updated": "{{date}}"
+  },
+  "entries": [
+    {
+      "source_file": "scripts/cadence.py",
+      "verified_commit": "{{initial_commit}}",
+      "dependencies": [
+        {
+          "type": "governance",
+          "path": ".agents/rules/cadence-discipline.md",
+          "reason": "CLI must strictly enforce phase validation rules."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/session-start/SKILL.md",
+          "reason": "Session start relies on cadence list/create commands."
+        },
+        {
+          "type": "skill",
+          "path": ".agents/skills/session-wrapup/SKILL.md",
+          "reason": "Session wrapup relies on cadence complete/defer commands."
+        }
+      ]
+    }
+  ]
+}

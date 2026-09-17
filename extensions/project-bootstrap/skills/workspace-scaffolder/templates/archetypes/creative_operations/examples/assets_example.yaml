@@ -1,0 +1,187 @@
+schema_version: "1.0.0"
+catalog_name: "Wonder Media Assets & Camera Reel Ledger"
+description: "Master inventory of camera reels, raw photo batches, multitrack audio sessions, proxies, and checksum verification manifests."
+last_updated: "2026-09-05"
+total_assets: 6
+total_footprint_gb: 801.6
+
+assets:
+  AST-20260810-CASCADE-CAM-A:
+    asset_id: "AST-20260810-CASCADE-CAM-A"
+    project_id: "PRJ-2026-CASCADE-DOC"
+    filename: "CASCADE_DAY01_CAM_A"
+    file_format: ".braw"
+    media_type: "video"
+    codec_profile: "Blackmagic RAW Constant Bitrate 5:1"
+    camera_sensor: "BMPCC 6K Pro"
+    camera_model_full: "Blackmagic Pocket Cinema Camera 6K Pro (Super 35 HDR)"
+    lens_or_mic: "Sigma 24-70mm f/2.8 DG DN Art"
+    source_drive_id: "DRV-001"
+    backup_drive_id: "DRV-002"
+    volume_path: "/Volumes/WonderMedia_01/Footage/2026_EchoesOfTheCascades/Day01/CamA/"
+    proxy_availability: "generated"
+    proxy_format: "DNxHR LB 1080p 23.976fps"
+    edit_status: "in_cut"
+    duration_seconds: 3840.0
+    duration_formatted: "01:04:00"
+    megapixel_count: 21.2
+    color_space_log_gamma: "Blackmagic Design Film Gen 5"
+    resolution: "6144x3456"
+    framerate: 23.976
+    file_count: 42
+    total_size_gb: 285.4
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/WonderMedia_01/Footage/2026_EchoesOfTheCascades/Day01/CamA/manifest.xxh64"
+    backup_status: "mirrored"
+    date_captured: "2026-08-10"
+    notes: "Primary interview A-cam reel; Dr. Aris Thorne interview in Hoh Rainforest research cabin. Dual ISO 3200 baseline. Audio jam-synced with MixPre TC."
+
+  AST-20260810-CASCADE-AUDIO:
+    asset_id: "AST-20260810-CASCADE-AUDIO"
+    project_id: "PRJ-2026-CASCADE-DOC"
+    filename: "CASCADE_DAY01_AUDIO_MIXPRE"
+    file_format: ".wav"
+    media_type: "audio_master"
+    codec_profile: "Broadcast Wave Format (BWF) 32-bit Float Multi-track"
+    camera_sensor: "Sound Devices MixPre-6 II"
+    camera_model_full: "Sound Devices MixPre-6 II (Kashmir Preamps, 32-bit Float A/D)"
+    lens_or_mic: "Sennheiser MKH 416 (Boom) + Sanken COS-11D (Lav)"
+    source_drive_id: "DRV-001"
+    backup_drive_id: "DRV-002"
+    volume_path: "/Volumes/WonderMedia_01/Sound/2026_EchoesOfTheCascades/Day01/"
+    proxy_availability: "not_required"
+    proxy_format: null
+    edit_status: "in_cut"
+    duration_seconds: 4200.0
+    duration_formatted: "01:10:00"
+    megapixel_count: null
+    color_space_log_gamma: "Linear 32-bit Float"
+    resolution: "32-bit Float 48kHz (6 Tracks ISO)"
+    framerate: null
+    file_count: 12
+    total_size_gb: 18.2
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/WonderMedia_01/Sound/2026_EchoesOfTheCascades/Day01/manifest.xxh64"
+    backup_status: "mirrored"
+    date_captured: "2026-08-10"
+    notes: "Multitrack field recording of interview dialogue and forest ambiances. 32-bit float tracks protected against rain burst transients. Timecode synced via Tentacle Sync E."
+
+  AST-20260811-CASCADE-DRONE:
+    asset_id: "AST-20260811-CASCADE-DRONE"
+    project_id: "PRJ-2026-CASCADE-DOC"
+    filename: "CASCADE_DAY02_DRONE_MOV"
+    file_format: ".mov"
+    media_type: "video"
+    codec_profile: "Apple ProRes 422 HQ (10-bit All-Intra)"
+    camera_sensor: "DJI Inspire 3 / X9-8K Air"
+    camera_model_full: "DJI Inspire 3 with Zenmuse X9-8K Air Full-Frame Gimbal Camera"
+    lens_or_mic: "DJI DL 24mm F2.8 LS ASPH"
+    source_drive_id: "DRV-001"
+    backup_drive_id: "DRV-002"
+    volume_path: "/Volumes/WonderMedia_01/Footage/2026_EchoesOfTheCascades/Day02/Drone/"
+    proxy_availability: "generated"
+    proxy_format: "1080p ProRes Proxy"
+    edit_status: "in_cut"
+    duration_seconds: 1260.0
+    duration_formatted: "00:21:00"
+    megapixel_count: 35.4
+    color_space_log_gamma: "DJI D-Log / D-Gamut"
+    resolution: "8192x4320"
+    framerate: 23.976
+    file_count: 18
+    total_size_gb: 194.0
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/WonderMedia_01/Footage/2026_EchoesOfTheCascades/Day02/Drone/manifest.xxh64"
+    backup_status: "mirrored"
+    date_captured: "2026-08-11"
+    notes: "High-altitude canopy flyover reels over old growth Douglas firs at morning sunrise. 8K master scaled down to 4K in DaVinci timeline."
+
+  AST-20260825-PACIFIC-ARCH-RAW:
+    asset_id: "AST-20260825-PACIFIC-ARCH-RAW"
+    project_id: "PRJ-2026-PACIFIC-ARCH"
+    filename: "PACIFIC_ARCH_DAY01_SONY"
+    file_format: ".arw"
+    media_type: "raw_photo"
+    codec_profile: "Sony Lossless Compressed RAW 14-bit"
+    camera_sensor: "Sony A7R V"
+    camera_model_full: "Sony Alpha 7R V (61.0 MP Full-Frame Exmor R BSI CMOS)"
+    lens_or_mic: "Sony FE 12-24mm f/2.8 GM & Canon TS-E 24mm f/3.5L II (Shift Adapter)"
+    source_drive_id: "DRV-001"
+    backup_drive_id: "DRV-002"
+    volume_path: "/Volumes/WonderMedia_01/Photo/Raw/2026_PacificArch/Day01/"
+    proxy_availability: "generated"
+    proxy_format: "Lightroom Smart Previews (.lrdata)"
+    edit_status: "culled"
+    duration_seconds: null
+    duration_formatted: null
+    megapixel_count: 61.0
+    color_space_log_gamma: "Sony Lossless RAW / Wide Color Gamut"
+    resolution: "9504x6336"
+    framerate: null
+    file_count: 348
+    total_size_gb: 28.6
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/WonderMedia_01/Photo/Raw/2026_PacificArch/Day01/manifest.xxh64"
+    backup_status: "mirrored"
+    date_captured: "2026-08-25"
+    notes: "Architectural exterior elevation brackets and dusk interior captures. Pass 1 culled from 348 down to 82 selects. Smart Previews built for offline travel editing."
+
+  AST-20260818-SIERRA-CR3:
+    asset_id: "AST-20260818-SIERRA-CR3"
+    project_id: "PRJ-2026-WILD-PORTRAITS"
+    filename: "HIGH_SIERRA_WILD_CARD01"
+    file_format: ".cr3"
+    media_type: "raw_photo"
+    codec_profile: "Canon Dual Pixel RAW 14-bit"
+    camera_sensor: "Canon R5"
+    camera_model_full: "Canon EOS R5 (45.0 MP Full-Frame CMOS Dual Pixel AF II)"
+    lens_or_mic: "Canon RF 400mm f/2.8L IS USM + Extender RF 1.4x"
+    source_drive_id: "DRV-001"
+    backup_drive_id: "DRV-002"
+    volume_path: "/Volumes/WonderMedia_01/Photo/Raw/2026_HighSierra/Card01/"
+    proxy_availability: "pending"
+    proxy_format: "Lightroom 1:1 Previews Pending"
+    edit_status: "unreviewed"
+    duration_seconds: null
+    duration_formatted: null
+    megapixel_count: 45.0
+    color_space_log_gamma: "Canon RAW 14-bit"
+    resolution: "8192x5464"
+    framerate: null
+    file_count: 580
+    total_size_gb: 26.8
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/WonderMedia_01/Photo/Raw/2026_HighSierra/Card01/manifest.xxh64"
+    backup_status: "mirrored"
+    date_captured: "2026-08-18"
+    notes: "High-burst wildlife action sequences of Sierra bighorn sheep in Tioga Pass. Card offloaded to FieldShuttle_SSD then mirrored to WonderMedia_01."
+
+  AST-20260701-NEON-PRORES:
+    asset_id: "AST-20260701-NEON-PRORES"
+    project_id: "PRJ-2026-NEON-SYNTH"
+    filename: "NEON_PULSE_A_ROLL_PRORES"
+    file_format: ".mov"
+    media_type: "video"
+    codec_profile: "Apple ProRes 4444 XQ (12-bit RGB)"
+    camera_sensor: "Sony FX3"
+    camera_model_full: "Sony FX3 Cinema Line (Full-Frame Exmor R) + Atomos Ninja V+"
+    lens_or_mic: "Sony FE 50mm f/1.2 GM"
+    source_drive_id: "DRV-002"
+    backup_drive_id: "DRV-003"
+    volume_path: "/Volumes/ArchiveVault_A/Footage/2026_NeonPulse/ARoll/"
+    proxy_availability: "not_required"
+    proxy_format: "ProRes 4444 XQ Native Playback"
+    edit_status: "archived"
+    duration_seconds: 1890.0
+    duration_formatted: "00:31:30"
+    megapixel_count: 8.3
+    color_space_log_gamma: "Sony S-Gamut3.Cine / S-Log3"
+    resolution: "3840x2160"
+    framerate: 24.0
+    file_count: 28
+    total_size_gb: 248.6
+    checksum_type: "xxHash64"
+    checksum_manifest_path: "/Volumes/ArchiveVault_A/Footage/2026_NeonPulse/ARoll/manifest.xxh64"
+    backup_status: "archived"
+    date_captured: "2026-07-01"
+    notes: "Synthesizer studio performance. Low light neon grading. Post-production completed and project archived to Tier 2 nearline and Tier 3 cold offsite."

@@ -1,0 +1,6 @@
+schema_version: 1
+catalog_name: "{{project_name}} Projects Catalog"
+last_updated: "{{date}}"
+status: pre_audit_uninitialized
+total_projects: 0
+projects: {}

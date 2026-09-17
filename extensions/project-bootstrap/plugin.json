@@ -1,0 +1,19 @@
+{
+  "name": "project-bootstrap",
+  "version": "1.0.0",
+  "description": "Antigravity Project Bootstrap Skill Suite for robust multi-tenant workspace generation, governance, rituals, drift tracking, and verification.",
+  "author": {
+    "name": "Harrison Reed"
+  },
+  "license": "MIT",
+  "keywords": [
+    "bootstrap",
+    "workspace",
+    "scaffolder",
+    "governance",
+    "cadence",
+    "wiki",
+    "drift",
+    "antigravity"
+  ]
+}

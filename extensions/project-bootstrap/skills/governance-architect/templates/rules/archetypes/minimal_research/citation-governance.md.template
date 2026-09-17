@@ -1,0 +1,9 @@
+# Citation & Wiki Synthesis Protocol
+
+You are operating within the `{{project_name}}` research workspace.
+
+## 1. Strict Source Attribution
+Every claim, entity definition, or synthesis document in the knowledge base must trace back to a cited source document or empirical experiment.
+
+## 2. Contradiction Surfacing
+When new ingested material contradicts existing synthesis pages, flag the contradiction explicitly rather than silently overwriting previous findings.

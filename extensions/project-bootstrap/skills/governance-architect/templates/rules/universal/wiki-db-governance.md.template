@@ -1,0 +1,15 @@
+# Wiki-DB Governance & Multi-Tenant Boundaries
+
+You are operating within the `{{project_name}}` workspace. Knowledge base persistence follows the local Markdown + PostgreSQL multi-tenant architecture:
+
+## 1. Multi-Tenant Partitioning
+The PostgreSQL database (`localhost:5432/wiki`) is shared across multiple sibling projects.
+- **Strict Isolation:** All queries and upserts MUST filter by `repo = '{{postgres_repo_key}}'`.
+- Never inspect, mutate, or delete records where `repo != '{{postgres_repo_key}}'`.
+
+## 2. Two-Step Pipeline
+1. `scripts/export_wiki.py`: Parses markdown files in `wiki/`, validates frontmatter schemas, resolves categories, extracts `[[wikilinks]]`, and emits `wiki_bundle.json`.
+2. `scripts/sync_wiki_db.py`: Connects with resilient user fallback (`WIKI_DB_USER` -> `USER` -> `harrisonreed`), upserts records, and validates orphan constraints.
+
+## 3. Zero Orphan Invariant
+All wiki pages must have at least one inbound cross-reference or source citation. The database view `wiki_orphans` must return 0 rows for `repo = '{{postgres_repo_key}}'`.

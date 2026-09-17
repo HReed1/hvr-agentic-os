@@ -1,0 +1,118 @@
+---
+name: session-start
+description: Structured session initialization ritual. Run at the beginning of each working session to establish focus, review active sprints, probe live endpoints, and create daily goals.
+---
+
+# Session Start — {{project_name}} Cadence Ritual
+
+> **Trigger:** Run this workflow at the beginning of each working session (`[/session-start]`).  
+> **Purpose:** Replace fragmented cold starts with a structured ritual that grounds the agent in the project landscape, synchronizes knowledge bases, checks active sprints, and activates trackable daily goals.
+
+---
+
+## Step 0: Load Core Context & Safety Governance
+
+Before taking any action or planning work, inspect the following core operational guides:
+1. **System Overview**: Read `wiki/overview.md` to establish current project state, active pipelines, and architecture.
+2. **Domain Safety Governance**: Read `.agents/rules/domain-safety-governance.md` to internalize the **Zero-Mutation Invariant** (on-disk structure 100% untouched; virtual ledger management) and the **Zero-Byte-Shift / Non-Hydration Invariant** (never write to targets, never force-download cloud stubs).
+3. **Current Ledgers**: Check `ledger/drives.yaml` to see which physical drives or cloud repositories are currently cataloged.
+
+If `wiki/overview.md` mentions active blockers or un-culled items, surface them to the user during the opening briefing.
+
+---
+
+## Step 0.5: Synchronize Wiki and Database Index
+
+Ensure the local Obsidian filesystem and local PostgreSQL index are synchronized:
+
+```bash
+# 1. Export markdown frontmatter and wikilinks to JSON bundle
+python3 scripts/export_wiki.py
+
+# 2. Synchronize PostgreSQL database under repo = '{{postgres_repo_key}}'
+python3 scripts/sync_wiki_db.py
+```
+
+Verify that `SELECT * FROM wiki_orphans WHERE repo = '{{postgres_repo_key}}'` returns 0 orphans.
+
+---
+
+## Step 1: Check Incomplete Goals from Previous Sessions
+
+Query `{{firestore_collection}}` in Firestore for any daily goals that remain in progress from prior dates:
+
+```bash
+python3 scripts/cadence.py list --scope daily --status in_progress
+```
+
+If incomplete goals exist, prompt the user:
+> *"You have [N] incomplete goal(s) from previous sessions: [Goal Titles]. Would you like to:*  
+> *1. **Roll over** → Continue working on it today*  
+> *2. **Defer** → Reschedule for a future sprint*  
+> *3. **Complete** → Mark as done if finished offline"*
+
+---
+
+## Step 2: Show Weekly Sprint Progress
+
+Display the active weekly deliverables and their progress:
+
+```bash
+python3 scripts/cadence.py list --scope weekly --status in_progress
+```
+
+Summarize:
+- Weekly deliverable titles and current phases
+- Number of daily tasks completed toward each weekly goal
+
+---
+
+## Step 3: Check Monthly Strategic Milestones
+
+Review active high-level milestones:
+
+```bash
+python3 scripts/cadence.py list --scope monthly --status in_progress
+```
+
+Confirm that today's intended work aligns with at least one active strategic milestone.
+
+---
+
+## Step 4: Environmental & Endpoint Discovery
+
+Probe connected physical storage volumes and cloud repository endpoints:
+
+1. Check mounted external volumes in `/Volumes/` and cloud roots in `~/Library/CloudStorage/`.
+2. Compare detected volumes against `ledger/drives.yaml`.
+3. If an uncataloged drive or storage volume is mounted, flag it:
+   > *"Discovered new volume: `/Volumes/[VolumeName]`. Would you like to catalog it now?"*
+
+---
+
+## Step 5: Establish Today's Focus & Create Daily Goal
+
+Ask the user:
+> *"What is our primary focus for today's session?"*
+
+Once the user provides the focus, create a new daily goal in Firestore:
+
+```bash
+python3 scripts/cadence.py create \
+  --title "<Goal Title>" \
+  --scope daily \
+  --phase {{default_phase}} \
+  --parent <sprint_id>
+```
+
+---
+
+## Step 6: Activate Today's Goal
+
+Activate the goal to signal session work has begun:
+
+```bash
+python3 scripts/cadence.py advance <goal_id> --phase {{default_phase}}
+```
+
+Provide a crisp session kickoff briefing and begin execution.

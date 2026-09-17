@@ -1,0 +1,17 @@
+# Cadence Discipline & Goal Governance
+
+You are operating within the `{{project_name}}` workspace. Goal planning and execution follow the Cadence 3-Tier Hierarchy in Firestore collection `{{firestore_collection}}`:
+
+## 1. Three-Tier Hierarchy
+1. **Monthly Milestones**: High-level strategic objectives delivering measurable value.
+2. **Weekly Sprints**: Operational deliverables decomposed into focus tasks.
+3. **Daily Sessions**: Atomic goals executed during single focused working sessions.
+
+## 2. Phase Lifecycles
+Goals transition through validated archetype phases. Invalid phases are strictly rejected by `scripts/cadence.py` with exit code 1.
+- Daily goals must link to an active weekly sprint or monthly milestone where applicable.
+- Cross-domain or backwards phase transitions require the `--force` flag with explicit rationale.
+
+## 3. Session Boundaries
+- At the start of every session (`[/session-start]`), review previous incomplete goals and activate today's focus.
+- At the end of every session (`[/session-wrapup]`), mark completed goals, defer unfinished items, and record outcomes in `wiki/log.md`.

@@ -1,0 +1,19 @@
+# Drift Detection Governance & Stamping Discipline
+
+You are operating within the `{{project_name}}` workspace. The drift detection system tracks dependencies between code, ledgers, documentation, and agent rules via machine-readable JSON registries in `docs/drift_registries/`.
+
+## 1. Registry Architecture
+- `wiki.json`: Maps wiki concept and entity pages to their source documents.
+- `cadence.json`: Maps Cadence CLI and phase schemas to governance files.
+- `governance.json`: Maps rules and constitutions to scripts and test suites.
+
+## 2. Enforcer Tooling
+Run `python3 scripts/drift_enforcer.py` to compare current git commit hashes against `verified_commit` in each registry.
+- Exits with return code 0 if all tracked files match their verified commit baselines.
+- Exits with return code 1 if drift is detected.
+
+## 3. Stamping Discipline
+Drift stamps are **deliberate, infrequent boundary markers**:
+- **Stamp only** at the end of a working session (during `[/session-wrapup]`), after completing a cohesive milestone, or before tagging a release.
+- **Do NOT stamp** autonomously after each individual file edit, multiple times during a single session, or when drift output reveals contract violations.
+- The `[/session-wrapup]` ritual is the single approved stamping point.
