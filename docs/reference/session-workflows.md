@@ -187,7 +187,7 @@ description: Automates end-of-session by committing changes, enforcing
 
 1. Review the work accomplished during the session.
 2. Create a new markdown file in `docs/retrospectives/` named
-   `YYYY-MM-DD-brief-description.md`.
+   `YYYY-MM-DD_brief_description.md` (snake_case, e.g. `2026-08-11_readme_restructuring.md`).
 3. Include:
    - **Context/Objective:** What was the goal?
    - **Key Accomplishments:** Bulleted list of what was achieved
@@ -223,7 +223,23 @@ If the session was significant:
    ```
 7. Update `docs/drift_registries/wiki.json` with any new/modified wiki
    page entries.
-8. Optionally update `wiki/overview.md` if the session changes the
+8. Sync the wiki database:
+   ```bash
+   # Batch sync all pages
+   python3 scripts/wiki_db_backfill.py --repo your-repo --wiki-dir wiki
+   ```
+   Then log the ingest activity:
+   ```bash
+   psql -h localhost -p 5432 -d wiki -c "
+   INSERT INTO wiki_activity (repo, action, target, summary, pages_created, pages_updated)
+   VALUES ('your-repo', 'ingest', 'docs/retrospectives/YYYY-MM-DD_description.md',
+           'Session wrapup wiki ingest', 0, N);
+   "
+   ```
+   > [!CAUTION]
+   > The `wiki-db` MCP server is **read-only**. All database writes must
+   > go through `psql` CLI or `scripts/wiki_db_backfill.py`.
+9. Optionally update `wiki/overview.md` if the session changes the
    project's big picture.
 
 ## Step 5: Commit Documentation & Registries
@@ -248,6 +264,7 @@ If the session was significant:
    - Drift evaluated (and stamped if necessary)
    - Retrospective generated and committed
    - Wiki updated (if applicable)
+   - Any carryover items for the next session
 ```
 
 ## Agent schema protocol

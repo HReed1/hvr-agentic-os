@@ -16,17 +16,22 @@ tags:
 | Page | Summary | Sources |
 |------|---------|:-------:|
 | [[agentic-os]] | The Zero-Trust Multi-Agent OS built on Google ADK — the project itself | 2 |
+| [[ast-context-mcp]] | FastMCP server providing AST-based code parsing — ~75% token reduction (mock-projected) | 3 |
+| [[context-benchmarking]] | Deterministic simulation framework for AST-guided context savings (mock LLM, 3 modules missing) | 2 |
 | [[director-agent]] | Top-level orchestration node with macro-loop retry logic | 3 |
-| [[executor-agent]] | Code mutation engine constrained by TDAID chronological mandates | 3 |
-| [[qa-engineer-agent]] | Adversarial test gate and spec author under Spec-Driven TDD | 3 |
-| [[zero-trust-auditor]] | Final deployment gate — complexity, HMAC, AST, and CVE verification | 2 |
-| [[staging-airlock]] | The `.staging/` sandbox air-gap where all agent code executes | 2 |
-| [[zero-trust-interceptors]] | `zero_trust.py` monkeypatches — signal routing, loop termination, PHI scrubbing | 3 |
 | [[dlp-proxy]] | PHI/HIPAA redaction interceptor stripping genomic data from LLM context | 2 |
-| [[evaluation-framework]] | Automated benchmarking infrastructure — `adk eval`, bash runners, scorecards | 4 |
-| [[telemetry-engine]] | Trace extraction, token counting, and evaluation reporting subsystem | 2 |
-| [[seqera-ai-integration]] | First Antigravity × Seqera AI cross-agent integration for Nextflow/nf-core | 1 |
+| [[drift-enforcer]] | Python script enforcing architectural dependency contracts via git-hash tracking | 3 |
 | [[drift-registry]] | Cross-file dependency tracking via `drift_enforcer.py` | 1 |
+| [[evaluation-framework]] | Automated benchmarking infrastructure — `adk eval`, bash runners, scorecards | 4 |
+| [[executor-agent]] | Code mutation engine constrained by TDAID chronological mandates | 3 |
+| [[llm-wiki]] | Postgres-backed LLM Wiki — compounding knowledge base (Karpathy pattern) | 2 |
+| [[qa-engineer-agent]] | Adversarial test gate and spec author under Spec-Driven TDD | 3 |
+| [[seqera-ai-integration]] | First Antigravity × Seqera AI cross-agent integration for Nextflow/nf-core | 1 |
+| [[session-lifecycle]] | Structured session workflows — `/session-start` and `/session-wrapup` | 3 |
+| [[staging-airlock]] | The `.staging/` sandbox air-gap where all agent code executes | 2 |
+| [[telemetry-engine]] | Trace extraction, token counting, and evaluation reporting subsystem | 2 |
+| [[zero-trust-auditor]] | Final deployment gate — complexity, HMAC, AST, and CVE verification | 2 |
+| [[zero-trust-interceptors]] | `zero_trust.py` monkeypatches — signal routing, loop termination, PHI scrubbing | 3 |
 
 ## Concepts
 

@@ -10,9 +10,10 @@ LLM agents don't accumulate institutional memory between sessions. These registr
 
 | Registry | Domain | What it tracks |
 |----------|--------|----------------|
-| `agent.json` | Agent governance | Agent rules, skills, and workflows ↔ the source files they govern |
+| `agent.json` | Agent governance | Agent rules and skills ↔ the source files they govern |
 | `infra.json` | Infrastructure | Dockerfiles ↔ requirements ↔ CI configs ↔ build scripts |
 | `docs.json` | Documentation | Docs ↔ the source code they describe |
+| `wiki.json` | Wiki knowledge base | Wiki pages ↔ source documents they synthesize and consumers |
 
 ## Usage
 

@@ -134,6 +134,7 @@ Each registry file is a JSON object with an `entries` array:
 | `describes` | Documentation describing source behavior | README describes how the API works |
 | `source-of-truth` | Canonical source for a derived file | OpenAPI spec is the source for generated types |
 | `synthesized-from` | Wiki page built from a source doc | Wiki entity page synthesized from architecture doc |
+| `consumed-by` | Downstream file that reads/depends on source | Session-wrapup workflow appends to wiki log |
 
 **For agent governance** (`agent.json` only):
 

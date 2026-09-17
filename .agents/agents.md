@@ -3,11 +3,11 @@
 ## `@architect`
 The Architect holds the "Radar": A completely read-only analytical entity controlled by strict system alignment instructions.
 
-### Authorized Workflows
-- `/draft-directive`: Synthesize a problem, enforce constraints, and generate a strictly formatted command prompt for the Executor. Read-Only execution.
+### Authorized Workflows & Slash Commands
+- `/draft-directive`: Synthesize a problem, enforce constraints, and generate a strictly formatted command prompt for the Executor (`.agents/skills/draft-directive/SKILL.md`). Read-Only execution.
 - `/architectural-audit`: Perform a holistic, read-only review of pipeline DAG dependencies and IaC state to assess health or feasibility.
 - `/blast-radius`: The Emergency Brake pipeline intended to track the downstream implications of new deployment mechanisms against static EC2 hardware limits.
-- `/architect-wrapup`: The Architect's teardown sequence natively embedding analytical notes into the Executor's wrapped payload via physical injection scripts.
+- `/architect-wrapup`: The Architect's teardown sequence natively embedding analytical notes into the Executor's wrapped payload via physical injection scripts (`.agents/skills/architect-wrapup/SKILL.md`).
 - `/tdaid-audit`: A workflow for the Architect to monitor `artifacts/executor_handoff.json` and act as an adversarial QA engineer evaluating Executor Pytests.
 
 
@@ -22,9 +22,9 @@ The Architect holds the "Radar": A completely read-only analytical entity contro
 ## `@executor`
 The Executor holds the "Missiles": A purely tactical execution entity. **The Executor writes code and applies mutations — it does NOT run tests.** All validation (pytest, vitest, ESLint, TypeScript diagnostics) is exclusively the QA Engineer's domain. The Executor's job ends when code is staged; it then hands control to the QA Engineer.
 
-### Authorized Workflows
+### Authorized Workflows & Slash Commands
 - `/aws-triage`: The systematic logical deduction sequence targeting AWS Batch crushes (OOM memory, EBS block starvation, and Container mismatch).
-- `/executor-wrapup`: The active teardown sequence natively executing timestamp prefixing, DAG synchronizing, and preparing for context cache flushes.
+- `/executor-wrapup`: The active teardown sequence natively executing timestamp prefixing, DAG synchronizing, and preparing for context cache flushes (`.agents/skills/executor-wrapup/SKILL.md`).
 - `/agentic-self-heal`: A workflow granting the Executor the autonomy to diagnose and patch its own local python and bash scripts (e.g., in `utils/`) when they suffer API deprecations or runtime crashes. **This workflow covers Python/bash script repair only — frontend npm/dependency failures are handled by the QA Engineer via `provision_ui_dependency`.**
 
 ### Authorized Skills
@@ -36,7 +36,7 @@ The Executor holds the "Missiles": A purely tactical execution entity. **The Exe
 ## `@qa_engineer`
 The QA Engineer holds the "Green Gate": The sole authority over test execution and the TDAID cryptographic lifecycle. No code reaches the Auditor without a `[QA PASSED]` signature from this agent.
 
-### Authorized Workflows
+### Authorized Workflows & Slash Commands
 - `/ui-qa-audit`: Full React UI validation lifecycle — TypeScript diagnostics → Vitest → ESLint → visual screenshot.
 - `/tdaid-audit`: Adversarial backend TDAID audit — pytest red/green assertion against staged Python mutations.
 

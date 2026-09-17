@@ -10,7 +10,8 @@ tags:
 sources:
   - "[[docs/retrospectives/2026-04-23_hvr_agentic_os_meta_retrospective.md]]"
   - "[[docs/retrospectives/2026-04-23_agentic_os_drift_analysis.md]]"
-last_ingested: 2026-06-02
+  - "[[docs/retrospectives/2026-09-07_workflow_to_skill_migration.md]]"
+last_ingested: 2026-09-07
 ---
 
 # hvr-agentic-os
@@ -34,7 +35,7 @@ The project evolved through five major eras:
 ## Core Components
 
 - **`agent_app/`** — The Python package containing agents, prompts, tools, and zero-trust interceptors.
-- **`.agents/`** — Rules, workflows, skills, and memory ledgers governing the swarm.
+- **`.agents/`** — Rules, skills, and memory ledgers governing the swarm (with legacy workflows migrated to modern skills).
 - **`.staging/`** — The sandboxed airlock where all agent-generated code executes before promotion.
 - **`tests/adk_evals/`** — The evaluation matrix driving automated benchmarks.
 - **`bin/`** — Bash orchestration scripts for benchmarking, evaluation, and CI/CD.

@@ -14,3 +14,31 @@ GHSA-xqmj-j6mv-4862
 # CI runner's pip version is managed by GitHub Actions, not our requirements.txt.
 # No fix version available yet. Does not affect application runtime.
 CVE-2026-3219
+
+# google-adk CVE — unauthenticated remote code injection in ADK Web server.
+# google-adk is used exclusively as a localized headless execution framework
+# for offline agent evaluations and sandbox tooling — no ADK Web UI or server is
+# exposed to public/untrusted networks.
+# Ref: cicd-hygiene.md §3 — mute unexploitable CVEs trapped inside Zero-Trust VPC.
+PYSEC-2026-344
+
+# nltk CVE — file sandbox bypass in model-artifact persistence APIs.
+# Transitive dependency of google-adk[eval] via rouge-score>=0.1.2.
+# Upstream status: "Not yet patched" (no fix version available).
+# NLTK model-artifact persistence APIs are never invoked in our application runtime.
+PYSEC-2026-3740
+
+# starlette CVEs — pinned at <1.0.0 by google-adk (starlette>=0.49.1, <1.0.0).
+# Upgrading to Starlette >=1.0.1/1.1.0/1.3.0/1.3.1 is prevented by google-adk dependency constraints.
+# All vulnerabilities are unexploitable within our Zero-Trust architecture:
+# - PYSEC-2026-161: Host header path injection (our APIs use internal routing, no host-path auth middleware)
+# - PYSEC-2026-2281: Windows UNC path SSRF via StaticFiles (we run exclusively on POSIX/Linux, unaffected)
+# - PYSEC-2026-2280: HTTPEndpoint method dispatch (we use FastAPI router decorators with explicit HTTP methods)
+# - PYSEC-2026-249: Form-data DoS on urlencoded bodies (APIs accept only JSON payloads from internal clients)
+# - PYSEC-2026-248: Request path lacking leading slash (we do not use request.url.hostname for security decisions)
+PYSEC-2026-161
+PYSEC-2026-2281
+PYSEC-2026-2280
+PYSEC-2026-249
+PYSEC-2026-248
+
