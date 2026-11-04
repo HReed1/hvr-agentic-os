@@ -555,14 +555,40 @@
       "verified_commit": null,
       "dependencies": [
         {
-          "type": "synthesized-from",
-          "path": "extensions/project-bootstrap/README.md",
-          "reason": "Extension documentation provides the architectural specification and usage instructions."
+          "type": "superseded-by",
+          "path": "wiki/entities/ai-engineering-scaffold.md",
+          "reason": "Superseded stub must keep pointing at the replacement page and stay consistent with its description of the retirement."
         },
         {
           "type": "synthesized-from",
-          "path": "extensions/project-bootstrap/extension.mjs",
-          "reason": "Extension entry point defines registered tools and lifecycle hooks."
+          "path": "docs/retrospectives/2026-11-04_harness_agnostic_scaffold_and_plugin.md",
+          "reason": "Retrospective documents why the extension was retired."
+        }
+      ]
+    },
+    {
+      "source_file": "wiki/entities/ai-engineering-scaffold.md",
+      "verified_commit": null,
+      "dependencies": [
+        {
+          "type": "synthesized-from",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "Entity page documents the script's flags, harness mapping, and new/existing repo behavior."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "plugins/ai-engineering-scaffold/README.md",
+          "reason": "Entity page documents the plugin's install destinations per harness."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "scripts/sync_scaffold_plugin.py",
+          "reason": "Entity page describes the canonical-vs-distribution sync guarantee."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-11-04_harness_agnostic_scaffold_and_plugin.md",
+          "reason": "Session retrospective is the provenance source for the page."
         }
       ]
     }

@@ -15,10 +15,11 @@ tags:
 
 | Page | Summary | Sources |
 |------|---------|:-------:|
+| [[ai-engineering-scaffold]] | Harness-agnostic scaffold (`bin/bootstrap_ai_engineering.sh`) and its plugin for Antigravity, Claude Code, Codex, Copilot | 4 |
 | [[agentic-os]] | The Zero-Trust Multi-Agent OS built on Google ADK — the project itself | 2 |
 | [[ast-context-mcp]] | FastMCP server providing AST-based code parsing — ~75% token reduction (mock-projected) | 3 |
 | [[context-benchmarking]] | Deterministic simulation framework for AST-guided context savings (mock LLM, 3 modules missing) | 2 |
-| [[copilot-project-bootstrap]] | GitHub Copilot CLI extension bridging project scaffolding, local SQLite Cadence, and drift checks | 4 |
+| [[copilot-project-bootstrap]] | *Superseded 2026-11-04 by [[ai-engineering-scaffold]]* — former Copilot CLI extension wrapping `bootstrap.py` | 1 |
 | [[director-agent]] | Top-level orchestration node with macro-loop retry logic | 3 |
 | [[dlp-proxy]] | PHI/HIPAA redaction interceptor stripping genomic data from LLM context | 2 |
 | [[drift-enforcer]] | Python script enforcing architectural dependency contracts via git-hash tracking | 3 |
