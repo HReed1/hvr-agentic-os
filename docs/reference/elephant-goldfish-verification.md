@@ -20,7 +20,9 @@ As your primary orchestrator agent (**The Elephant**) accumulates deep session c
 
 ## 2. The Solution: Elephant vs. Goldfish Context Separation
 
-Inspired by Google's open-source **Elephant-Goldfish Model (`EGM`)** and unified with our stateful scaffold, we separate **deep-context authoring** from **zero-context verification**:
+> **Attribution & Provenance:** The **Elephant vs. Goldfish** metaphor and its core review primitives—the Naive-Reader Paraphrase Test (`comprehension.md`), `FeatureRange` vs. `DetailedRange` semantic split, Style Claim Calibration (`DROP | CALIBRATE | RELOCATE | KEEP`), the Zero-Decision Implementation Readiness Standard, and the `CONTEST | ESCALATE | PROPOSE FIX | DECLINE` resolution gate—were created by the authors of Google's open-source [**Elephant-Goldfish Model (`https://github.com/google/elephant-goldfish-model`)**](https://github.com/google/elephant-goldfish-model). In this guide, we adapt and consolidate those primitives (distilling EGM's 7 reviewer personas into 3 mode-polymorphic personas and pairing them with a Two-Track Triage threshold) so they plug directly into our existing 3-pillar **LLM Wiki + Drift Registry + Session/Cadence Workflows** harness.
+
+We separate **deep-context authoring** from **zero-context verification**:
 
 * **The Elephant (Primary Session Agent):** Holds the full session context, loads the `wiki/` overview and `Cadence` goals at `/session-start` (see [`session-workflows.md`](./session-workflows.md)), interviews the human engineer, and writes specifications or code changes to disk.
 * **The Goldfish (Stateless Read-Only Subagents):** Fresh, read-only subagent invocations that receive **zero conversation history** and read **only** the target file on disk (plus explicitly bounded ground-truth files). Because a Goldfish has no memory of what the Elephant *meant* to write, it evaluates only what is *actually written*.
@@ -108,6 +110,11 @@ Spawning subagents on every one-line bug fix wastes tokens and slows engineering
     1. **Code & Symbol Fact-Check:** Verifies every file path, function signature, CLI flag, and schema key cited as current state. **`Contradicts Code = 🔴 Blocker`**.
     2. **Zero-Decision Implementation Readiness:** Flags any step in `DetailedRange` that leaves an architectural, schema, or error-handling decision to the implementer.
   - **`Mode: DRIFT_AUDIT` (Single-Subagent Pre-Stamp Pass):** Invoked at `/session-wrapup` when `scripts/drift_enforcer.py` detects syntactic drift before running `drift_enforcer.py --stamp` (see [`drift-registry.md`](./drift-registry.md)). Compares the source file's `git diff` against its dependent `wiki/` or `README.md` documentation contract—checking **Interface** (signatures/flags), **Invariants** (constraints), **Side Effects** (DB/disk writes), and **Verification** (test commands).
+
+### 4.4 Optional Domain Extension: `goldfish-humanizer.md` ([`.agents/personas/goldfish-humanizer.md`](../../.agents/personas/goldfish-humanizer.md))
+- **Purpose & Provenance:** When using an Elephant agent to co-author public technical articles, essays, or developer documentation, the agent often carries over **"Specification Mode" formatting** and classic LLM writing tells into narrative prose. Adapted from [`blader/humanizer`](https://github.com/blader/humanizer) (MIT License, based on Wikipedia's *"Signs of AI writing"*) and paired with the stateless Goldfish paradigm, `goldfish-humanizer.md` acts as a zero-context technical editor.
+- **Context Boundary:** Reads **only** `TargetFile` and 1–2 human-authored voice benchmark articles (zero chat history, zero internal architecture specs).
+- **What It Catches:** Binary contrast staging (`§1` *"Not X, but Y"*), one-line dramatic closers (`§2`), puffery/importance inflation (`§3`), staged meta-openers (`§4`), em-dash overuse (`§8`), bold-colon bullet lists where narrative paragraphs belong (`§19`), horizontal rule overuse (`§20`), meta-signposting about the document (`§25`), leaked internal audit ticket IDs (`B-01`, `M-05`), and raw ASCII box-drawing art.
 
 ---
 

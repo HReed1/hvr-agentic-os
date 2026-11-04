@@ -28,7 +28,7 @@ The patterns below solve four problems that every LLM-assisted codebase eventual
 | Knowledge evaporates between sessions | **LLM Wiki** — persistent, agent-maintained knowledge base | [llm-wiki-antigravity.md](docs/reference/llm-wiki-antigravity.md) |
 | File changes silently break contracts | **Drift Registry** — machine-readable dependency tracking | [drift-registry.md](docs/reference/drift-registry.md) |
 | Sessions start cold and end without trace | **Session Workflows** — structured open→work→close lifecycle | [session-workflows.md](docs/reference/session-workflows.md) |
-| Single-context agents self-validate unstated assumptions | **Elephant-Goldfish Verification** — stateless zero-context subagent review & epistemic hygiene | [elephant-goldfish-verification.md](docs/reference/elephant-goldfish-verification.md) |
+| Single-context agents self-validate unstated assumptions | **Elephant-Goldfish Verification** — stateless zero-context subagent review & epistemic hygiene *(adapted from [google/elephant-goldfish-model](https://github.com/google/elephant-goldfish-model))* | [elephant-goldfish-verification.md](docs/reference/elephant-goldfish-verification.md) |
 
 These four systems reinforce each other. The wiki accumulates knowledge across sessions, the drift registry protects it from silent breakage, the session workflows ensure both are maintained at every session boundary, and the Elephant-Goldfish subagent gate prevents within-session echo chambers and self-glazing when drafting specs or auditing drifted contracts.
 
