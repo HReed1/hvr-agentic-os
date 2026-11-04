@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": "2026-09-08T02:50:22.663018+00:00",
+    "last_updated": "2026-11-04T21:05:16.729584+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
@@ -43,7 +43,7 @@
     },
     {
       "source_file": "wiki/index.md",
-      "verified_commit": "203d660977119e3e4b6d987a1742214e2138d0d0",
+      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -54,7 +54,7 @@
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
+      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -65,7 +65,7 @@
     },
     {
       "source_file": "wiki/entities/agentic-os.md",
-      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
+      "verified_commit": "a1f5d9a4619eaedbd577977557e9716441a936a6",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -494,7 +494,7 @@
     },
     {
       "source_file": "wiki/entities/session-lifecycle.md",
-      "verified_commit": "736970e40f238a66b4ab44025ff641c7bd4031e6",
+      "verified_commit": "a1f5d9a4619eaedbd577977557e9716441a936a6",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -552,7 +552,7 @@
     },
     {
       "source_file": "wiki/entities/copilot-project-bootstrap.md",
-      "verified_commit": null,
+      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
       "dependencies": [
         {
           "type": "superseded-by",
@@ -568,7 +568,7 @@
     },
     {
       "source_file": "wiki/entities/ai-engineering-scaffold.md",
-      "verified_commit": null,
+      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
       "dependencies": [
         {
           "type": "synthesized-from",

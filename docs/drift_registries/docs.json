@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-09-08T02:50:21.791494+00:00"
+    "last_updated": "2026-11-04T21:05:16.110842+00:00"
   },
   "entries": [
     {
@@ -157,7 +157,7 @@
     },
     {
       "source_file": "docs/reference/elephant-goldfish-verification.md",
-      "verified_commit": null,
+      "verified_commit": "50f34682b18e4810ef0f39132af4c1f9cfe71ed1",
       "dependencies": [
         {
           "type": "mirror",
@@ -173,7 +173,7 @@
     },
     {
       "source_file": "bin/bootstrap_ai_engineering.sh",
-      "verified_commit": null,
+      "verified_commit": "48865b4eb3bcbe7de1077ca2572804218cd4f8ba",
       "dependencies": [
         {
           "type": "documentation",
@@ -209,7 +209,7 @@
     },
     {
       "source_file": "scripts/sync_scaffold_plugin.py",
-      "verified_commit": null,
+      "verified_commit": "48865b4eb3bcbe7de1077ca2572804218cd4f8ba",
       "dependencies": [
         {
           "type": "consumer",
