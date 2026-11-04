@@ -12,9 +12,9 @@ A Zero-Trust multi-agent operating system built on [Google's Agent Development K
 
 1. **A Multi-Agent Swarm** — Four specialized AI agents (Director, Executor, QA Engineer, Auditor) collaborating through strict tool segregation, adversarial verification, and DLP-enforced sandbox boundaries. → [See `agent_app/README.md`](agent_app/README.md)
 
-2. **A Portable AI Engineering Scaffold** — Battle-tested patterns for LLM-maintained knowledge bases, cross-file dependency tracking, and structured session workflows. These work with any LLM agent (Antigravity, Cursor, Claude Code, etc.) and can be adopted into any codebase. → Keep reading.
+2. **A Portable AI Engineering Scaffold** — Battle-tested patterns for LLM-maintained knowledge bases, cross-file dependency tracking, and structured session workflows. Harness-agnostic (Antigravity, Claude Code, Codex, GitHub Copilot) and adoptable into any codebase. → Keep reading.
 
-3. **GitHub Copilot CLI Extension (`extensions/project-bootstrap/`)** — A zero-dependency, enterprise-safe bridge bringing project scaffolding, local SQLite Cadence goal tracking, drift checking, and git guardrails into GitHub Copilot CLI on both **Windows (PowerShell)** and **macOS/Linux**. → [See `extensions/project-bootstrap/README.md`](extensions/project-bootstrap/README.md)
+3. **AI Engineering Scaffold Plugin (`plugins/ai-engineering-scaffold/`)** — The same scaffold packaged for one-command install into Antigravity, Claude Code, Codex, or GitHub Copilot (CLI extension). → [See `plugins/ai-engineering-scaffold/README.md`](plugins/ai-engineering-scaffold/README.md)
 
 
 ---
@@ -54,41 +54,60 @@ These four systems reinforce each other. The wiki accumulates knowledge across s
 - Python 3.11+
 - Git
 - PostgreSQL (optional — for the wiki metadata index)
-- An LLM agent (Antigravity, Cursor, Claude Code, etc.)
+- An LLM agent (Antigravity, Claude Code, Codex, GitHub Copilot, etc.)
 
 ### 1. Bootstrap the Scaffold
 
 ```bash
 chmod +x bin/bootstrap_ai_engineering.sh
-./bin/bootstrap_ai_engineering.sh
+./bin/bootstrap_ai_engineering.sh --harness claude --target-dir /path/to/project
 ```
+
+| Option | Values | Default |
+| :--- | :--- | :--- |
+| `--harness` | `antigravity`, `claude`, `codex`, `copilot`, `all` (comma-separated or repeated) | `antigravity` |
+| `--wiki-db` | `postgres`, `none` | `none` (markdown-only wiki) |
+| `--db-user` / `--db-name` / `--db-host` / `--db-port` | Postgres connection (with `--wiki-db postgres`) | `$USER` / `wiki` / `localhost` / `5432` |
+| `--author` | Name used in retrospectives and wiki pages | `git config user.name` |
+| `--target-dir` | Project to scaffold | current directory |
+
+The harness decides which instruction files and skill directories the agent creates:
+
+| Harness | Instruction files | Skills |
+| :--- | :--- | :--- |
+| `antigravity` | `AGENTS.md` + `GEMINI.md` | `.agents/skills/` |
+| `claude` | `AGENTS.md` + `CLAUDE.md` (imports `@AGENTS.md`) | `.claude/skills/` |
+| `codex` | `AGENTS.md` only (kept under Codex's 32 KiB limit) | `.agents/skills/` |
+| `copilot` | `AGENTS.md` + `.github/copilot-instructions.md` | `.agents/skills/` |
 
 This creates:
 - `wiki/` — Directory structure for the LLM-maintained knowledge base
 - `docs/drift_registries/` — Empty registry templates
 - `docs/retrospectives/` — Session retrospective archive
 - `.agents/` — Agent governance (skills, rules)
-- `scripts/` — Utility scripts (drift enforcer)
+- `docs/reference/` — The four reference guides (copied in when scaffolding another repo)
+- `scripts/` — Utility scripts (drift enforcer; wiki DB scripts with `--wiki-db postgres`)
+- `.agents/scaffold-config.json` — The chosen harness, DB, and author settings
 
 The script is idempotent — run it multiple times safely.
 
 ### 2. Feed the Reference Guides to Your LLM
 
-The bootstrap script prints an **LLM Ingest Prompt** at the end. Copy it and paste it into your LLM agent. It instructs the agent to read and implement the four reference guides in order:
+The bootstrap script prints an **LLM Ingest Prompt** at the end, tailored to your harness and settings. Copy it and paste it into your LLM agent. It instructs the agent to read and implement the four reference guides in order:
 
 1. **[LLM Wiki](docs/reference/llm-wiki-antigravity.md)** — Sets up wiki conventions, page templates, ingest/query/lint workflows, and (optionally) the Postgres metadata index
 2. **[Drift Registry](docs/reference/drift-registry.md)** — Sets up dependency tracking, the enforcer script, and registry schemas
 3. **[Session Workflows](docs/reference/session-workflows.md)** — Sets up `/session-start` and `/session-wrapup` workflows that tie the wiki and drift registry together
 4. **[Elephant-Goldfish Verification](docs/reference/elephant-goldfish-verification.md)** — Sets up `.agents/rules/no-glazing-and-epistemic-hygiene.md`, the 3 stateless Goldfish reviewer personas (`.agents/personas/goldfish-*.md`), and the `/goldfish-review` subagent verification skill
 
-After ingestion, your agent will have created the `GEMINI.md` rules (or equivalent agent instructions), skills (including slash-command workflows), and governance structure for your project.
+After ingestion, your agent will have created `AGENTS.md` plus its harness-specific instruction file, skills (including slash-command workflows), and governance structure for your project.
 
 ### 3. Initialize the Wiki Database (Optional)
 
-If you have PostgreSQL available and want the metadata index:
+If you bootstrapped with `--wiki-db postgres`, the ingest prompt has the agent run this with your connection settings:
 
 ```bash
-python3 scripts/wiki_db_init.py
+python3 scripts/wiki_db_init.py --database wiki --host localhost --port 5432 --user "$USER"
 ```
 
 This creates the `wiki` database with tables for page metadata, cross-references, and activity logging. The wiki works without the database (it's just markdown files), but the database enables fast SQL queries across all pages.
@@ -113,15 +132,59 @@ The agent commits your work, enforces drift checks, generates a retrospective, a
 
 ## Adopting the Scaffold in Your Own Repos
 
-The AI Engineering scaffold is designed to be portable. To adopt it in another repository:
+The scaffold is portable: it works in a brand-new repository or an existing one, with whichever agent harness you already use. There are two steps: **get the scaffold** (install the plugin, or just clone this repo), then **apply it** to your project.
 
-1. **Copy the reference guides** — Place the three files from `docs/reference/` into your target repo
-2. **Copy the bootstrap script** — Place `bin/bootstrap_ai_engineering.sh` in your target repo
-3. **Copy the drift enforcer** — Place `scripts/drift_enforcer.py` in your target repo
-4. **Run the bootstrap** — Execute the script, then feed the ingest prompt to your LLM agent
-5. **Start working** — Use `/session-start` and `/session-wrapup` to structure your sessions
+### Step 1: Install the Plugin Using Your Current Harness
 
-The agent handles everything else: creating the wiki, setting up registries, writing governance rules, and maintaining the knowledge base as you work.
+You don't need to install anything by hand. Paste the matching request into the agent you already use; it clones this repo and links the plugin into its own harness. Approve the commands when it asks (it writes outside your project, to your home directory).
+
+| Your harness | What to tell your agent |
+| :--- | :--- |
+| **Antigravity** | *"Clone https://github.com/HReed1/hvr-agentic-os to ~/Projects/hvr-agentic-os (skip if it's already there) and run `plugins/ai-engineering-scaffold/install.sh --harness antigravity`."* |
+| **Claude Code** | Type `/plugin marketplace add HReed1/hvr-agentic-os`, then `/plugin install ai-engineering-scaffold@hvr-agentic-os`. Or tell Claude: *"Clone https://github.com/HReed1/hvr-agentic-os and run `plugins/ai-engineering-scaffold/install.sh --harness claude`."* |
+| **OpenAI Codex** | *"Clone https://github.com/HReed1/hvr-agentic-os to ~/Projects/hvr-agentic-os and run `plugins/ai-engineering-scaffold/install.sh --harness codex`."* (Codex's sandbox will ask to allow network access and writes to `~/.agents/skills/`.) |
+| **GitHub Copilot** | *"Clone https://github.com/HReed1/hvr-agentic-os to ~/Projects/hvr-agentic-os and run `plugins/ai-engineering-scaffold/install.sh --harness copilot`."* |
+
+Then **restart the agent session** so it discovers the new `bootstrap-ai-engineering` skill. Using several harnesses? Pass `--harness all` (or a comma-separated list). To update later, `git pull` the clone — installs are symlinks.
+
+> [!TIP]
+> **No plugin, no problem.** Every step below also works by running the script from a clone and pasting its printed prompt into any agent: `~/Projects/hvr-agentic-os/bin/bootstrap_ai_engineering.sh --harness <harness> --target-dir <project>`.
+
+### Step 2a: Start a New Repository From Scratch
+
+```bash
+mkdir my-project && cd my-project && git init
+```
+
+Open your agent in `my-project/` and say:
+
+> *"Bootstrap the AI engineering scaffold in this repo. It's a new project: <one or two sentences about what it will build or manage>."*
+
+The script detects an empty project and has the agent ask for (or use) your description to write `wiki/overview.md`, then create `AGENTS.md` + your harness's instruction file, the drift registries, the session-start / session-wrapup skills, and the Goldfish review personas. If you skipped `git init`, the script warns you and the agent initializes git before verifying the drift enforcer.
+
+### Step 2b: Initialize an Existing Repository
+
+Commit or stash your work first so you can review exactly what changes:
+
+```bash
+cd my-existing-repo && git status   # clean working tree
+```
+
+Open your agent in the repo and say:
+
+> *"Bootstrap the AI engineering scaffold in this repo. It's an existing project — keep my current instructions and docs, and seed the wiki from what's already here."*
+
+The script never overwrites existing files, and it detects existing content (README, `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`, tracked files). The ingest prompt then switches to **integration mode**: the agent appends protocol sections to `AGENTS.md` instead of replacing it, only adds the import/pointer lines your harness needs to existing instruction files, seeds `wiki/` from your README, `docs/`, and code layout, registers real cross-file dependencies in `docs/drift_registries/`, and finishes with a list of every pre-existing file it touched. Review with `git diff` before committing.
+
+### Options Worth Knowing
+
+Mention these in your request (or pass them to the script) when they apply:
+
+- **Postgres wiki index:** *"use the Postgres wiki index as user `<db-user>`"* → `--wiki-db postgres --db-user <db-user>` (default is a markdown-only wiki).
+- **Author name:** *"author is `<name>`"* → `--author "<name>"` (default: `git config user.name`).
+- **Task tracking (e.g. Cadence, Jira, Linear):** not included by default — the scaffold never assumes an external tracker. Ask your agent to wire one into the session-start/session-wrapup skills afterward (see [session-workflows.md](docs/reference/session-workflows.md)).
+
+Once bootstrapped, use the session-start and session-wrapup skills to structure every session. The agent handles everything else: maintaining the wiki, keeping registries current, and enforcing the governance rules as you work.
 
 ---
 
@@ -143,15 +206,11 @@ A deterministic simulation framework for evaluating agent context engineering st
 
 → [Full documentation](projects/context-benchmarking/README.md)
 
-### GitHub Copilot CLI Extension (Project Bootstrapper)
+### AI Engineering Scaffold Plugin
 
-A user-level extension bringing Antigravity-grade workspace bootstrapping, local SQLite Cadence goal tracking, and drift enforcement into GitHub Copilot CLI across **Windows (PowerShell)**, **macOS**, and **Linux**.
+The AI Engineering scaffold packaged for Antigravity, Claude Code (plugin marketplace or skill), Codex (skill), and GitHub Copilot (CLI extension + skill). It bundles synced copies of `bin/bootstrap_ai_engineering.sh`, the four reference guides, and the helper scripts. The canonical files stay in `bin/`, `docs/reference/`, and `scripts/`; `python3 scripts/sync_scaffold_plugin.py --check` (run by `pytest tests/`) fails if the plugin falls behind.
 
-- **Zero Cloud Friction:** Uses Python's built-in `sqlite3` for local `.cadence/cadence.db` sprint tracking and `.wiki/wiki.db`.
-- **Zero-Privilege Windows Setup:** Uses native NTFS Directory Junctions (`install.ps1`) requiring no Administrator privileges.
-- **Enterprise Guardrails:** Intercepts shell execution to block unauthorized `git push` or PR modifications.
-
-→ [Full documentation](extensions/project-bootstrap/README.md)
+→ [Full documentation](plugins/ai-engineering-scaffold/README.md)
 
 ---
 
@@ -160,8 +219,8 @@ A user-level extension bringing Antigravity-grade workspace bootstrapping, local
 ```
 hvr-agentic-os/
 ├── agent_app/                    # ADK multi-agent swarm (see agent_app/README.md)
-├── extensions/                   # Copilot CLI extensions
-│   └── project-bootstrap/        # Cross-platform Copilot CLI extension (portable)
+├── plugins/                      # Shareable agent-harness plugins
+│   └── ai-engineering-scaffold/  # Scaffold plugin (Antigravity, Claude, Codex, Copilot)
 ├── mcp_servers/                  # MCP tool servers
 │   ├── ast_context_mcp/          # Standalone AST context server (portable)
 │   ├── executor_mcp.py           # Workspace mutations (ADK-specific)
@@ -173,7 +232,8 @@ hvr-agentic-os/
 │   ├── reference/                # Portable implementation guides ← START HERE
 │   │   ├── llm-wiki-antigravity.md
 │   │   ├── drift-registry.md
-│   │   └── session-workflows.md
+│   │   ├── session-workflows.md
+│   │   └── elephant-goldfish-verification.md
 │   ├── drift_registries/         # Cross-file dependency tracking (JSON)
 │   └── retrospectives/           # Session retrospective archive
 ├── wiki/                         # LLM-maintained knowledge base
@@ -183,7 +243,8 @@ hvr-agentic-os/
 ├── scripts/                      # Utility scripts
 │   ├── drift_enforcer.py         # Dependency drift detector
 │   ├── wiki_db_init.py           # Postgres schema creator
-│   └── wiki_db_backfill.py       # Wiki → DB sync
+│   ├── wiki_db_backfill.py       # Wiki → DB sync
+│   └── sync_scaffold_plugin.py   # Canonical scaffold → plugin assets sync
 ├── bin/                          # Bootstrap and orchestration scripts
 │   ├── bootstrap_ai_engineering.sh  # AI Engineering scaffold setup
 │   └── bootstrap_agentic_os.sh     # ADK swarm setup
