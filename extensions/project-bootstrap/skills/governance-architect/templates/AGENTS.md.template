@@ -43,6 +43,7 @@ The `.agents/` directory contains structured rules and skills governing autonomo
 | **Cadence Manager** | `.agents/skills/cadence-manager/SKILL.md` | Operates `scripts/cadence.py` across domain phases in Firestore `{{firestore_collection}}`. |
 | **Wiki-DB Sync** | `.agents/skills/wiki-db-sync/SKILL.md` | Two-step sync: exports markdown to `wiki_bundle.json` and upserts into PostgreSQL under `repo = '{{postgres_repo_key}}'`. |
 | **Drift Enforcer** | `.agents/skills/drift-enforcer/SKILL.md` | Checks dependency hashes across `docs/drift_registries/` and stamps baselines during wrapup. |
+| **Goldfish Review** | `.agents/skills/goldfish-review/SKILL.md` | Runs the 3-Goldfish stateless subagent verification gate (`Comprehension`, `Critic`, `Readiness`) on Track 2 specs and packets. |
 
 ---
 
@@ -55,7 +56,8 @@ All files in `.agents/rules/` define operational invariants:
 * `.agents/rules/wiki-db-governance.md`: Multi-tenant isolation (`repo = '{{postgres_repo_key}}'`), frontmatter validation, and orphan prevention.
 * `.agents/rules/drift-detection-governance.md`: Registry tracking and stamping discipline (deliberate boundary markers only).
 * `.agents/rules/context-and-ast-governance.md`: Token budget management and AST structural tool prioritization.
-* `.agents/rules/plan-preservation-governance.md`: Preserving decision documents and artifact storage protocol.
+* `.agents/rules/plan-preservation-governance.md`: Preserving decision documents, semantic split (`FeatureRange` vs. `DetailedRange`), and artifact storage protocol.
+* `.agents/rules/no-glazing-and-epistemic-hygiene.md`: Anti-sycophancy ("No Glazing"), Critique-First, Author-Decides-Trade-Offs, and Checkable Goldfish Resolution Gate.
 {{domain_rules_list}}
 
 ---

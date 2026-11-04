@@ -73,10 +73,10 @@ echo "Setting up reference docs directory..."
 mkdir -p docs/reference/
 echo "  Note: Reference files must be manually copied here."
 
-# 4. Session infrastructure
-echo "Setting up session infrastructure..."
-mkdir -p docs/retrospectives/ .agents/workflows/ .agents/rules/ .agents/skills/
-echo "  Created session directories."
+# 4. Session & Persona infrastructure
+echo "Setting up session and Goldfish persona infrastructure..."
+mkdir -p docs/retrospectives/ docs/decisions/ .agents/workflows/ .agents/rules/ .agents/skills/ .agents/personas/
+echo "  Created session, decisions, rules, skills, and personas directories."
 
 # 5. Scripts
 echo "Setting up scripts directory..."
@@ -117,7 +117,7 @@ echo "│                                                  │"
 echo "└──────────────────────────────────────────────────┘"
 echo ""
 cat << 'PROMPT'
-Initialize this project's AI Engineering scaffold by reading and implementing the following three reference guides, in order:
+Initialize this project's AI Engineering scaffold by reading and implementing the following four reference guides, in order:
 
 1. Read `docs/reference/llm-wiki-antigravity.md` first.
    - This sets up the LLM Wiki: a persistent, agent-maintained knowledge base.
@@ -135,7 +135,13 @@ Initialize this project's AI Engineering scaffold by reading and implementing th
    - Create .agents/workflows/session-start.md and session-wrapup.md.
    - Create the GEMINI.md session lifecycle sections.
 
-After completing all three, run `/session-start` to begin your first structured session.
+4. Read `docs/reference/elephant-goldfish-verification.md` fourth.
+   - This sets up Elephant-Goldfish Epistemic Verification: stateless read-only subagent review.
+   - Create .agents/rules/no-glazing-and-epistemic-hygiene.md.
+   - Create .agents/personas/goldfish-comprehension.md, goldfish-critic.md, and goldfish-readiness.md.
+   - Create .agents/skills/goldfish-review/SKILL.md.
+
+After completing all four, run `/session-start` to begin your first structured session.
 PROMPT
 echo ""
 echo "┌──────────────────────────────────────────────────┐"

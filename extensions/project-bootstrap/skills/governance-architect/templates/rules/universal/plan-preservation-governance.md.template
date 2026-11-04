@@ -13,3 +13,8 @@ When explicitly archiving an approved implementation plan to the workspace:
 
 ## 3. Immutability of Archived Decisions
 Never overwrite or delete existing archived decision documents in `docs/decisions/`. If an archived plan needs revisions, create a new versioned file (e.g., `-v2`, `-v3`) or ask for human approval.
+
+## 4. Semantic Split (`FeatureRange` vs. `DetailedRange`)
+Every archived specification in `docs/decisions/` must be divided by the literal heading `## Detailed Implementation Plan`:
+- **`FeatureRange` (Above `## Detailed Implementation Plan`):** High-altitude Objectives, Heilmeier Catechism, Architecture, and Alternatives Considered (`Rejected by author: <reason>`). Keep free of line-by-line code weeds.
+- **`DetailedRange` (From `## Detailed Implementation Plan` downward):** Explicit `Target Scope & File Boundary` (`[CREATE]`, `[MODIFY]`, `[DELETE]`), zero-decision implementation steps, and copy-pasteable verification commands.

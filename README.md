@@ -21,15 +21,16 @@ A Zero-Trust multi-agent operating system built on [Google's Agent Development K
 
 ## AI Engineering Scaffold
 
-The patterns below solve three problems that every LLM-assisted codebase eventually hits:
+The patterns below solve four problems that every LLM-assisted codebase eventually hits:
 
 | Problem | Solution | Reference Guide |
 |---------|----------|----------------|
 | Knowledge evaporates between sessions | **LLM Wiki** — persistent, agent-maintained knowledge base | [llm-wiki-antigravity.md](docs/reference/llm-wiki-antigravity.md) |
 | File changes silently break contracts | **Drift Registry** — machine-readable dependency tracking | [drift-registry.md](docs/reference/drift-registry.md) |
 | Sessions start cold and end without trace | **Session Workflows** — structured open→work→close lifecycle | [session-workflows.md](docs/reference/session-workflows.md) |
+| Single-context agents self-validate unstated assumptions | **Elephant-Goldfish Verification** — stateless zero-context subagent review & epistemic hygiene | [elephant-goldfish-verification.md](docs/reference/elephant-goldfish-verification.md) |
 
-These three systems reinforce each other. The wiki accumulates knowledge, the drift registry protects it from silent breakage, and the session workflows ensure both are maintained at every session boundary.
+These four systems reinforce each other. The wiki accumulates knowledge across sessions, the drift registry protects it from silent breakage, the session workflows ensure both are maintained at every session boundary, and the Elephant-Goldfish subagent gate prevents within-session echo chambers and self-glazing when drafting specs or auditing drifted contracts.
 
 ### How It Works
 
@@ -73,11 +74,12 @@ The script is idempotent — run it multiple times safely.
 
 ### 2. Feed the Reference Guides to Your LLM
 
-The bootstrap script prints an **LLM Ingest Prompt** at the end. Copy it and paste it into your LLM agent. It instructs the agent to read and implement the three reference guides in order:
+The bootstrap script prints an **LLM Ingest Prompt** at the end. Copy it and paste it into your LLM agent. It instructs the agent to read and implement the four reference guides in order:
 
 1. **[LLM Wiki](docs/reference/llm-wiki-antigravity.md)** — Sets up wiki conventions, page templates, ingest/query/lint workflows, and (optionally) the Postgres metadata index
 2. **[Drift Registry](docs/reference/drift-registry.md)** — Sets up dependency tracking, the enforcer script, and registry schemas
 3. **[Session Workflows](docs/reference/session-workflows.md)** — Sets up `/session-start` and `/session-wrapup` workflows that tie the wiki and drift registry together
+4. **[Elephant-Goldfish Verification](docs/reference/elephant-goldfish-verification.md)** — Sets up `.agents/rules/no-glazing-and-epistemic-hygiene.md`, the 3 stateless Goldfish reviewer personas (`.agents/personas/goldfish-*.md`), and the `/goldfish-review` subagent verification skill
 
 After ingestion, your agent will have created the `GEMINI.md` rules (or equivalent agent instructions), skills (including slash-command workflows), and governance structure for your project.
 
