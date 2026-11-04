@@ -1,0 +1,13 @@
+{
+  "name": "hvr-agentic-os",
+  "owner": {
+    "name": "Harrison Reed"
+  },
+  "plugins": [
+    {
+      "name": "ai-engineering-scaffold",
+      "source": "./plugins/ai-engineering-scaffold",
+      "description": "Harness-agnostic AI Engineering scaffold: LLM Wiki, Drift Registry, Session Workflows, and Elephant-Goldfish Verification."
+    }
+  ]
+}

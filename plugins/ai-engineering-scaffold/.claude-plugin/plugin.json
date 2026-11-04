@@ -1,0 +1,10 @@
+{
+  "name": "ai-engineering-scaffold",
+  "version": "2.0.0",
+  "description": "Harness-agnostic AI Engineering scaffold: LLM Wiki, Drift Registry, Session Workflows, and Elephant-Goldfish Verification.",
+  "author": {
+    "name": "Harrison Reed"
+  },
+  "homepage": "https://github.com/HReed1/hvr-agentic-os",
+  "license": "MIT"
+}

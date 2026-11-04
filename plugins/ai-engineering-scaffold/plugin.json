@@ -1,0 +1,22 @@
+{
+  "name": "ai-engineering-scaffold",
+  "version": "2.0.0",
+  "description": "Harness-agnostic AI Engineering scaffold: LLM Wiki, Drift Registry, Session Workflows, and Elephant-Goldfish Verification. Packages bin/bootstrap_ai_engineering.sh and its reference guides for Antigravity, Claude Code, Codex, and GitHub Copilot.",
+  "author": {
+    "name": "Harrison Reed"
+  },
+  "homepage": "https://github.com/HReed1/hvr-agentic-os",
+  "license": "MIT",
+  "keywords": [
+    "bootstrap",
+    "scaffold",
+    "llm-wiki",
+    "drift-registry",
+    "session-workflows",
+    "elephant-goldfish",
+    "antigravity",
+    "claude",
+    "codex",
+    "copilot"
+  ]
+}

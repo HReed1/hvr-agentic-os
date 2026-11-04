@@ -144,4 +144,8 @@ tags:
 - Created: [[copilot-project-bootstrap]]
 - Key insight: Packaged cross-platform GitHub Copilot CLI extension in `extensions/project-bootstrap/` with self-locating path resolution, zero-privilege Windows NTFS Junction installation (`install.ps1`), local SQLite Cadence and Wiki-DB engines, and enterprise git guardrail hooks.
 
-
+## [2026-11-04] ingest | Session Retrospective: Harness-Agnostic AI Engineering Scaffold & Plugin
+- Source: `docs/retrospectives/2026-11-04_harness_agnostic_scaffold_and_plugin.md`
+- Created: [[ai-engineering-scaffold]]
+- Updated: [[copilot-project-bootstrap]] (marked superseded; `extensions/project-bootstrap/` removed)
+- Key insight: `bin/bootstrap_ai_engineering.sh` is canonical and now harness-agnostic (`--harness`, `--wiki-db`, `--db-user`, `--author`, new/existing repo detection); `plugins/ai-engineering-scaffold/` is a distribution-only package of synced copies, guarded by `sync_scaffold_plugin.py --check` in pytest.

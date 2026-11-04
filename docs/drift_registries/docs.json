@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-09-08T02:50:21.791494+00:00"
+    "last_updated": "2026-11-04T21:05:16.110842+00:00"
   },
   "entries": [
     {
@@ -16,6 +16,16 @@
           "type": "describes",
           "path": "docs/drift_registries/README.md",
           "reason": "README summarizes the drift registry system \u2014 must reflect the schema and usage patterns documented in the reference."
+        },
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/docs/reference/drift-registry.md",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing (enforced by tests/test_ai_engineering_scaffold.py)."
+        },
+        {
+          "type": "consumer",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "The ingest prompt's step list and harness mapping assume this guide's sections, file names, and .agents/workflows/ convention."
         }
       ]
     },
@@ -42,6 +52,16 @@
           "type": "describes",
           "path": ".agents/skills/architect-wrapup/SKILL.md",
           "reason": "Session workflows reference describes the architect teardown \u2014 the architect wrapup skill must implement the described steps."
+        },
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/docs/reference/session-workflows.md",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing (enforced by tests/test_ai_engineering_scaffold.py)."
+        },
+        {
+          "type": "consumer",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "The ingest prompt's step list and harness mapping assume this guide's sections, file names, and .agents/workflows/ convention."
         }
       ]
     },
@@ -63,6 +83,16 @@
           "type": "describes",
           "path": "scripts/wiki_db_backfill.py",
           "reason": "Wiki reference defines the page format and fields \u2014 the backfill script must parse the same YAML frontmatter fields."
+        },
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/docs/reference/llm-wiki-antigravity.md",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing (enforced by tests/test_ai_engineering_scaffold.py)."
+        },
+        {
+          "type": "consumer",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "The ingest prompt's step list and harness mapping assume this guide's sections, file names, and .agents/workflows/ convention."
         }
       ]
     },
@@ -122,6 +152,74 @@
           "type": "describes",
           "path": "mcp_servers/ast_validation_mcp.py",
           "reason": "TDAID decision doc describes AST validation scope \u2014 the MCP server must implement the described validation capabilities."
+        }
+      ]
+    },
+    {
+      "source_file": "docs/reference/elephant-goldfish-verification.md",
+      "verified_commit": "50f34682b18e4810ef0f39132af4c1f9cfe71ed1",
+      "dependencies": [
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/docs/reference/elephant-goldfish-verification.md",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing."
+        },
+        {
+          "type": "consumer",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "Ingest prompt step 4 names the rule, persona, and goldfish-review files this guide defines, plus per-harness Goldfish spawning."
+        }
+      ]
+    },
+    {
+      "source_file": "bin/bootstrap_ai_engineering.sh",
+      "verified_commit": "48865b4eb3bcbe7de1077ca2572804218cd4f8ba",
+      "dependencies": [
+        {
+          "type": "documentation",
+          "path": "README.md",
+          "reason": "Quick Start documents the script's flags (--harness, --wiki-db, --db-*, --author, --target-dir), harness mapping table, and created paths."
+        },
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/bin/bootstrap_ai_engineering.sh",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing."
+        },
+        {
+          "type": "skill",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/SKILL.md",
+          "reason": "Skill documents the flags/defaults and the ingest-prompt markers (COPY EVERYTHING BELOW THIS LINE / END OF PROMPT)."
+        },
+        {
+          "type": "documentation",
+          "path": "plugins/ai-engineering-scaffold/README.md",
+          "reason": "Plugin README restates the harness mapping table and flags."
+        },
+        {
+          "type": "consumer",
+          "path": "plugins/ai-engineering-scaffold/copilot/extension.mjs",
+          "reason": "Copilot extension invokes the script with --target-dir/--harness/--wiki-db/--db-user/--db-name/--author."
+        },
+        {
+          "type": "test",
+          "path": "tests/test_ai_engineering_scaffold.py",
+          "reason": "Tests assert prompt wording, created directories, and scaffold-config.json fields."
+        }
+      ]
+    },
+    {
+      "source_file": "scripts/sync_scaffold_plugin.py",
+      "verified_commit": "48865b4eb3bcbe7de1077ca2572804218cd4f8ba",
+      "dependencies": [
+        {
+          "type": "consumer",
+          "path": "bin/bootstrap_ai_engineering.sh",
+          "reason": "CANONICAL_FILES must include every resource the script copies via copy_resource (guides, drift_enforcer.py, wiki_db_*.py)."
+        },
+        {
+          "type": "test",
+          "path": "tests/test_ai_engineering_scaffold.py",
+          "reason": "Tests run --check to guarantee the plugin assets match the canonical files."
         }
       ]
     }
