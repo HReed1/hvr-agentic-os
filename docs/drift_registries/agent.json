@@ -225,6 +225,16 @@
           "type": "consumed-by",
           "path": ".agents/skills/session-wrapup/SKILL.md",
           "reason": "Session-wrapup wiki ingest step invokes the backfill script \u2014 must match the script's --repo and --wiki-dir flags."
+        },
+        {
+          "type": "mirror",
+          "path": "plugins/ai-engineering-scaffold/skills/bootstrap-ai-engineering/assets/scripts/wiki_db_backfill.py",
+          "reason": "Plugin bundles a byte-identical copy \u2014 run scripts/sync_scaffold_plugin.py after editing (enforced by tests)."
+        },
+        {
+          "type": "test",
+          "path": "tests/test_wiki_db_backfill.py",
+          "reason": "Tests pin wikilink resolution (bare slugs -> wiki subdirectories, repo-root files, code-span exclusion) and the atomic repo-scoped link reset."
         }
       ]
     },

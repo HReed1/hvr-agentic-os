@@ -107,8 +107,74 @@ def extract_summary(content: str) -> str:
 
 
 def extract_wikilinks(content: str) -> list:
-    """Extract [[wikilink]] targets from content."""
-    return re.findall(r'\[\[([^\]|]+?)(?:\|[^\]]+)?\]\]', content)
+    """Extract [[wikilink]] targets from content.
+
+    Fenced code blocks and inline `code spans` are ignored: a wikilink written
+    as code (e.g. documenting a removed link) is literal text, not a reference.
+    """
+    prose = re.sub(r"^```.*?^```", "", content, flags=re.DOTALL | re.MULTILINE)
+    prose = re.sub(r"`[^`\n]*`", "", prose)
+    return re.findall(r'\[\[([^\]|]+?)(?:\|[^\]]+)?\]\]', prose)
+
+
+def build_page_index(md_files: list, wiki_path: Path) -> dict:
+    """Map each wiki page's slug (filename stem) to its repo-relative path.
+
+    Pages live in subdirectories (wiki/entities/, wiki/concepts/, ...), but
+    wikilinks reference them by bare slug (e.g. [[agentic-os]]). If two pages
+    share a slug, the first in sorted path order wins and a warning is printed.
+    """
+    index: dict = {}
+    for md_file in sorted(md_files):
+        rel_path = str(md_file.relative_to(wiki_path.parent).as_posix())
+        slug = md_file.stem
+        if slug in index:
+            print(f"WARNING: duplicate wiki slug '{slug}': {index[slug]} and {rel_path} "
+                  f"(links resolve to {index[slug]})")
+            continue
+        index[slug] = rel_path
+    return index
+
+
+def resolve_wikilink(
+    link: str, page_index: dict, wiki_root: str = "wiki", repo_root: Path = None
+) -> str:
+    """Resolve a [[wikilink]] target to a repo-relative path.
+
+    - `[[slug]]` / `[[slug#Heading]]` / `[[slug.md]]` -> the page with that slug in
+      any wiki subdirectory (e.g. wiki/entities/slug.md).
+    - `[[entities/slug]]` -> wiki/entities/slug.md (path relative to the wiki root).
+    - `[[README.md]]` / `[[GEMINI]]` -> a repo-root file of that name, if it exists
+      (checked only when `repo_root` is given and no wiki page matches).
+    - `[[docs/...]]`, `[[wiki/...]]`, or any other repo path -> kept as-is.
+    Unresolvable bare slugs fall back to `<wiki_root>/<slug>.md`.
+    """
+    target = link.strip().split("#", 1)[0].strip()
+    if not target:
+        return target
+    known_paths = set(page_index.values())
+
+    if "/" not in target:
+        slug = target[:-3] if target.endswith(".md") else target
+        if slug in page_index:
+            return page_index[slug]
+        if repo_root is not None:
+            for candidate in (target, f"{slug}.md"):
+                if (repo_root / candidate).is_file():
+                    return candidate
+        return f"{wiki_root}/{slug}.md"
+
+    if target.startswith(f"{wiki_root}/"):
+        with_ext = target if target.endswith(".md") else f"{target}.md"
+        return with_ext if with_ext in known_paths else target
+
+    # Path relative to the wiki root, e.g. [[entities/agentic-os]]
+    rel_candidate = f"{wiki_root}/{target}"
+    rel_candidate = rel_candidate if rel_candidate.endswith(".md") else f"{rel_candidate}.md"
+    if rel_candidate in known_paths:
+        return rel_candidate
+
+    return target  # docs/... or another repo path
 
 
 def sql_escape(val: str) -> str:
@@ -149,6 +215,10 @@ def main():
 
     print(f"Found {len(md_files)} wiki pages in {wiki_path}")
 
+    page_index = build_page_index(md_files, wiki_path)
+    wiki_root = wiki_path.resolve().name
+    repo_root = wiki_path.resolve().parent
+
     page_inserts = []
     link_inserts = []
 
@@ -186,14 +256,9 @@ def main():
         # Extract wikilinks as cross-references
         links = extract_wikilinks(content)
         for link in links:
-            # Resolve link to a path
-            link_clean = link.strip()
-            if link_clean.startswith("docs/"):
-                target_path = link_clean
-            elif "/" not in link_clean:
-                target_path = f"wiki/{link_clean}.md"  # Assume wiki-internal
-            else:
-                target_path = link_clean
+            target_path = resolve_wikilink(link, page_index, wiki_root, repo_root)
+            if not target_path:
+                continue
 
             link_sql = (
                 f"INSERT INTO wiki_links (source_repo, source_path, target_repo, target_path) "
@@ -211,7 +276,12 @@ def main():
         f"{len(page_inserts)}, 0);"
     )
 
-    all_sql = "\n".join(page_inserts + link_inserts + [activity_sql])
+    # Full backfill: replace this repo's links (stale/mis-resolved rows from earlier
+    # runs would otherwise persist), atomically, scoped to this repo only.
+    reset_links_sql = f"DELETE FROM wiki_links WHERE source_repo = {sql_escape(args.repo)};"
+    all_sql = "\n".join(
+        ["BEGIN;", reset_links_sql] + page_inserts + link_inserts + [activity_sql, "COMMIT;"]
+    )
 
     if args.dry_run:
         print("\n--- DRY RUN: SQL that would be executed ---")
