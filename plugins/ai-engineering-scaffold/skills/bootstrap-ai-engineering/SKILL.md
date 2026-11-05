@@ -46,9 +46,12 @@ The script ends by printing an ingest prompt between `COPY EVERYTHING BELOW THIS
 1. Implement the four guides in order from `<project>/docs/reference/`.
 2. Apply the prompt's **harness mapping** exactly (instruction files, skill directories, Goldfish spawning method).
 3. Use only the settings the prompt lists (author, wiki DB, harnesses).
-4. Follow the prompt's repository block. **New repository:** use the project description the user gave (ask if they didn't) for `wiki/overview.md`, and run `git init` plus an initial commit if the prompt says git is missing. **Existing repository:** integrate only — append to `AGENTS.md`, add just the pointer/import lines to existing instruction files, seed the wiki from existing docs, and end with the list of pre-existing files you modified so the user can review `git diff`.
+4. Follow the prompt's repository block. **New repository:** use the project description the user gave (ask if they didn't) for `wiki/overview.md`, and run `git init` plus an initial commit if the prompt says git is missing. **Existing repository:** integrate only — append to `AGENTS.md`, add just the pointer/import lines to existing instruction files, investigate the repo and available docs while asking the user clarifying questions about the project, seed an initial high-level wiki covering the main areas of the repo (saving exhaustive deep-dive ingestion for the next clean session to preserve context window budget), and end with the list of pre-existing files you modified so the user can review `git diff`.
 
 ## Step 4: Verify and Hand Off
 
 - Run `python3 scripts/drift_enforcer.py` in the project and confirm it executes.
-- Summarize what was created, then suggest starting the first session with the session-start skill.
+- Summarize what was created, then recommend the multi-session onboarding sequence starting in a **fresh, clean session** with `/session-start`:
+  1. **Next clean session (Deep Wiki & Drift Registry Ingestion):** Thoroughly ingest the codebase and docs into `wiki/entities/`, `wiki/concepts/`, and `docs/drift_registries/`.
+  2. **Following clean session (Codebase Audit & Prioritization):** Identify critical issues, low-hanging fruit, and long-term robust optimizations/bug fixes, filing the roadmap into `wiki/synthesis/`.
+  3. **Subsequent clean sessions (Feature Development):** Focus on building new features or executing prioritized fixes.

@@ -366,8 +366,9 @@ if [ "$REPO_MODE" = "existing" ]; then
     fi
     REPO_BLOCK="Existing repository: this project already has content. Integrate the scaffold; do not replace anything:
 $MERGE_LINE Never delete or rewrite existing content; if existing guidance conflicts with the guides, keep mine and flag the conflict to me.
-- Seed the wiki from what already exists (README.md, docs/, the code layout): create entity/concept pages for the main systems, cite their sources, and record the ingest in wiki/log.md.
-- Register the real cross-file dependencies you find (e.g. README commands <-> scripts, config <-> code) in docs/drift_registries/.
+- Investigate the repository and its available documentation, and ask me clarifying questions about the project's architecture, domain, or priorities alongside your investigation.
+- Seed the wiki from what already exists (README.md, docs/, the code layout) plus my answers: write wiki/overview.md and initial entity/concept pages covering the main areas of the repo, cite their sources, and record the ingest in wiki/log.md. Keep this initial bootstrap seed high-level so we preserve context window budget — a deeper, comprehensive wiki and drift-registry ingest should happen in the next clean session.
+- Register the initial cross-file dependencies you find (e.g. README commands <-> scripts, config <-> code) in docs/drift_registries/.
 - Finish with a list of every pre-existing file you modified."
 else
     REPO_BLOCK="New repository: there is no existing project content yet. Before writing wiki/overview.md, ask me for a short description of what this project will build or manage."
@@ -432,7 +433,7 @@ $DB_STEP
    - Create .agents/personas/goldfish-comprehension.md, goldfish-critic.md, and goldfish-readiness.md.
    - Create the goldfish-review skill ($SKILL_TARGETS), using the harness-specific Goldfish spawning method above.
 
-After completing all four, run the session-start skill to begin your first structured session.
+After completing all four, verify \`python3 scripts/drift_enforcer.py\` executes cleanly, summarize what was created, and recommend starting a fresh, clean session (beginning with the session-start skill) for deep wiki and drift-registry ingestion before auditing issues or building new features.
 PROMPT
 echo ""
 echo "┌──────────────────────────────────────────────────┐"

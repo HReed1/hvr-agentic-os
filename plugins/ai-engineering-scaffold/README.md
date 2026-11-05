@@ -46,9 +46,9 @@ Uninstall with `--uninstall`. Windows users need Git Bash or WSL (the scaffold i
 Open your agent in the target project and ask:
 
 - **New project** (run `git init` first): *"Bootstrap the AI engineering scaffold in this repo. It's a new project: <what it will build>."*
-- **Existing project** (commit or stash first): *"Bootstrap the AI engineering scaffold in this repo. It's an existing project — keep my current instructions and docs, and seed the wiki from what's already here."*
+- **Existing project** (commit or stash first): *"Bootstrap the AI engineering scaffold in this repo. It's an existing project — keep my current instructions and docs, investigate the repo and ask me any clarifying questions you need, and seed an initial wiki covering the main areas of the project."*
 
-The script detects which case applies. For existing repos it never overwrites files, and the ingest prompt switches to integration mode (append to `AGENTS.md`, seed the wiki from existing docs, list every file touched). Full walkthrough: [Adopting the Scaffold in Your Own Repos](../../README.md#adopting-the-scaffold-in-your-own-repos).
+The script detects which case applies. For existing repos it never overwrites files, and the ingest prompt switches to integration mode (append to `AGENTS.md`, investigate the repo + ask clarifying Q&A to seed an initial high-level wiki covering the main areas, and list every pre-existing file touched). To avoid exhausting the context window during bootstrap, follow the **4-Session Onboarding Playbook** (Session 1: Bootstrap & initial seed → Session 2: Deep wiki & drift-registry ingestion in a clean session → Session 3: Codebase audit for critical issues, low-hanging fruit & long-term optimizations → Session 4+: Feature work). Full walkthrough: [Adopting the Scaffold in Your Own Repos](../../README.md#adopting-the-scaffold-in-your-own-repos).
 
 Without a plugin, run the script directly and paste the printed prompt into any agent:
 

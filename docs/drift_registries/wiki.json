@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": "2026-11-04T21:05:16.729584+00:00",
+    "last_updated": "2026-11-05T23:34:13.809139+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
@@ -54,7 +54,7 @@
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
+      "verified_commit": "751e85f6d56e3fb1e25febae232e42456586b3d6",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -568,7 +568,7 @@
     },
     {
       "source_file": "wiki/entities/ai-engineering-scaffold.md",
-      "verified_commit": "62430b1fe3e25d89a1b3b545af53d118ea47deca",
+      "verified_commit": "751e85f6d56e3fb1e25febae232e42456586b3d6",
       "dependencies": [
         {
           "type": "synthesized-from",
@@ -589,6 +589,11 @@
           "type": "synthesized-from",
           "path": "docs/retrospectives/2026-11-04_harness_agnostic_scaffold_and_plugin.md",
           "reason": "Session retrospective is the provenance source for the page."
+        },
+        {
+          "type": "synthesized-from",
+          "path": "docs/retrospectives/2026-11-05_ai_engineering_onboarding_playbook.md",
+          "reason": "Session retrospective documents the 4-session onboarding playbook for existing repositories."
         }
       ]
     }

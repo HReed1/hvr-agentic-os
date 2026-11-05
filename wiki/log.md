@@ -149,3 +149,8 @@ tags:
 - Created: [[ai-engineering-scaffold]]
 - Updated: [[copilot-project-bootstrap]] (marked superseded; `extensions/project-bootstrap/` removed)
 - Key insight: `bin/bootstrap_ai_engineering.sh` is canonical and now harness-agnostic (`--harness`, `--wiki-db`, `--db-user`, `--author`, new/existing repo detection); `plugins/ai-engineering-scaffold/` is a distribution-only package of synced copies, guarded by `sync_scaffold_plugin.py --check` in pytest.
+
+## [2026-11-05] ingest | Session Retrospective: Multi-Session AI Engineering Onboarding Playbook
+- Source: `docs/retrospectives/2026-11-05_ai_engineering_onboarding_playbook.md`
+- Updated: [[ai-engineering-scaffold]]
+- Key insight: Formalized the 4-Session Onboarding Playbook for existing repositories (Session 1: Bootstrap & Q&A high-level wiki seed → Session 2: Clean-session deep wiki & drift registry ingestion → Session 3: Clean-session codebase audit for critical issues, low-hanging fruit, and long-term optimizations → Session 4+: Feature development) to prevent context window exhaustion during initial bootstrap.
