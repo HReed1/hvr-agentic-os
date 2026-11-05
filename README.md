@@ -112,9 +112,9 @@ python3 scripts/wiki_db_init.py --database wiki --host localhost --port 5432 --u
 
 This creates the `wiki` database with tables for page metadata, cross-references, and activity logging. The wiki works without the database (it's just markdown files), but the database enables fast SQL queries across all pages.
 
-### 4. Start Your First Session
+### 4. Start Your First Clean Session
 
-Tell your LLM agent:
+Once the bootstrap session finishes creating your governance files and initial wiki seed, **commit the scaffold and open a fresh, clean agent session** (so your context window isn't already filled by the four reference guides). Tell your LLM agent:
 
 ```
 /session-start
@@ -127,6 +127,9 @@ The agent will load the wiki overview, check for outstanding work, run the drift
 ```
 
 The agent commits your work, enforces drift checks, generates a retrospective, and optionally ingests significant findings into the wiki.
+
+> [!TIP]
+> **Onboarding an existing codebase?** Don't try to ingest the entire repo, audit bugs, and build new features all inside the bootstrap session. Follow the **[4-Session Onboarding Playbook](#the-4-session-onboarding-playbook-for-existing-repos)** below to work with (not against) LLM context window limits.
 
 ---
 
@@ -172,9 +175,71 @@ cd my-existing-repo && git status   # clean working tree
 
 Open your agent in the repo and say:
 
-> *"Bootstrap the AI engineering scaffold in this repo. It's an existing project — keep my current instructions and docs, and seed the wiki from what's already here."*
+> *"Bootstrap the AI engineering scaffold in this repo. It's an existing project — keep my current instructions and docs, investigate the repo and ask me any clarifying questions you need, and seed an initial wiki covering the main areas of the project."*
 
-The script never overwrites existing files, and it detects existing content (README, `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`, tracked files). The ingest prompt then switches to **integration mode**: the agent appends protocol sections to `AGENTS.md` instead of replacing it, only adds the import/pointer lines your harness needs to existing instruction files, seeds `wiki/` from your README, `docs/`, and code layout, registers real cross-file dependencies in `docs/drift_registries/`, and finishes with a list of every pre-existing file it touched. Review with `git diff` before committing.
+The script never overwrites existing files, and it detects existing content (README, `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`, tracked files). The ingest prompt then switches to **integration mode**:
+- The agent appends protocol sections to `AGENTS.md` instead of replacing it, and only adds the import/pointer lines your harness needs to existing instruction files.
+- Alongside investigating your `README.md`, `docs/`, and code layout, the agent asks clarifying questions about the repository's architecture, domain, or priorities, and uses both to write `wiki/overview.md` and an initial set of high-level wiki pages covering the main areas of the repo.
+- It registers initial cross-file dependencies in `docs/drift_registries/` and finishes with a list of every pre-existing file it touched. Review with `git diff` and commit.
+
+---
+
+### The 4-Session Onboarding Playbook for Existing Repos
+
+Because LLM context windows are finite, **do not try to bootstrap the scaffold, deeply ingest an entire existing codebase, audit technical debt, and build new features all inside a single session.** During bootstrap, reading the four reference guides and generating your governance files (`AGENTS.md`, skills, rules, Goldfish personas) already consumes a substantial portion of the session's context budget.
+
+To get deep, high-signal wiki pages and accurate drift registries without context degradation, split onboarding across **four focused, clean sessions**:
+
+```
+┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+│  Session 1: Bootstrap│   │ Session 2: Deep Wiki │   │  Session 3: Audit &  │   │ Session 4+: Feature  │
+│  & High-Level Seed   │──▶│  & Drift Ingestion   │──▶│  Prioritization      │──▶│  Development         │
+│                      │   │   (Clean Session)    │   │   (Clean Session)    │   │   (Clean Sessions)   │
+│ • Install scaffold   │   │ • Deep-dive docs/code│   │ • Critical issues    │   │ • Build new features │
+│ • Answer repo Q&A    │   │ • Build entities &   │   │ • Low-hanging fruit  │   │ • Execute roadmap    │
+│ • Initial overview   │   │   concepts pages     │   │ • Long-term robust   │   │ • Compounding wiki & │
+│   & main-area wiki   │   │ • Map critical drift │   │   optimizations/fixes│   │   drift protection   │
+│ • Commit & close     │   │   registries         │   │ • File synthesis doc │   │                      │
+└──────────────────────┘   └──────────────────────┘   └──────────────────────┘   └──────────────────────┘
+```
+
+#### Session 1 — Bootstrap & Initial High-Level Wiki Seed
+
+Run the bootstrap command from [Step 2b](#step-2b-initialize-an-existing-repository) above. During this session, the agent:
+1. Reads the four reference guides and generates your harness instruction files, session workflows, and Goldfish verification personas.
+2. Explores your repository's top-level layout and existing documentation (`README.md`, `docs/`), and asks you targeted questions about the project's purpose, architecture, and non-obvious conventions.
+3. Seeds `wiki/overview.md`, `wiki/index.md`, and foundational wiki pages for the main areas of the repo, plus baseline drift registry entries.
+
+Once `python3 scripts/drift_enforcer.py` runs cleanly, review `git diff`, commit the scaffold, and **close the session** so your next session starts with a fresh context window.
+
+#### Session 2 — Deep Wiki & Drift Registry Ingestion *(New Clean Session)*
+
+Open a brand-new session with a full context window. Now that the wiki protocol and session skills are installed, dedicate this session to thoroughly mapping the repository's critical entities, concepts, and cross-file contracts:
+
+> *"`/session-start` — For this session, let's do a comprehensive, deep-dive ingestion of the repository into the wiki and drift registries. Inspect our codebase, configs, scripts, and existing docs to:*
+> *1. Create or expand `wiki/entities/` pages for all critical systems, services, modules, CLI tools, and data pipelines (with source citations and `[[wikilinks]]`).*
+> *2. Create or expand `wiki/concepts/` pages for our core architectural patterns, domain models, state/data flows, and operational invariants.*
+> *3. Populate `docs/drift_registries/` (e.g., `code.json`, `infra.json`, `docs.json`, `wiki.json`) with the critical cross-file dependencies where changing one file silently breaks another (schemas ↔ handlers, configs ↔ entrypoints, scripts ↔ docs, source docs ↔ wiki pages).*
+> *Ask me questions whenever intent or domain context isn't clear from the code, then wrap up with `/session-wrapup`."*
+
+> [!NOTE]
+> **Very large monorepo or codebase?** Split Session 2 across two or three clean sessions by subsystem or domain (e.g., Session 2a: core backend & data layer; Session 2b: frontend, CLI & infrastructure) so the agent can read actual implementation files deeply rather than skimming directory trees.
+
+#### Session 3 — Codebase Audit: Critical Issues, Quick Wins & Long-Term Optimizations *(New Clean Session)*
+
+Start another fresh session. With the wiki and drift registries populated, your agent now has a structured architectural map of the repo and can audit the codebase with high precision instead of guessing from cold file searches:
+
+> *"`/session-start` — Using the wiki and a targeted inspection of the codebase, perform an engineering audit of the repository. Do not write feature code yet; instead, analyze the system and organize findings into three prioritized tiers:*
+> *1. **Current Most Critical Issues:** Active bugs, fragile or undocumented contracts, security/reliability risks, or broken test/build paths that need immediate attention.*
+> *2. **Low-Hanging Fruit:** High-leverage quick wins — straightforward bug fixes, dead code or config cleanup, missing drift coverage, or small developer-experience improvements we can knock out quickly.*
+> *3. **Long-Term Robust Optimizations & Bug Fixes:** Deeper architectural refactors, performance bottlenecks, test-suite hardening, and systemic reliability improvements.*
+> *Run `/goldfish-review` on your proposed findings to challenge any unstated assumptions, file the final prioritized roadmap as a synthesis page in `wiki/synthesis/` (and update `wiki/index.md`), and close with `/session-wrapup`."*
+
+#### Session 4+ — Feature Development & Execution *(New Clean Sessions)*
+
+From your fourth session onward, your repository is fully onboarded: the wiki captures the architecture, the drift registries guard critical contracts, and `wiki/synthesis/` holds a vetted backlog of critical fixes, quick wins, and long-term optimizations.
+
+Start each new session with `/session-start`, pick either the new features you want to build or items from your audit roadmap, and finish each session with `/session-wrapup` so every change compounds back into the wiki and drift registries.
 
 ### Options Worth Knowing
 
