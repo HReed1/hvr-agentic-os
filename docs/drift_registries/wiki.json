@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Wiki Drift Registry \u2014 tracks wiki page dependencies on source documents and consuming workflows.",
-    "last_updated": "2026-11-05T23:34:01.185916+00:00",
+    "last_updated": "2026-11-05T23:34:13.809139+00:00",
     "schema_version": "1.1.0"
   },
   "entries": [
@@ -54,7 +54,7 @@
     },
     {
       "source_file": "wiki/log.md",
-      "verified_commit": "44018cfd4ea5136a87fc27709eb661ea4af928ac",
+      "verified_commit": "751e85f6d56e3fb1e25febae232e42456586b3d6",
       "dependencies": [
         {
           "type": "consumed-by",
@@ -568,7 +568,7 @@
     },
     {
       "source_file": "wiki/entities/ai-engineering-scaffold.md",
-      "verified_commit": "44018cfd4ea5136a87fc27709eb661ea4af928ac",
+      "verified_commit": "751e85f6d56e3fb1e25febae232e42456586b3d6",
       "dependencies": [
         {
           "type": "synthesized-from",
