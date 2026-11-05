@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-11-04T21:05:15.913332+00:00"
+    "last_updated": "2026-11-05T23:34:00.458073+00:00"
   },
   "entries": [
     {
@@ -214,7 +214,7 @@
     },
     {
       "source_file": "scripts/wiki_db_backfill.py",
-      "verified_commit": "2d0103ce6f216d6505f45903ddd067233a9c09d8",
+      "verified_commit": "79a176c43035a5b9c6bec9aaeca035dc74c2f928",
       "dependencies": [
         {
           "type": "consumed-by",

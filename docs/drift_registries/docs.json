@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "last_updated": "2026-11-04T21:05:16.110842+00:00"
+    "last_updated": "2026-11-05T23:34:00.658899+00:00"
   },
   "entries": [
     {
@@ -173,7 +173,7 @@
     },
     {
       "source_file": "bin/bootstrap_ai_engineering.sh",
-      "verified_commit": "48865b4eb3bcbe7de1077ca2572804218cd4f8ba",
+      "verified_commit": "5168daa029eea34519d23f5cba79682fe3e8b9ef",
       "dependencies": [
         {
           "type": "documentation",

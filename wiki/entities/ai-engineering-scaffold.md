@@ -13,10 +13,11 @@ tags:
   - copilot
 sources:
   - "[[docs/retrospectives/2026-11-04_harness_agnostic_scaffold_and_plugin.md]]"
+  - "[[docs/retrospectives/2026-11-05_ai_engineering_onboarding_playbook.md]]"
   - "[[bin/bootstrap_ai_engineering.sh]]"
   - "[[plugins/ai-engineering-scaffold/README.md]]"
   - "[[README.md]]"
-last_ingested: 2026-11-04
+last_ingested: 2026-11-05
 ---
 
 # AI Engineering Scaffold & Plugin
@@ -38,7 +39,12 @@ The script is deliberately thin: it builds the skeleton (`wiki/`, `docs/drift_re
 
 - **`--harness`** (`antigravity | claude | codex | copilot | all`) selects the instruction files and skill directories in the prompt's harness mapping. `AGENTS.md` is always the shared source of truth; `GEMINI.md` (Antigravity), `CLAUDE.md` starting with `@AGENTS.md` (Claude Code), self-contained `AGENTS.md` under 32 KiB (Codex), or `.github/copilot-instructions.md` (Copilot) are added as needed. Skills land in `.agents/skills/` (read natively by Antigravity, Codex, and Copilot) or `.claude/skills/`.
 - **`--wiki-db postgres|none`** (default markdown-only) with `--db-user/--db-name/--db-host/--db-port`; **`--author`**; **`--target-dir`**. No external tracker (Firestore, Cadence, Jira) is assumed.
-- **New vs. existing repos** are detected before anything is created. Existing repos get an integration-mode prompt (append, never overwrite; seed the wiki from existing docs; list touched files). New repos get a project-description prompt and a `git init` warning when needed.
+- **New vs. existing repos** are detected before anything is created. Existing repos get an integration-mode prompt (append, never overwrite; investigate the repo alongside asking the user clarifying questions to seed an initial high-level wiki covering the main areas of the repo; list touched files). New repos get a project-description prompt and a `git init` warning when needed.
+- **4-Session Onboarding Playbook (Existing Repos):** Because reading the four reference guides and creating governance files consumes a substantial portion of the bootstrap session's context window, onboarding an existing codebase is split across four clean sessions:
+  1. **Session 1 (Bootstrap & High-Level Seed):** Install the scaffold, investigate existing docs/code + ask clarifying Q&A, seed `wiki/overview.md` and main-area pages, and commit.
+  2. **Session 2 (Deep Wiki & Drift Registry Ingestion):** In a fresh session (`/session-start`), deeply ingest critical `wiki/entities/`, `wiki/concepts/`, and cross-file contracts in `docs/drift_registries/`.
+  3. **Session 3 (Codebase Audit & Prioritization):** Audit and categorize **Current Most Critical Issues**, **Low-Hanging Fruit**, and **Long-Term Robust Optimizations & Bug Fixes** (validated with `/goldfish-review`), filing the roadmap into `wiki/synthesis/`.
+  4. **Session 4+ (Feature Development):** Build features or execute roadmap items with compounding wiki and drift protection.
 - The reference guides in `docs/` are never edited — harness translation lives in the ingest prompt (see [[empirical-verification]] for why claims about external harnesses are flagged as unverified until tested).
 
 ## Plugin Packaging
